@@ -1,13 +1,12 @@
 import * as THREE from 'three';
 import { useEffect, useMemo } from 'react';
-import { useGLTF } from '@react-three/drei';
 import { SITE } from '../data/site';
-import { MODELS, modelUrl, prepareModel } from './models';
+import { MODELS, prepareModel, useModel } from './models';
 import { registerThermalTree } from './thermal';
 
 /** Instances the reactor-unit module at every unit position (one draw call per material). */
 function ReactorUnits() {
-  const gltf = useGLTF(modelUrl(MODELS.unit), false, false);
+  const gltf = useModel(MODELS.unit);
   const group = useMemo(() => {
     const g = new THREE.Group();
     g.name = 'reactor-units';
@@ -34,7 +33,7 @@ function ReactorUnits() {
 }
 
 function StaticModule({ name, cast = true }: { name: string; cast?: boolean }) {
-  const gltf = useGLTF(modelUrl(name), false, false);
+  const gltf = useModel(name);
   const root = useMemo(() => {
     prepareModel(gltf.scene, { cast, receive: true });
     return gltf.scene;

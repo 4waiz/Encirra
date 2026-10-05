@@ -1,8 +1,7 @@
 import * as THREE from 'three';
 import { useEffect, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { useGLTF } from '@react-three/drei';
-import { MODELS, modelUrl, prepareModel } from './models';
+import { MODELS, prepareModel, useModel } from './models';
 import { registerThermalTree } from './thermal';
 import { registerPickable } from './picking';
 import { engine } from '../simulation/engine';
@@ -40,7 +39,7 @@ function findMaterial(root: THREE.Object3D, name: string): THREE.MeshStandardMat
 }
 
 function SensorNodes() {
-  const gltf = useGLTF(modelUrl(MODELS.sensor), false, false);
+  const gltf = useModel(MODELS.sensor);
   const group = useMemo(() => {
     const g = new THREE.Group();
     g.name = 'sensor-nodes';
@@ -69,10 +68,10 @@ function SensorNodes() {
 }
 
 export function AssetLayer() {
-  const ugvGltf = useGLTF(modelUrl(MODELS.ugv), false, false);
-  const uavGltf = useGLTF(modelUrl(MODELS.uav), false, false);
-  const personGltf = useGLTF(modelUrl(MODELS.person), false, false);
-  const vehicleGltf = useGLTF(modelUrl(MODELS.vehicle), false, false);
+  const ugvGltf = useModel(MODELS.ugv);
+  const uavGltf = useModel(MODELS.uav);
+  const personGltf = useModel(MODELS.person);
+  const vehicleGltf = useModel(MODELS.vehicle);
 
   const ugv = useMemo(() => {
     const g = new THREE.Group();

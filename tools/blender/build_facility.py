@@ -902,6 +902,10 @@ def export(sc, objs, filename):
         filepath=path, export_format="GLB", use_selection=True, export_apply=True, export_yup=True,
         export_texcoords=False, export_normals=True, export_materials="EXPORT", export_vertex_color="NONE",
         export_cameras=False, export_lights=False, export_extras=False,
+        # Draco mesh compression; the app ships the decoder locally (public/draco/), no CDN
+        export_draco_mesh_compression_enable=True, export_draco_mesh_compression_level=7,
+        export_draco_position_quantization=14, export_draco_normal_quantization=10,
+        export_draco_generic_quantization=12,
     )
     tris = sum(sum(len(p.vertices) - 2 for p in ob.data.polygons) for ob in objs)
     return filename, round(os.path.getsize(path) / 1024.0, 1), tris

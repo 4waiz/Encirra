@@ -57,8 +57,10 @@ export function EventRow({ e, expanded, onToggle, isNew }: { e: SimEvent; expand
           <Icon size={12} strokeWidth={2} style={{ color }} aria-hidden />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[12px] font-medium leading-[15px] text-ink-1">{e.title}</span>
-          <span className="block truncate text-[11px] leading-[14px] text-ink-2">{e.detail}</span>
+          <span className={cx('block text-[12px] font-medium leading-[15px] text-ink-1', !expanded && 'truncate')}>{e.title}</span>
+          <span className={cx('block text-[11px] leading-[14px] text-ink-2', !expanded && 'truncate')} title={expanded ? undefined : e.detail}>
+            {e.detail}
+          </span>
           {e.confidence !== undefined && <span className="block text-[10.5px] leading-[13px] text-ink-3">Confidence {Math.round(e.confidence * 100)}%</span>}
         </span>
         {expanded ? <ChevronDown size={14} className="mt-1 text-ink-3" aria-hidden /> : <ChevronRight size={14} className="mt-1 text-ink-4" aria-hidden />}

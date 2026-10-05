@@ -83,7 +83,8 @@ export function ConfidenceChart({ obs }: { obs: Observation }) {
             </g>
           ))}
           <line x1={padL} x2={W - padR} y1={y(0.85)} y2={y(0.85)} stroke="#f2b33d" strokeOpacity="0.55" strokeDasharray="3 3" />
-          <text x={W - padR - 2} y={y(0.85) - 4} fontSize="9" textAnchor="end" fill="#a9b3be" className="font-cond">
+          {/* left end, under the line: confidence usually starts low, so the label stays clear of the series */}
+          <text x={padL + 5} y={y(0.85) + 11} fontSize="9" fill="#a9b3be" stroke="#121922" strokeWidth="3" paintOrder="stroke" className="font-cond">
             human validation threshold
           </text>
           {timeTicks.map((t) => (

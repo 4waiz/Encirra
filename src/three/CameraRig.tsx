@@ -104,8 +104,14 @@ export function setCameraPose(pos: [number, number, number], target: [number, nu
   void rig.controls?.setLookAt(pos[0], pos[1], pos[2], target[0], target[1], target[2], smooth);
 }
 
-// automation hook (scripted demos / screenshot capture)
-(window as unknown as { __ENCIRRA_CAMERA__: unknown }).__ENCIRRA_CAMERA__ = { focusOn, resetView, setCameraPose };
+export function getCameraPose() {
+  const c = rig.controls;
+  if (!c) return null;
+  return { pos: c.getPosition(new THREE.Vector3()).toArray(), target: c.getTarget(new THREE.Vector3()).toArray() };
+}
+
+// automation hook (scripted demos / screenshot capture / QA)
+(window as unknown as { __ENCIRRA_CAMERA__: unknown }).__ENCIRRA_CAMERA__ = { focusOn, resetView, setCameraPose, getCameraPose };
 
 export function CameraRig() {
   const main = useViewports((s) => s.main);

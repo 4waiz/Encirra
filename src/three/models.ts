@@ -16,8 +16,15 @@ export const MODELS = {
 
 export const modelUrl = (name: string) => `${import.meta.env.BASE_URL}models/${name}.glb`;
 
+/** The GLBs are Draco-compressed by the Blender build; the decoder is served from public/draco/. */
+export const DRACO_DECODER = `${import.meta.env.BASE_URL}draco/`;
+
+export function useModel(name: string) {
+  return useGLTF(modelUrl(name), DRACO_DECODER, false);
+}
+
 export function preloadModels() {
-  for (const name of Object.values(MODELS)) useGLTF.preload(modelUrl(name), false, false);
+  for (const name of Object.values(MODELS)) useGLTF.preload(modelUrl(name), DRACO_DECODER, false);
 }
 
 const ENV_BY_MATERIAL: Record<string, number> = {

@@ -17,6 +17,8 @@ import {
   Box,
   ChevronDown,
   ShieldCheck,
+  CornerDownLeft,
+  ArrowUpRight,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useSim } from '../../store/sim';
@@ -26,9 +28,10 @@ import { focusOn } from '../../three/CameraRig';
 import { Panel, Chip, Segmented, ProgressBar, StatusDot, EmptyState, cx, useNow } from '../../components/ui/primitives';
 import { ResponseKpisPanel } from '../../components/panels/ResponseKpisPanel';
 import { FeedViewport } from '../../components/feeds/FeedViewport';
-import { ASSET_ICON } from '../../components/twin/TwinMarkers';
-import { SEVERITY_LABEL, SEVERITY_TONE, TONE_HEX, INCIDENT_CATEGORY_LABEL } from '../../components/ui/tone';
-import { fmtClock, fmtDuration, fmtDistance } from '../../utils/format';
+import { ASSET_ICON, SENSOR_ICON, SENSOR_COLOR } from '../../components/twin/TwinMarkers';
+import { SEVERITY_LABEL, SEVERITY_TONE, TONE_HEX, INCIDENT_CATEGORY_LABEL, SENSOR_STATUS_LABEL, SENSOR_STATUS_TONE } from '../../components/ui/tone';
+import { SENSOR_BY_ID } from '../../simulation/sensors';
+import { fmtClock, fmtDuration, fmtDistance, fmtNum } from '../../utils/format';
 import type { AssetId, Incident, Severity, TimelineKind } from '../../types';
 
 const TL_ICON: Record<TimelineKind, LucideIcon> = {
@@ -172,6 +175,82 @@ function AssignMenu({ inc }: { inc: Incident }) {
   );
 }
 
+/** Operator log: free-text notes appended to the incident timeline. */
+function NoteInput({ inc }: { inc: Incident }) {
+  const [text, setText] = useState('');
+  const resolved = inc.status === 'resolved';
+  return (
+    <form
+      className="flex shrink-0 items-center gap-2 border-t border-line px-3 py-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (engine.addNote(inc.id, text)) setText('');
+      }}
+    >
+      <UserRound size={13} className="shrink-0 text-ink-3" aria-hidden />
+      <input
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        maxLength={280}
+        disabled={resolved}
+        placeholder={resolved ? 'Incident resolved · log closed' : 'Add an operator note to the log…'}
+        aria-label="Operator note"
+        className="h-[28px] min-w-0 flex-1 rounded-[5px] border border-line bg-bg-1 px-2 text-[12px] text-ink-1 outline-none placeholder:text-ink-4 focus:border-cyan/60 disabled:opacity-60"
+      />
+      <button type="submit" className="ctl h-[28px]" disabled={resolved || !text.trim()}>
+        Add <CornerDownLeft size={12} aria-hidden />
+      </button>
+    </form>
+  );
+}
+
+/** Sensors linked to the incident, with live readings; a row opens the sensor in the 3D twin. */
+function LinkedSources({ inc }: { inc: Incident }) {
+  const sensors = useSim((s) => s.sensors);
+  if (!inc.sensors.length) return null;
+  return (
+    <div className="shrink-0 border-t border-line px-2 pb-2 pt-2.5">
+      <div className="micro mb-1 px-1.5">Linked sources</div>
+      <ul>
+        {inc.sensors.map((id) => {
+          const def = SENSOR_BY_ID[id];
+          if (!def) return null;
+          const st = sensors[id];
+          const status = st?.status ?? 'online';
+          const tone = SENSOR_STATUS_TONE[status];
+          const Icon = SENSOR_ICON[def.kind];
+          return (
+            <li key={id}>
+              <button
+                type="button"
+                className="group flex w-full items-center gap-2 rounded-[5px] px-1.5 py-[5px] text-left hover:bg-surface-2"
+                title="Show in 3D twin"
+                onClick={() => {
+                  const ui = useUI.getState();
+                  ui.select({ kind: 'sensor', id });
+                  ui.setScreen('twin');
+                  focusOn({ kind: 'sensor', id });
+                }}
+              >
+                <Icon size={13} style={{ color: SENSOR_COLOR[def.kind] }} aria-hidden />
+                <span className="mono text-[11.5px] text-ink-1">{id}</span>
+                <span className="min-w-0 truncate text-[10.5px] text-ink-3">{def.name}</span>
+                <span className="num ml-auto shrink-0 text-[11.5px] text-ink-1">
+                  {fmtNum(st?.value ?? null, def.kind === 'rad' ? 3 : def.kind === 'chem' ? 2 : 0)} <span className="text-ink-3">{def.unit}</span>
+                </span>
+                <span className="w-[62px] shrink-0 text-right text-[10.5px]" style={{ color: TONE_HEX[tone] }}>
+                  {SENSOR_STATUS_LABEL[status]}
+                </span>
+                <ArrowUpRight size={12} className="shrink-0 text-ink-4 group-hover:text-ink-2" aria-hidden />
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 function IncidentDetail({ inc }: { inc: Incident }) {
   const now = useNow(1000);
   const [confirm, setConfirm] = useState(false);
@@ -295,28 +374,31 @@ function IncidentDetail({ inc }: { inc: Incident }) {
 
       <div className="grid min-h-0 flex-1 gap-2" style={{ gridTemplateColumns: 'minmax(0,1.35fr) minmax(0,1fr)' }}>
         <Panel title="Incident timeline" icon={Activity} className="min-h-0" subtitle={`${inc.timeline.length} entries`}>
-          <ol ref={listRef} className="absolute inset-0 overflow-y-auto px-3 py-2">
-            {inc.timeline.map((e, k) => {
-              const Icon = TL_ICON[e.kind];
-              return (
-                <li key={e.id} className="relative flex gap-3 pb-3 animate-fade-in">
-                  {k < inc.timeline.length - 1 && <span className="absolute left-[13px] top-[28px] h-[calc(100%-26px)] w-px bg-line-strong" aria-hidden />}
-                  <span className="relative z-10 flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full border" style={{ borderColor: `${TL_COLOR[e.kind]}66`, background: `${TL_COLOR[e.kind]}14` }}>
-                    <Icon size={13} style={{ color: TL_COLOR[e.kind] }} aria-hidden />
-                  </span>
-                  <div className="min-w-0 flex-1 pt-[2px]">
-                    <div className="flex items-baseline gap-2">
-                      <span className="mono text-[11.5px] text-ink-1">{fmtClock(e.t)}</span>
-                      <span className="mono text-[10px] text-ink-3">+{fmtDuration(Math.max(0, (e.t - inc.createdAt) / 1000))}</span>
-                      <span className="ml-auto text-[10.5px] text-ink-3">{e.actor}</span>
+          <div className="absolute inset-0 flex flex-col">
+            <ol ref={listRef} className="min-h-0 flex-1 overflow-y-auto px-3 py-2">
+              {inc.timeline.map((e, k) => {
+                const Icon = TL_ICON[e.kind];
+                return (
+                  <li key={e.id} className="relative flex gap-3 pb-3 animate-fade-in">
+                    {k < inc.timeline.length - 1 && <span className="absolute left-[13px] top-[28px] h-[calc(100%-26px)] w-px bg-line-strong" aria-hidden />}
+                    <span className="relative z-10 flex h-[27px] w-[27px] shrink-0 items-center justify-center rounded-full border" style={{ borderColor: `${TL_COLOR[e.kind]}66`, background: `${TL_COLOR[e.kind]}14` }}>
+                      <Icon size={13} style={{ color: TL_COLOR[e.kind] }} aria-hidden />
+                    </span>
+                    <div className="min-w-0 flex-1 pt-[2px]">
+                      <div className="flex items-baseline gap-2">
+                        <span className="mono text-[11.5px] text-ink-1">{fmtClock(e.t)}</span>
+                        <span className="mono text-[10px] text-ink-3">+{fmtDuration(Math.max(0, (e.t - inc.createdAt) / 1000))}</span>
+                        <span className="ml-auto text-[10.5px] text-ink-3">{e.actor}</span>
+                      </div>
+                      <div className="text-[12.5px] font-medium leading-[16px] text-ink-1">{e.text}</div>
+                      {e.detail && <div className="text-[11px] leading-[14px] text-ink-2">{e.detail}</div>}
                     </div>
-                    <div className="text-[12.5px] font-medium leading-[16px] text-ink-1">{e.text}</div>
-                    {e.detail && <div className="text-[11px] leading-[14px] text-ink-2">{e.detail}</div>}
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
+                  </li>
+                );
+              })}
+            </ol>
+            <NoteInput inc={inc} />
+          </div>
         </Panel>
         <Panel title="Response checklist" icon={ClipboardList} className="min-h-0" subtitle={`${done}/${inc.checklist.length} complete`}>
           <div className="absolute inset-0 flex flex-col">
@@ -344,6 +426,7 @@ function IncidentDetail({ inc }: { inc: Incident }) {
                 </li>
               ))}
             </ul>
+            <LinkedSources inc={inc} />
           </div>
         </Panel>
       </div>

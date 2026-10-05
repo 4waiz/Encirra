@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BrainCircuit,
   Crosshair,
@@ -115,53 +115,77 @@ function ObservationList({ list, selected }: { list: Observation[]; selected: Ob
   );
 }
 
-/** Sources → fusion → observation, link width = evidence weight. */
+/** Sources → fusion → observation, link width = evidence weight. Laid out to the panel's own size. */
 function CorrelationGraph({ obs }: { obs: Observation }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ w: 0, h: 0 });
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => setSize({ w: e.contentRect.width, h: e.contentRect.height }));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const nodes = obs.evidence.slice(-5);
-  const W = 520;
-  const H = 168;
-  const fx = 300;
-  const fy = H / 2;
-  const ox = 470;
+  const { w: W, h: H } = size;
+  const nodeW = Math.round(Math.min(190, Math.max(132, W * 0.34)));
+  const nodeH = 28;
+  const r = 26;
+  const obsW = 104;
+  const ox = W - obsW - 4;
+  const fx = nodeW + 6 + (ox - nodeW - 6) * 0.5;
+  const fy = (H - 14) / 2;
+  const top = 8 + nodeH / 2;
+  const span = Math.max(0, H - 22 - nodeH);
+  const ny = (i: number) => (nodes.length === 1 ? fy : top + (i * span) / (nodes.length - 1));
+  const maxChars = Math.floor((nodeW - 52) / 6.6);
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="h-full w-full" role="img" aria-label="Cross-source correlation">
-      {nodes.map((e, i) => {
-        const y = 18 + (i * (H - 36)) / Math.max(1, nodes.length - 1 || 1);
-        const yy = nodes.length === 1 ? fy : y;
-        return (
-          <g key={e.id}>
-            <path d={`M150,${yy} C220,${yy} 230,${fy} ${fx - 22},${fy}`} fill="none" stroke="#b4a8ff" strokeOpacity={0.25 + e.weight * 0.6} strokeWidth={1 + e.weight * 4.5} />
-            <rect x="6" y={yy - 13} width="144" height="26" rx="5" fill="#151d27" stroke="rgb(148 163 184 / 0.22)" />
-            <text x="14" y={yy + 4} fontSize="10.5" fill="#ece7df" className="mono">
-              {e.source.length > 15 ? `${e.source.slice(0, 14)}…` : e.source}
-            </text>
-            <text x="143" y={yy + 4} fontSize="9.5" fill="#a9b3be" className="num" textAnchor="end">
-              {Math.round(e.weight * 100)}%
-            </text>
-          </g>
-        );
-      })}
-      <circle cx={fx} cy={fy} r="22" fill="rgb(180 168 255 / 0.12)" stroke="#b4a8ff" strokeWidth="1.5" />
-      <text x={fx} y={fy - 2} fontSize="9.5" fill="#ece7df" textAnchor="middle" className="font-cond" fontWeight="600">
-        FUSION
-      </text>
-      <text x={fx} y={fy + 10} fontSize="9" fill="#a9b3be" textAnchor="middle" className="num">
-        {Math.round(obs.confidence * 100)}%
-      </text>
-      <path d={`M${fx + 22},${fy} L${ox - 30},${fy}`} stroke="#b4a8ff" strokeWidth={2 + obs.confidence * 3} strokeOpacity="0.8" markerEnd="url(#arrow)" />
-      <defs>
-        <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M0,0 L10,5 L0,10 z" fill="#b4a8ff" />
-        </marker>
-      </defs>
-      <rect x={ox - 28} y={fy - 20} width="76" height="40" rx="6" fill="rgb(255 138 61 / 0.1)" stroke={TONE_HEX[OBS_STATUS[obs.status].tone]} />
-      <text x={ox + 10} y={fy - 3} fontSize="9.5" fill="#ece7df" textAnchor="middle" className="font-cond" fontWeight="600">
-        OBSERVATION
-      </text>
-      <text x={ox + 10} y={fy + 10} fontSize="9" fill="#a9b3be" textAnchor="middle" className="mono">
-        {obs.id}
-      </text>
-    </svg>
+    <div ref={ref} className="relative h-full w-full">
+      {W > 0 && H > 0 && (
+        <svg width={W} height={H} role="img" aria-label={`Cross-source correlation: ${nodes.map((e) => `${e.source} ${Math.round(e.weight * 100)}%`).join(', ')}`}>
+          <defs>
+            <marker id="corr-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#b4a8ff" />
+            </marker>
+          </defs>
+          {nodes.map((e, i) => {
+            const y = ny(i);
+            const x0 = nodeW + 6;
+            const mx = (x0 + fx - r) / 2;
+            return (
+              <g key={e.id}>
+                <path d={`M${x0},${y} C${mx},${y} ${mx},${fy} ${fx - r},${fy}`} fill="none" stroke="#b4a8ff" strokeOpacity={0.25 + e.weight * 0.6} strokeWidth={1 + e.weight * 5} />
+                <rect x="6" y={y - nodeH / 2} width={nodeW} height={nodeH} rx="5" fill="#151d27" stroke="rgb(148 163 184 / 0.24)" />
+                <text x="15" y={y + 4} fontSize="11" fill="#ece7df" className="mono">
+                  {e.source.length > maxChars ? `${e.source.slice(0, maxChars - 1)}…` : e.source}
+                </text>
+                <text x={nodeW - 3} y={y + 4} fontSize="10.5" fill="#a9b3be" className="num" textAnchor="end">
+                  {Math.round(e.weight * 100)}%
+                </text>
+              </g>
+            );
+          })}
+          <circle cx={fx} cy={fy} r={r} fill="rgb(180 168 255 / 0.12)" stroke="#b4a8ff" strokeWidth="1.5" />
+          <text x={fx} y={fy - 2} fontSize="10" fill="#ece7df" textAnchor="middle" className="font-cond" fontWeight="600">
+            FUSION
+          </text>
+          <text x={fx} y={fy + 11} fontSize="10" fill="#a9b3be" textAnchor="middle" className="num">
+            {Math.round(obs.confidence * 100)}%
+          </text>
+          <path d={`M${fx + r},${fy} L${ox - 4},${fy}`} stroke="#b4a8ff" strokeWidth={2 + obs.confidence * 3} strokeOpacity="0.8" markerEnd="url(#corr-arrow)" />
+          <rect x={ox} y={fy - 23} width={obsW} height="46" rx="6" fill="rgb(255 138 61 / 0.1)" stroke={TONE_HEX[OBS_STATUS[obs.status].tone]} />
+          <text x={ox + obsW / 2} y={fy - 3} fontSize="10" fill="#ece7df" textAnchor="middle" className="font-cond" fontWeight="600">
+            OBSERVATION
+          </text>
+          <text x={ox + obsW / 2} y={fy + 12} fontSize="10" fill="#a9b3be" textAnchor="middle" className="mono">
+            {obs.id}
+          </text>
+          <text x="6" y={H - 2} fontSize="9.5" fill="#75818e" className="font-cond">
+            Line width = evidence weight
+          </text>
+        </svg>
+      )}
+    </div>
   );
 }
 
@@ -345,8 +369,7 @@ function Detail({ obs }: { obs: Observation }) {
             <table className="w-full border-collapse text-left">
               <thead className="sticky top-0 bg-surface-1">
                 <tr className="micro">
-                  <th className="px-3 py-1.5 font-normal">Time</th>
-                  <th className="px-2 py-1.5 font-normal">Source</th>
+                  <th className="px-3 py-1.5 font-normal">Source · time</th>
                   <th className="px-2 py-1.5 font-normal">Finding</th>
                   <th className="px-3 py-1.5 text-right font-normal">Weight</th>
                 </tr>
@@ -356,12 +379,12 @@ function Detail({ obs }: { obs: Observation }) {
                   const Icon = EVIDENCE_ICON[e.sourceKind];
                   return (
                     <tr key={e.id} className="border-t border-line align-top">
-                      <td className="mono whitespace-nowrap px-3 py-1.5 text-[10.5px] text-ink-3">{fmtClock(e.t)}</td>
-                      <td className="whitespace-nowrap px-2 py-1.5">
+                      <td className="whitespace-nowrap px-3 py-1.5">
                         <span className="flex items-center gap-1.5 text-[11px] text-ink-1">
                           <Icon size={12} className="text-ink-3" aria-hidden />
                           {e.source}
                         </span>
+                        <span className="mono block pl-[18px] text-[10px] text-ink-3">{fmtClock(e.t)}</span>
                       </td>
                       <td className="px-2 py-1.5 text-[11px] leading-[14px] text-ink-2">
                         {e.summary}
@@ -369,7 +392,7 @@ function Detail({ obs }: { obs: Observation }) {
                       </td>
                       <td className="px-3 py-1.5">
                         <div className="flex items-center justify-end gap-1.5">
-                          <div className="w-[44px]">
+                          <div className="w-[36px]">
                             <ProgressBar value={e.weight} color="#b4a8ff" height={3} />
                           </div>
                           <span className="num w-[28px] text-right text-[10.5px] text-ink-2">{Math.round(e.weight * 100)}</span>
