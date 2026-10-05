@@ -5,7 +5,7 @@ import { useUI, type LayerId } from '../../store/ui';
 import { useSim } from '../../store/sim';
 import { frameBus } from '../../three/frameBus';
 import { focusOn, resetView, zoomBy } from '../../three/CameraRig';
-import { IconButton, cx } from '../ui/primitives';
+import { IconButton, cx, Kbd } from '../ui/primitives';
 import { compassLabel } from '../../utils/math';
 import { CATEGORY_HEX } from '../ui/tone';
 import { fmtClock } from '../../utils/format';
@@ -215,6 +215,16 @@ export function TwinHud({
       </div>
       <div className="pointer-events-none absolute z-10 flex items-end gap-2" style={{ left: leftInset, bottom: bottomInset }}>
         <span className="rounded-[4px] border border-line bg-surface-1/80 px-2 py-[3px] font-cond text-[10px] uppercase tracking-[0.12em] text-ink-3">Generalized site layout</span>
+        <span className="flex items-center gap-1 rounded-[4px] border border-line bg-surface-1/80 px-1.5 py-[2px] text-[10px] text-ink-3 max-[1500px]:hidden" title="Keyboard navigation: W A S D move, Q / E height, Shift faster">
+          <Kbd>W</Kbd>
+          <Kbd>A</Kbd>
+          <Kbd>S</Kbd>
+          <Kbd>D</Kbd>
+          <span className="ml-0.5">move</span>
+          <Kbd>Q</Kbd>
+          <Kbd>E</Kbd>
+          <span>height</span>
+        </span>
       </div>
       {showLegend && (
         <div className="pointer-events-none absolute z-10" style={{ right: rightInset, bottom: bottomInset }}>

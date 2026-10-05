@@ -39,8 +39,29 @@ export function getFeedCamera(key: string): THREE.PerspectiveCamera {
 const tmpDir = new THREE.Vector3();
 const up = new THREE.Vector3(0, 1, 0);
 
-function aimFixed(cam: THREE.PerspectiveCamera, def: FixedCam, yawDeg: number, pitchDeg: number, zoom: number) {
+/**
+ * Virtual repositioning of the fixed cameras (WASD in Live Feeds). The physical mount stays where it
+ * is; the operator gets a movable "virtual view" that starts at the mount and can be reset to it.
+ */
+export const feedOffsets: Record<'CAM-01' | 'CAM-02', THREE.Vector3> = {
+  'CAM-01': new THREE.Vector3(),
+  'CAM-02': new THREE.Vector3(),
+};
+
+/** Current heading (radians, three.js convention) of a fixed camera including its PTZ pan. */
+export function fixedCamYaw(source: 'CAM-01' | 'CAM-02', yawDeg: number) {
+  const def = FIXED_CAMS[source];
+  tmpDir.copy(def.target).sub(def.pos).normalize();
+  return Math.atan2(tmpDir.x, tmpDir.z) + yawDeg * DEG;
+}
+
+export function resetFeedOffset(source: 'CAM-01' | 'CAM-02') {
+  feedOffsets[source].set(0, 0, 0);
+}
+
+function aimFixed(cam: THREE.PerspectiveCamera, def: FixedCam, yawDeg: number, pitchDeg: number, zoom: number, offset?: THREE.Vector3) {
   cam.position.copy(def.pos);
+  if (offset) cam.position.add(offset);
   tmpDir.copy(def.target).sub(def.pos).normalize();
   const yaw = Math.atan2(tmpDir.x, tmpDir.z) + yawDeg * DEG;
   const pitch = Math.asin(Math.max(-0.99, Math.min(0.99, tmpDir.y))) + pitchDeg * DEG;
@@ -57,7 +78,7 @@ function aimFixed(cam: THREE.PerspectiveCamera, def: FixedCam, yawDeg: number, p
 export function updateSourceCamera(source: FeedSource, t: number, cam: THREE.PerspectiveCamera) {
   if (source === 'CAM-01' || source === 'CAM-02') {
     const p = useUI.getState().ptz[source];
-    aimFixed(cam, FIXED_CAMS[source], p.yaw, p.pitch, p.zoom);
+    aimFixed(cam, FIXED_CAMS[source], p.yaw, p.pitch, p.zoom, feedOffsets[source]);
     return;
   }
   if (source === 'UGV-01') {

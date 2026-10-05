@@ -202,6 +202,8 @@ function DisplayTab() {
         </div>
         {[
           ['Command palette', ['Ctrl', 'K']],
+          ['Move twin / feed camera', ['W', 'A', 'S', 'D']],
+          ['Camera height · faster', ['Q', 'E', 'Shift']],
           ['Switch screen', ['Alt', '1–5']],
           ['Close dialog / clear selection', ['Esc']],
         ].map(([l, keys]) => (

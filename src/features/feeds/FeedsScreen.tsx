@@ -26,11 +26,11 @@ import { useSim } from '../../store/sim';
 import { useUI, FEED_SOURCES, type FeedMode, type FeedSource } from '../../store/ui';
 import { FeedViewport } from '../../components/feeds/FeedViewport';
 import { FeedTile, FeedStamp, LiveChip } from '../../components/feeds/FeedTile';
-import { FEED_META } from '../../three/feedCameras';
+import { FEED_META, resetFeedOffset } from '../../three/feedCameras';
 import { requestSnapshot } from '../../three/RenderLoop';
 import { focusOn } from '../../three/CameraRig';
 import { heatToCelsius } from '../../three/thermal';
-import { Panel, Segmented, Toggle, IconButton, cx, StatusDot } from '../../components/ui/primitives';
+import { Panel, Segmented, Toggle, IconButton, cx, StatusDot, Kbd } from '../../components/ui/primitives';
 import type { Detection } from '../../three/detections';
 import { fmtClock } from '../../utils/format';
 
@@ -72,12 +72,14 @@ function MainFeed({ source, onDetections }: { source: FeedSource; onDetections: 
   const overlays = useUI((s) => s.feedOverlays);
   const feed = useSim((s) => s.feeds[source]);
   const ptz = useUI((s) => (source === 'CAM-01' || source === 'CAM-02' ? s.ptz[source] : null));
+  const moved = useUI((s) => (source === 'CAM-01' || source === 'CAM-02' ? s.feedMoved[source] : 0));
   const pb = useUI((s) => s.playback);
   const stale = !!feed?.stale;
   const meta = FEED_META[source];
   const drag = useRef<{ x: number; y: number } | null>(null);
   const inputRef = useRef<HTMLDivElement>(null);
   const [fade, setFade] = useState(false);
+  const fixed = source === 'CAM-01' || source === 'CAM-02';
 
   // brief crossfade when the source changes
   useEffect(() => {
@@ -88,7 +90,7 @@ function MainFeed({ source, onDetections }: { source: FeedSource; onDetections: 
 
   useEffect(() => {
     const el = inputRef.current;
-    if (!el || !ptz) return;
+    if (!el || !fixed) return;
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       const cur = useUI.getState().ptz[source as 'CAM-01' | 'CAM-02'];
@@ -96,7 +98,7 @@ function MainFeed({ source, onDetections }: { source: FeedSource; onDetections: 
     };
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => el.removeEventListener('wheel', onWheel);
-  }, [source, ptz]);
+  }, [source, fixed]);
 
   return (
     <div className="relative flex h-full min-h-0 flex-col">
@@ -166,6 +168,11 @@ function MainFeed({ source, onDetections }: { source: FeedSource; onDetections: 
               PAN {ptz.yaw.toFixed(1)}° · TILT {ptz.pitch.toFixed(1)}° · {ptz.zoom.toFixed(1)}×
             </span>
           )}
+          {moved > 0.5 && (
+            <span className="rounded-[3px] bg-[rgb(60_200_220/0.18)] px-1.5 py-[1px] normal-case tracking-normal text-cyan">
+              Virtual view · {Math.round(moved)} m from mount
+            </span>
+          )}
         </div>
         {stale && (
           <div className="pointer-events-none absolute inset-0 z-[4] flex items-center justify-center">
@@ -208,14 +215,38 @@ function SourceList({ main }: { main: FeedSource }) {
   );
 }
 
+function MoveHint() {
+  return (
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10.5px] text-ink-3">
+      <span className="flex items-center gap-0.5">
+        <Kbd>W</Kbd>
+        <Kbd>A</Kbd>
+        <Kbd>S</Kbd>
+        <Kbd>D</Kbd>
+      </span>
+      move
+      <span className="flex items-center gap-0.5">
+        <Kbd>Q</Kbd>
+        <Kbd>E</Kbd>
+      </span>
+      height
+      <Kbd>Shift</Kbd>
+      faster
+    </div>
+  );
+}
+
 function Ptz({ source }: { source: FeedSource }) {
   const ptz = useUI((s) => (source === 'CAM-01' || source === 'CAM-02' ? s.ptz[source] : null));
+  const moved = useUI((s) => (source === 'CAM-01' || source === 'CAM-02' ? s.feedMoved[source] : 0));
   const setPtz = useUI((s) => s.setPtz);
   if (!ptz) {
     const asset = source as 'UGV-01' | 'UAV-01';
     return (
       <div className="flex flex-col gap-2">
-        <p className="text-[11px] leading-[15px] text-ink-3">Mounted camera — orientation follows {asset}'s tasking.</p>
+        <p className="text-[11px] leading-[15px] text-ink-3">
+          Mounted camera — orientation follows {asset}'s tasking. Select CAM-01 or CAM-02 to move a virtual view with W A S D.
+        </p>
         <button
           type="button"
           className="ctl"
@@ -232,35 +263,50 @@ function Ptz({ source }: { source: FeedSource }) {
   }
   const cam = source as 'CAM-01' | 'CAM-02';
   const nudge = (dy: number, dp: number) => setPtz(cam, { yaw: Math.max(-70, Math.min(70, ptz.yaw + dy)), pitch: Math.max(-25, Math.min(20, ptz.pitch + dp)) });
+  const resetAll = () => {
+    setPtz(cam, { yaw: 0, pitch: 0, zoom: 1 });
+    resetFeedOffset(cam);
+    useUI.getState().setFeedMoved(cam, 0);
+  };
   return (
-    <div className="flex items-center gap-4">
-      <div className="grid grid-cols-3 grid-rows-3 gap-1">
-        <span />
-        <IconButton icon={ChevronUp} label="Tilt up" onClick={() => nudge(0, 2)} size={26} />
-        <span />
-        <IconButton icon={ChevronLeft} label="Pan left" onClick={() => nudge(4, 0)} size={26} />
-        <IconButton icon={RotateCcw} label="Reset PTZ" onClick={() => setPtz(cam, { yaw: 0, pitch: 0, zoom: 1 })} size={26} />
-        <IconButton icon={ChevronRight} label="Pan right" onClick={() => nudge(-4, 0)} size={26} />
-        <span />
-        <IconButton icon={ChevronDown} label="Tilt down" onClick={() => nudge(0, -2)} size={26} />
-        <span />
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <div className="flex items-baseline justify-between">
-          <span className="micro">Zoom</span>
-          <span className="num text-[12px] text-ink-1">{ptz.zoom.toFixed(1)}×</span>
+    <div className="flex flex-col gap-2.5">
+      <div className="flex items-center gap-4">
+        <div className="grid grid-cols-3 grid-rows-3 gap-1">
+          <span />
+          <IconButton icon={ChevronUp} label="Tilt up" onClick={() => nudge(0, 2)} size={26} />
+          <span />
+          <IconButton icon={ChevronLeft} label="Pan left" onClick={() => nudge(4, 0)} size={26} />
+          <IconButton icon={RotateCcw} label="Reset PTZ and position" onClick={resetAll} size={26} />
+          <IconButton icon={ChevronRight} label="Pan right" onClick={() => nudge(-4, 0)} size={26} />
+          <span />
+          <IconButton icon={ChevronDown} label="Tilt down" onClick={() => nudge(0, -2)} size={26} />
+          <span />
         </div>
-        <input
-          type="range"
-          min={1}
-          max={4}
-          step={0.1}
-          value={ptz.zoom}
-          onChange={(e) => setPtz(cam, { zoom: Number(e.target.value) })}
-          className="w-full accent-[var(--color-cyan)]"
-          aria-label="Zoom"
-        />
-        <span className="text-[10.5px] text-ink-3">Drag the image to pan · scroll to zoom</span>
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <div className="flex items-baseline justify-between">
+            <span className="micro">Zoom</span>
+            <span className="num text-[12px] text-ink-1">{ptz.zoom.toFixed(1)}×</span>
+          </div>
+          <input
+            type="range"
+            min={1}
+            max={4}
+            step={0.1}
+            value={ptz.zoom}
+            onChange={(e) => setPtz(cam, { zoom: Number(e.target.value) })}
+            className="w-full accent-[var(--color-cyan)]"
+            aria-label="Zoom"
+          />
+          <span className="text-[10.5px] text-ink-3">Drag the image to look · scroll to zoom</span>
+        </div>
+      </div>
+      <div className="flex items-center justify-between gap-2 rounded-[6px] border border-line bg-surface-2/50 px-2.5 py-2">
+        <MoveHint />
+        {moved > 0.5 && (
+          <button type="button" className="ctl h-[22px] shrink-0" onClick={resetAll}>
+            Return to mount
+          </button>
+        )}
       </div>
     </div>
   );

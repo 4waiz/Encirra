@@ -10,6 +10,9 @@ import { zoneById } from '../data/site';
 import { assetVisual } from './AssetLayer';
 import type { AssetId, FocusTarget } from '../types';
 import { RESPONSE_VEHICLE_POSE } from '../simulation/assets';
+import { installMovementKeys, movementAxes, clearMovementKeys } from './movementKeys';
+import { FIXED_CAMS, feedOffsets, fixedCamYaw } from './feedCameras';
+import { clamp } from '../utils/math';
 
 /** Initial oblique aerial view from over the sea, looking south-east across the campus. */
 export const HOME = { pos: new THREE.Vector3(-1080, 560, -1230), target: new THREE.Vector3(30, 0, -40) };
@@ -108,7 +111,67 @@ export function CameraRig() {
     };
   }, []);
 
+  // ---- WASD navigation: twin camera on Overview / 3D Twin, virtual view of fixed cameras in Live Feeds
+  useEffect(
+    () =>
+      installMovementKeys(() => {
+        const ui = useUI.getState();
+        if (ui.paletteOpen || ui.settingsOpen) return false;
+        if (ui.screen === 'overview' || ui.screen === 'twin') return true;
+        return ui.screen === 'feeds' && (ui.feedMain === 'CAM-01' || ui.feedMain === 'CAM-02');
+      }),
+    [],
+  );
+
   const tmpTarget = useRef(new THREE.Vector3());
+  const move = useRef({ fwd: new THREE.Vector3(), right: new THREE.Vector3(), lastStore: 0 });
+  useFrame((_, delta) => {
+    const ax = movementAxes();
+    if (!ax.active) return;
+    const ui = useUI.getState();
+    if (ui.paletteOpen || ui.settingsOpen) {
+      clearMovementKeys();
+      return;
+    }
+    const dt = Math.min(delta, 0.05);
+    if (ui.screen === 'overview' || ui.screen === 'twin') {
+      const c = rig.controls;
+      if (!c) return;
+      if (ui.follow) ui.setFollow(null);
+      // speed scales with zoom so close inspection stays precise and site-wide moves stay quick
+      const speed = clamp(c.distance * 0.7, 18, 700) * (ax.fast ? 3 : 1) * dt;
+      if (ax.fwd) void c.forward(ax.fwd * speed, false);
+      if (ax.right) void c.truck(ax.right * speed, 0, false);
+      if (ax.up) void c.elevate(ax.up * speed * 0.6, false);
+      const t = c.getTarget(tmpTarget.current);
+      const x = clamp(t.x, -3500, 3500);
+      const y = clamp(t.y, 0, 600);
+      const z = clamp(t.z, -3500, 3500);
+      if (x !== t.x || y !== t.y || z !== t.z) void c.moveTo(x, y, z, false);
+      return;
+    }
+    if (ui.screen === 'feeds' && (ui.feedMain === 'CAM-01' || ui.feedMain === 'CAM-02')) {
+      const cam = ui.feedMain;
+      const off = feedOffsets[cam];
+      const base = FIXED_CAMS[cam].pos;
+      const yaw = fixedCamYaw(cam, ui.ptz[cam].yaw);
+      const m = move.current;
+      m.fwd.set(Math.sin(yaw), 0, Math.cos(yaw));
+      m.right.set(-Math.cos(yaw), 0, Math.sin(yaw));
+      const speed = (ax.fast ? 36 : 12) * dt;
+      off.addScaledVector(m.fwd, ax.fwd * speed).addScaledVector(m.right, ax.right * speed);
+      off.y += ax.up * speed * 0.6;
+      off.x = clamp(off.x, -2500 - base.x, 2500 - base.x);
+      off.y = clamp(off.y, 1.7 - base.y, 400 - base.y);
+      off.z = clamp(off.z, -2500 - base.z, 2500 - base.z);
+      const now = performance.now();
+      if (now - m.lastStore > 200) {
+        m.lastStore = now;
+        ui.setFeedMoved(cam, off.length());
+      }
+    }
+  }, 0.55);
+
   useFrame(() => {
     const c = rig.controls;
     const follow = useUI.getState().follow;

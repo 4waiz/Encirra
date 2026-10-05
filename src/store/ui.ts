@@ -44,6 +44,8 @@ interface UIState {
   feedModes: Record<FeedSource, FeedMode>;
   feedOverlays: boolean;
   ptz: Record<'CAM-01' | 'CAM-02', Ptz>;
+  /** distance (m) the virtual view of each fixed camera has been moved from its mount */
+  feedMoved: Record<'CAM-01' | 'CAM-02', number>;
   telemetry: { paused: boolean; pausedAt: number | null; range: 5 | 15 | 30; series: { chem: boolean; bio: boolean; rad: boolean } };
   eventFilter: EventFilter;
   playback: PlaybackState;
@@ -67,6 +69,7 @@ interface UIState {
   setFeedMode: (f: FeedSource, m: FeedMode) => void;
   toggleFeedOverlays: () => void;
   setPtz: (f: 'CAM-01' | 'CAM-02', p: Partial<Ptz>) => void;
+  setFeedMoved: (f: 'CAM-01' | 'CAM-02', meters: number) => void;
   setTelemetry: (p: Partial<UIState['telemetry']>) => void;
   setEventFilter: (f: EventFilter) => void;
   setPlayback: (p: Partial<PlaybackState>) => void;
@@ -101,6 +104,7 @@ export const useUI = create<UIState>()(
       feedModes: { 'CAM-01': 'visible', 'CAM-02': 'visible', 'UGV-01': 'thermal', 'UAV-01': 'visible' },
       feedOverlays: true,
       ptz: { 'CAM-01': { yaw: 0, pitch: 0, zoom: 1 }, 'CAM-02': { yaw: 0, pitch: 0, zoom: 1 } },
+      feedMoved: { 'CAM-01': 0, 'CAM-02': 0 },
       telemetry: { paused: false, pausedAt: null, range: 15, series: { chem: true, bio: true, rad: true } },
       eventFilter: 'all',
       playback: { mode: 'live', cursor: Date.now(), playing: false, speed: 1 },
@@ -132,6 +136,9 @@ export const useUI = create<UIState>()(
       setFeedMode: (f, m) => set((s) => ({ feedModes: { ...s.feedModes, [f]: m } })),
       toggleFeedOverlays: () => set((s) => ({ feedOverlays: !s.feedOverlays })),
       setPtz: (f, p) => set((s) => ({ ptz: { ...s.ptz, [f]: { ...s.ptz[f], ...p } } })),
+      setFeedMoved: (f, meters) => {
+        if (Math.round(get().feedMoved[f]) !== Math.round(meters)) set((s) => ({ feedMoved: { ...s.feedMoved, [f]: meters } }));
+      },
       setTelemetry: (p) => set((s) => ({ telemetry: { ...s.telemetry, ...p } })),
       setEventFilter: (eventFilter) => set({ eventFilter }),
       setPlayback: (p) => set((s) => ({ playback: { ...s.playback, ...p } })),
