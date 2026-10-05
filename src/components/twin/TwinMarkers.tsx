@@ -216,18 +216,30 @@ export function TwinMarkers({ compact }: { compact?: boolean }) {
         const isZone = key.startsWith('zone:');
         if (isUnit && p.distance > 3200) p.visible = false;
         if (key === 'callout') {
-          // open toward the nearer edge, away from the middle of the view where the subject usually
-          // is; hysteresis keeps it from flipping while the camera moves; fall back when it won't fit
-          const mid = f.rect.width / 2;
-          let side = el.dataset.side ?? 'right';
-          if (p.x < mid - 40) side = 'left';
-          else if (p.x > mid + 40) side = 'right';
-          if (side === 'left' && p.x < 290) side = 'right';
-          else if (side === 'right' && p.x > f.rect.width - 290) side = 'left';
-          const vside = p.y < 175 ? 'below' : 'above';
-          if (el.dataset.side !== side) el.dataset.side = side;
-          if (el.dataset.vside !== vside) el.dataset.vside = vside;
-          placeEl(el, p, 1);
+          // docked card + leader line to the sensor marker (marker centre sits ~20 px above its anchor)
+          if (el.style.visibility !== 'visible') el.style.visibility = 'visible';
+          const line = el.querySelector<SVGLineElement>('[data-leader]');
+          const dot = el.querySelector<SVGCircleElement>('[data-leader-dot]');
+          const card = el.querySelector<HTMLElement>('[data-callout-card]');
+          if (line && dot && card) {
+            const bx = card.offsetLeft;
+            const by = card.offsetTop + 22;
+            const mx = p.x;
+            const my = p.y - 20;
+            const len = Math.hypot(bx - mx, by - my);
+            const show = p.visible && len > 30 && !(mx > bx - 6 && my > card.offsetTop - 6 && my < card.offsetTop + card.offsetHeight + 6);
+            line.style.display = dot.style.display = show ? '' : 'none';
+            if (show) {
+              const ex = mx + ((bx - mx) / len) * 14;
+              const ey = my + ((by - my) / len) * 14;
+              line.setAttribute('x1', bx.toFixed(1));
+              line.setAttribute('y1', by.toFixed(1));
+              line.setAttribute('x2', ex.toFixed(1));
+              line.setAttribute('y2', ey.toFixed(1));
+              dot.setAttribute('cx', ex.toFixed(1));
+              dot.setAttribute('cy', ey.toFixed(1));
+            }
+          }
           continue;
         }
         items.push({ key, el, p, s: isUnit || isZone ? 1 : Math.max(0.74, Math.min(1, 1250 / p.distance)) });

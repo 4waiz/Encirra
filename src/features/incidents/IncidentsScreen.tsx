@@ -204,27 +204,30 @@ function NoteInput({ inc }: { inc: Incident }) {
   );
 }
 
-/** Sensors linked to the incident, with live readings; a row opens the sensor in the 3D twin. */
+const SHORT_STATUS: Record<keyof typeof SENSOR_STATUS_LABEL, string> = { online: 'Nominal', elevated: 'Review', alert: 'Alert', offline: 'Offline' };
+
+/** Sensors and the AI observation linked to the incident, with live values; rows open the source. */
 function LinkedSources({ inc }: { inc: Incident }) {
   const sensors = useSim((s) => s.sensors);
-  if (!inc.sensors.length) return null;
+  const obs = useSim((s) => (inc.observationId ? s.observations.find((o) => o.id === inc.observationId) : undefined));
+  if (!inc.sensors.length && !obs) return null;
+  const row = 'group flex w-full items-center gap-2 rounded-[5px] px-1.5 py-[5px] text-left hover:bg-surface-2';
   return (
     <div className="shrink-0 border-t border-line px-2 pb-2 pt-2.5">
-      <div className="micro mb-1 px-1.5">Linked sources</div>
+      <div className="micro mb-1 px-1.5">Linked sources &amp; evidence</div>
       <ul>
         {inc.sensors.map((id) => {
           const def = SENSOR_BY_ID[id];
           if (!def) return null;
           const st = sensors[id];
           const status = st?.status ?? 'online';
-          const tone = SENSOR_STATUS_TONE[status];
           const Icon = SENSOR_ICON[def.kind];
           return (
             <li key={id}>
               <button
                 type="button"
-                className="group flex w-full items-center gap-2 rounded-[5px] px-1.5 py-[5px] text-left hover:bg-surface-2"
-                title="Show in 3D twin"
+                className={row}
+                title={`${def.name} · ${SENSOR_STATUS_LABEL[status]} — show in 3D twin`}
                 onClick={() => {
                   const ui = useUI.getState();
                   ui.select({ kind: 'sensor', id });
@@ -232,20 +235,42 @@ function LinkedSources({ inc }: { inc: Incident }) {
                   focusOn({ kind: 'sensor', id });
                 }}
               >
-                <Icon size={13} style={{ color: SENSOR_COLOR[def.kind] }} aria-hidden />
-                <span className="mono text-[11.5px] text-ink-1">{id}</span>
-                <span className="min-w-0 truncate text-[10.5px] text-ink-3">{def.name}</span>
-                <span className="num ml-auto shrink-0 text-[11.5px] text-ink-1">
+                <Icon size={13} className="shrink-0" style={{ color: SENSOR_COLOR[def.kind] }} aria-hidden />
+                <span className="mono shrink-0 whitespace-nowrap text-[11.5px] text-ink-1">{id}</span>
+                <span className="min-w-0 flex-1 truncate text-[10.5px] text-ink-3">{def.name}</span>
+                <span className="num shrink-0 whitespace-nowrap text-[11.5px] text-ink-1">
                   {fmtNum(st?.value ?? null, def.kind === 'rad' ? 3 : def.kind === 'chem' ? 2 : 0)} <span className="text-ink-3">{def.unit}</span>
                 </span>
-                <span className="w-[62px] shrink-0 text-right text-[10.5px]" style={{ color: TONE_HEX[tone] }}>
-                  {SENSOR_STATUS_LABEL[status]}
+                <span className="flex w-[64px] shrink-0 items-center justify-end gap-1.5 text-[10.5px] text-ink-2">
+                  <StatusDot tone={SENSOR_STATUS_TONE[status]} size={6} />
+                  {SHORT_STATUS[status]}
                 </span>
                 <ArrowUpRight size={12} className="shrink-0 text-ink-4 group-hover:text-ink-2" aria-hidden />
               </button>
             </li>
           );
         })}
+        {obs && (
+          <li>
+            <button
+              type="button"
+              className={row}
+              title="Open in AI Insights"
+              onClick={() => {
+                const ui = useUI.getState();
+                ui.selectObservation(obs.id);
+                ui.setScreen('insights');
+              }}
+            >
+              <BrainCircuit size={13} className="shrink-0 text-[#b4a8ff]" aria-hidden />
+              <span className="mono shrink-0 whitespace-nowrap text-[11.5px] text-ink-1">{obs.id}</span>
+              <span className="min-w-0 flex-1 truncate text-[10.5px] text-ink-3">{obs.title}</span>
+              <span className="num shrink-0 text-[11.5px] text-ink-1">{Math.round(obs.confidence * 100)}%</span>
+              <span className="w-[64px] shrink-0 text-right text-[10.5px] text-ink-2">AI fusion</span>
+              <ArrowUpRight size={12} className="shrink-0 text-ink-4 group-hover:text-ink-2" aria-hidden />
+            </button>
+          </li>
+        )}
       </ul>
     </div>
   );
@@ -405,7 +430,7 @@ function IncidentDetail({ inc }: { inc: Incident }) {
             <div className="px-3 pt-2.5">
               <ProgressBar value={inc.checklist.length ? done / inc.checklist.length : 0} color={TONE_HEX.ok} height={4} />
             </div>
-            <ul className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
+            <ul className="min-h-0 shrink overflow-y-auto px-2 py-2">
               {inc.checklist.map((c) => (
                 <li key={c.id}>
                   <label className={cx('flex cursor-pointer items-start gap-2.5 rounded-[5px] px-1.5 py-[6px] hover:bg-surface-2', resolved && 'cursor-default')}>

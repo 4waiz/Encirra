@@ -1,19 +1,21 @@
 // Visual smoke test of each scenario preset (writes review images; not part of the deliverable set).
-//   node tools/screenshots/scenario-check.mjs <outDir>
+//   node tools/screenshots/scenario-check.mjs <outDir> [--url=http://localhost:5173/]
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const outDir = resolve(process.argv[2] ?? 'scenario-check');
+const args = process.argv.slice(2);
+const outDir = resolve(args.find((a) => !a.startsWith('--')) ?? 'scenario-check');
+const base = (args.find((a) => a.startsWith('--url=')) ?? '--url=http://localhost:5173/').split('=')[1];
 mkdirSync(outDir, { recursive: true });
 const browser = await chromium.launch({ channel: 'msedge', headless: true, args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=d3d11'] });
 const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
 const logs = [];
 page.on('console', (m) => m.type() === 'error' && logs.push(m.text()));
 page.on('pageerror', (e) => logs.push(String(e)));
-await page.goto('http://localhost:5173/#/twin', { waitUntil: 'networkidle' });
+await page.goto(`${base}#/twin`, { waitUntil: 'networkidle' });
 await page.evaluate(() => {
-  localStorage.setItem('encirra-ui-v1', JSON.stringify({ state: { settings: { quality: 'high', labels: true, reduceMotion: false, autoplay: false, palette: 'ironbow' } }, version: 0 }));
+  localStorage.setItem('encirra-ui-v1', JSON.stringify({ state: { settings: { quality: 'high', labels: true, reduceMotion: false, autoplay: false, palette: 'ironbow', autoFrame: false } }, version: 0 }));
 });
 await page.reload({ waitUntil: 'networkidle' });
 await page.waitForTimeout(6000);

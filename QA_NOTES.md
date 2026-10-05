@@ -20,7 +20,7 @@ Status legend: **Fixed** · **Mitigated** (improved, residual documented) · **A
 | H2 | Visible CCTV/UAV feeds look washed out (milky, low contrast) | 01, 03 thumbnails | Lower feed exposure, S-curve contrast, slight saturation, vignette tuned | Fixed |
 | H3 | Count KPIs ("Under review", "Samples to lab") use sparklines that are flat lines — read as meaningless rules | 01 KPI row | Replaced with 3-minute bucketed micro-bars (shows *when* reviews happened) | Fixed |
 | H4 | Telemetry lane threshold label clips at the lane top ("review 0.8") | 01 telemetry | Label flips below the line near the top edge | Fixed |
-| H5 | The selected sensor cannot be identified in the twin (RAD-S17 is "one of the orange badges"); flagged sensors carry no ID | 02 | Selected and flagged sensors always show an ID tag; selected marker gets an accent halo | Fixed |
+| H5 | The selected sensor cannot be identified in the twin (RAD-S17 is "one of the orange badges"); flagged sensors carry no ID | 02 | Selected and flagged sensors always show an ID tag; the selected marker gets a cyan ring separated by a dark gap | Fixed |
 | H6 | GPU memory: feed render targets of views that unmount (screen changes) are never released | RenderLoop | Targets of unregistered views are disposed every second | Fixed |
 | H7 | 3D payload is 6.7 MB of uncompressed GLB | public/models | Draco-compressed export from Blender + locally bundled decoder (no CDN) | Fixed |
 
@@ -28,14 +28,18 @@ Status legend: **Fixed** · **Mitigated** (improved, residual documented) · **A
 
 | # | Finding | Where | Fix | Status |
 |---|---------|-------|-----|--------|
-| M1 | Distant "Structure 98%" boxes clutter the UGV thermal feed and CAM-01; overlapping dome boxes stack labels | 03 | Per-class range limits (structures ≤ 650 m, people ≤ 220 m) and label de-overlap | Fixed |
-| M2 | Live Feeds right column has a large empty area below Detections | 03 | New "Stream" panel: resolution, codec, bitrate, latency, keyframe, link | Fixed |
-| M3 | Incidents centre columns end half-way down; no way to add an operator note | 05 | Operator log input appends timeline entries (Enter to add) | Fixed |
-| M4 | AI Insights correlation graph renders small inside its panel | 04 | Graph re-laid out to the panel aspect | Fixed |
+| M1 | "Structure 98%" boxes float over a building facade in the UGV thermal feed (the domes behind it are occluded) and clutter CAM-01 | 03 | Line-of-sight test against the layout's building volumes and unit blocks, plus per-class range limits (structures ≤ 650 m, people ≤ 220 m) | Fixed |
+| M2 | Live Feeds right column has a large empty area below Detections | 03 | New "Stream" panel: resolution, frame rate, codec/GOP, bitrate, glass-to-glass latency, link (hidden on short screens) | Fixed |
+| M3 | Incidents centre columns end half-way down; no way to add an operator note | 05 | Operator-note input under the timeline (Enter to add, logged as "Operator note"); "Linked sources & evidence" under the checklist (live sensor values, linked AI observation, each row opens the source) | Fixed |
+| M4 | AI Insights correlation graph renders small inside its panel (fixed viewBox, letterboxed) | 04 | Graph measures its panel and lays out in pixels; adds a "line width = evidence weight" key | Fixed |
 | M5 | Long sessions: incidents, observations and vehicle plan segments are unbounded | engine | Capped (incidents 60, observations 60) and plan segments pruned beyond the 30-min replay window | Fixed |
 | M6 | Console shows a third-party deprecation notice (`THREE.Clock`, emitted inside React Three Fiber) | console | Narrow filter for that exact upstream notice; no other warnings | Mitigated |
-| M7 | Overview home view frames the campus small (lots of sea/desert) | 01 | Home camera ~20 % closer, same composition | Fixed |
-| M8 | Sensor callout can sit over the incident it describes | 01 | Callout prefers the side away from the view centre | Fixed |
+| M7 | Overview home view frames the campus small (lots of sea/desert) | 01 | Home camera 10 % closer, same composition (20 % cropped the outer units in the overview panel) | Fixed |
+| M8 | Sensor callout sits over the incident it describes and hides the UGV label | 01 | Callout docked top-right under the compass with a dashed leader line to the sensor, updated per frame | Fixed |
+| M9 | Detection labels run off the right edge of a feed ("Hotspot 88% · 50.8" cut) | 01 UAV tile | Labels are shifted back inside the frame before the overlap test | Fixed |
+| M10 | Feed caption repeats the source ("UGV-01 UGV-01 · mast camera") | 03 | Feed metadata split into label / short label; captions no longer repeat the ID | Fixed |
+| M11 | Confidence timeline: "human validation threshold" label is drawn on top of the series | 04 | Label moved to the left end under the line, with a halo | Fixed |
+| M12 | Evidence table wraps findings into 4–5 lines and scrolls (narrow Finding column) | 04 | Source and time merged into one column; all five evidence rows fit | Fixed |
 
 ## POLISH
 
@@ -43,8 +47,10 @@ Status legend: **Fixed** · **Mitigated** (improved, residual documented) · **A
 |---|---------|-------|-----|--------|
 | P1 | "Checklist 33 %" in Nuclear readiness is ambiguous during an incident | 01 | Label switches to "Response checklist" while an incident is active | Fixed |
 | P2 | Feed tile titles truncate ("Exterior · Units …") | 01 | Shorter feed labels for tiles | Fixed |
-| P3 | Event rows truncate details with no way to read them | 01 | Full text on hover (title) + expand on click (existing) | Fixed |
+| P3 | Event rows truncate details with no way to read them | 01 | Full text on hover; an expanded row shows the full title and detail | Fixed |
 | P4 | Thermal ground reads flat in the UGV view | 03 | Added sun-baked mottling and asphalt/lawn contrast (Phase 1 late fix) — further radiometric realism out of scope | Accepted |
+| P5 | Feed timestamps are hard to read over a bright sky | 01, 03 | Timestamp sits on a translucent dark backing | Fixed |
+| P6 | Clocks tick out of step (header vs feed stamps); one timer per component | all | Shared ticker per cadence (`useSyncExternalStore`) — one interval, all clocks update together | Fixed |
 
 ## Checklists
 

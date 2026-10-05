@@ -85,13 +85,15 @@ export function createVisibleFeedMaterial() {
         float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
         // security-camera exposure: darker and more contrasty than the operator view so pale sand
         // and white cladding keep their detail instead of washing out
-        c = mix(vec3(l), c, uSat) * 0.7;
+        c = mix(vec3(l), c, uSat) * 0.66;
+        // graduated top: outdoor cameras expose for the ground, so the bright sky band is held back
+        c *= mix(1.0, 0.86, smoothstep(0.55, 1.0, uv.y));
         gl_FragColor = vec4(c, 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
         vec3 x = clamp(gl_FragColor.rgb, 0.0, 1.0);
         x = pow(x, vec3(1.08));
-        x = mix(x, x * x * (3.0 - 2.0 * x), 0.5);
+        x = mix(x, x * x * (3.0 - 2.0 * x), 0.55);
         gl_FragColor.rgb = smoothstep(0.015, 1.0, x);
         float n = pp_hash(uv * uRes + fract(uTime * 3.7) * 91.0) - 0.5;
         gl_FragColor.rgb += n * uNoise;

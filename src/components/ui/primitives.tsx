@@ -1,4 +1,4 @@
-import { memo, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { memo, useCallback, useId, useLayoutEffect, useRef, useSyncExternalStore, type ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import type { Tone } from '../../types';
 import { TONE_HEX } from './tone';
@@ -366,13 +366,42 @@ export function ProgressBar({ value, color, height = 4, className }: { value: nu
 }
 
 /** Re-renders a component at an interval (for "time ago" style labels). */
+// One shared ticker per interval: every clock on screen updates in the same tick, and the app runs a
+// single timer per cadence instead of one per component.
+type Ticker = { now: number; subs: Set<() => void>; id: ReturnType<typeof setInterval> | null };
+const tickers = new Map<number, Ticker>();
+
+function ticker(ms: number) {
+  let t = tickers.get(ms);
+  if (!t) {
+    t = { now: Date.now(), subs: new Set(), id: null };
+    tickers.set(ms, t);
+  }
+  return t;
+}
+
+function subscribeTicker(ms: number, cb: () => void) {
+  const t = ticker(ms);
+  t.subs.add(cb);
+  if (t.id === null) {
+    t.now = Date.now();
+    t.id = setInterval(() => {
+      t.now = Date.now();
+      for (const f of t.subs) f();
+    }, ms);
+  }
+  return () => {
+    t.subs.delete(cb);
+    if (!t.subs.size && t.id !== null) {
+      clearInterval(t.id);
+      t.id = null;
+    }
+  };
+}
+
 export function useNow(intervalMs = 1000) {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), intervalMs);
-    return () => clearInterval(id);
-  }, [intervalMs]);
-  return now;
+  const subscribe = useCallback((cb: () => void) => subscribeTicker(intervalMs, cb), [intervalMs]);
+  return useSyncExternalStore(subscribe, () => ticker(intervalMs).now);
 }
 
 export function EmptyState({ icon: Icon, title, detail }: { icon: LucideIcon; title: string; detail?: string }) {

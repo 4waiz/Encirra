@@ -28,10 +28,16 @@ Requirements: Node 20+ and a WebGL2-capable browser (Chrome / Edge recommended).
 ```bash
 npm run dev                                   # in one terminal
 npm run screenshots                           # in another
-node tools/screenshots/capture.mjs screenshots/phase-2 --suffix=-final
 ```
 
-`tools/screenshots/functional-check.mjs` runs a scripted functional QA pass (navigation, command palette, scenarios, incident lifecycle, replay, picking, feeds, wind) and reports console errors.
+The Phase 2 set was captured from the production build:
+
+```bash
+npm run build && npm run preview              # http://localhost:4173
+node tools/screenshots/capture.mjs screenshots/phase-2 --suffix=-final --url=http://localhost:4173/
+```
+
+`tools/screenshots/functional-check.mjs [outDir] [--url=…]` runs the scripted functional QA pass (navigation and hash routing, command palette, scenario transitions, incident lifecycle with notes, replay, picking, inspector + focus, layers, WASD in the twin and in Live Feeds, feeds and snapshot, wind, auto-framing, persisted state across reload, 1366×768 / 1920×1080 overflow) and reports failed requests, console errors and warnings. `perf-probe.mjs` reports frame rate and render statistics. Findings and fixes from the QA pass are in [QA_NOTES.md](QA_NOTES.md).
 
 ## Using it
 
@@ -39,14 +45,16 @@ node tools/screenshots/capture.mjs screenshots/phase-2 --suffix=-final
 |---|---|
 | **Overview** | KPI row (chemical, biological, radiological, nuclear readiness), AI fusion, stream health, field assets, 3D twin, four live scene cameras, telemetry lanes, event stream, response KPIs |
 | **3D Twin** | Immersive twin with layers, incident status, environment, an inspector for sensors, assets and zones, and a replay timeline |
-| **Live Feeds** | Main feed with Visible / Thermal / Fusion modes, drag-to-pan PTZ, zoom, detections, snapshot and playback |
+| **Live Feeds** | Main feed with Visible / Thermal / Fusion modes, drag-to-pan PTZ, zoom, WASD virtual view for CAM-01/02, detections, stream info, snapshot and playback |
 | **AI Insights** | Observations, cross-source correlation, confidence timeline, evidence, recommended review, source integrity |
-| **Incidents** | Incident timeline, acknowledge / assign / focus / severity / resolve / replay, checklist, dispatch, response KPIs |
+| **Incidents** | Incident timeline with operator notes, acknowledge / assign / focus / severity / resolve / replay, checklist, linked sources, dispatch, response KPIs |
 
 - **Ctrl/⌘ + K**: command palette (navigate, focus UGV-01/UAV-01, trigger or reset scenarios, toggle layers, inspect sensors)
 - **Alt + 1–5**: switch screen · **Esc**: clear selection / leave fullscreen
 - **Settings → Scenario control**: preset, severity, location, wind direction and speed, duration. **Settings → About ENCIRRA** holds the disclosure.
 - In the twin: drag to orbit, right-drag to pan, scroll to zoom, click to select, double-click to fly to an object.
+- **W A S D** move across the site (speed follows zoom), **Q / E** lower / raise, **Shift** ×3. In Live Feeds the same keys move a labelled *virtual view* of CAM-01 / CAM-02 ("Return to mount" resets it). Keys are ignored while typing or when a menu or dialog is open.
+- **Settings → Display → Frame new incidents** (on by default): a new incident is brought into the 3D view unless the camera was moved in the last 20 s.
 
 ## Architecture
 
@@ -65,7 +73,9 @@ src/
 tools/
   blender/      build_facility.py (procedural campus → GLB modules), render_preview.py
   screenshots/  capture.mjs, functional-check.mjs, scenario-check.mjs, perf-probe.mjs
-public/models/  10 GLB modules generated in Blender (units are GPU-instanced in the app)
+public/models/  10 Draco-compressed GLB modules generated in Blender (≈0.7 MB total; units are
+                GPU-instanced in the app)
+public/draco/   Draco WebAssembly decoder, served locally (no CDN)
 ```
 
 **One system, not widgets.** A scenario injects analytic *effects* (gamma field, Gaussian plume, aerosol cloud, thermal hotspot, telemetry dropout). The same field functions drive sensor readings in the engine and the GPU overlays in the twin. Scripts then raise events, AI observations and incidents, and task the UGV/UAV. Vehicle motion is analytic and append-only, so any moment in the last 30 minutes can be replayed.
@@ -78,7 +88,7 @@ public/models/  10 GLB modules generated in Blender (units are GPU-instanced in 
 "C:\Program Files\Blender Foundation\Blender 5.2\blender.exe" --background --factory-startup --python tools/blender/build_facility.py
 ```
 
-The script reads `src/data/site-layout.json` and writes the GLBs to `public/models/` and a source scene to `assets-src/encirra-facility.blend`.
+The script reads `src/data/site-layout.json` and writes Draco-compressed GLBs to `public/models/` and a source scene to `assets-src/encirra-facility.blend`.
 
 ---
 

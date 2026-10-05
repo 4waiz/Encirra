@@ -128,7 +128,7 @@ function CorrelationGraph({ obs }: { obs: Observation }) {
   }, []);
   const nodes = obs.evidence.slice(-5);
   const { w: W, h: H } = size;
-  const nodeW = Math.round(Math.min(190, Math.max(132, W * 0.34)));
+  const nodeW = Math.round(Math.min(196, Math.max(132, W * 0.4)));
   const nodeH = 28;
   const r = 26;
   const obsW = 104;

@@ -275,7 +275,7 @@ function Ptz({ source }: { source: FeedSource }) {
     return (
       <div className="flex flex-col gap-2">
         <p className="text-[11px] leading-[15px] text-ink-3">
-          Mounted camera — orientation follows {asset}'s tasking. Select CAM-01 or CAM-02 to move a virtual view with W A S D.
+          Mounted camera, oriented by {asset}'s tasking. To move a virtual view with WASD, select CAM-01 or CAM-02.
         </p>
         <button
           type="button"

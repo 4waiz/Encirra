@@ -19,14 +19,17 @@ export function SensorCallout({ id, setRef }: { id: string; setRef: (el: HTMLEle
   const series = history.get(`sensor:${id}`);
   const data = series ? series.tail(900).filter((_, i) => i % 6 === 0) : [];
   const dec = def.kind === 'rad' ? 3 : def.kind === 'chem' ? 2 : def.kind === 'met' ? 1 : 0;
+  // The card is docked at the top-right of the twin (under the wind compass) so it never covers the
+  // incident it describes; a leader line, updated per frame by TwinMarkers, ties it to the sensor.
   return (
-    <div ref={setRef} className="group pointer-events-none absolute left-0 top-0 z-20 will-change-transform" style={{ visibility: 'hidden' }} data-side="right">
-      <svg className="absolute left-0 top-0 overflow-visible" width="1" height="1" aria-hidden>
-        <line x1="0" y1="-30" x2="30" y2="-62" stroke={TONE_HEX[tone]} strokeOpacity="0.7" strokeWidth="1" className="group-data-[side=left]:hidden" />
-        <line x1="0" y1="-30" x2="-30" y2="-62" stroke={TONE_HEX[tone]} strokeOpacity="0.7" strokeWidth="1" className="hidden group-data-[side=left]:block" />
+    <div ref={setRef} className="pointer-events-none absolute inset-0 z-20" style={{ visibility: 'hidden' }}>
+      <svg className="absolute inset-0 h-full w-full overflow-visible" aria-hidden>
+        <line data-leader x1="0" y1="0" x2="0" y2="0" stroke={TONE_HEX[tone]} strokeOpacity="0.8" strokeWidth="1.2" strokeDasharray="4 3" />
+        <circle data-leader-dot cx="0" cy="0" r="3" fill={TONE_HEX[tone]} stroke="#0b0f14" strokeWidth="1.5" />
       </svg>
       <div
-        className="pointer-events-auto absolute top-[-150px] left-[30px] w-[248px] rounded-[7px] border border-line-strong bg-surface-1/96 p-2.5 shadow-[0_12px_32px_rgb(0_0_0/0.5)] group-data-[side=left]:left-auto group-data-[side=left]:right-[30px] group-data-[vside=below]:top-[14px]"
+        data-callout-card
+        className="pointer-events-auto absolute right-[10px] top-[78px] w-[248px] rounded-[7px] border border-line-strong bg-surface-1/96 p-2.5 shadow-[0_12px_32px_rgb(0_0_0/0.5)]"
         role="dialog"
         aria-label={`${id} telemetry`}
       >

@@ -19,7 +19,7 @@ import { envelope } from '../simulation/effects';
 import { useUI } from '../store/ui';
 import { SKY_COLORS } from './Environment';
 
-export const perfStats = { fps: 60, frameMs: 16.7, drawCalls: 0, triangles: 0, renderScale: 1, mainMs: 0, feedsMs: 0, feedTargets: 0 };
+export const perfStats = { fps: 60, frameMs: 16.7, drawCalls: 0, triangles: 0, renderScale: 1, mainMs: 0, feedsMs: 0, feedTargets: 0, textures: 0, geometries: 0 };
 /** Development switches for profiling (exposed on window.__ENCIRRA_RENDER__). */
 export const renderDebug = { main: true, feeds: true, overlays: true };
 (window as unknown as { __ENCIRRA_RENDER__: unknown }).__ENCIRRA_RENDER__ = { perfStats, renderDebug };
@@ -224,6 +224,8 @@ export function RenderLoop() {
         res.feeds.delete(key);
       }
       perfStats.feedTargets = res.feeds.size;
+      perfStats.textures = gl.info.memory.textures;
+      perfStats.geometries = gl.info.memory.geometries;
       if (document.visibilityState === 'visible' && now - res.lastGovern > 1500) {
         res.lastGovern = now;
         if (perfStats.fps < 40 && res.renderScale > 0.5) res.renderScale = Math.max(0.5, res.renderScale - 0.1);

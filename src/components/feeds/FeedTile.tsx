@@ -9,7 +9,7 @@ import { cx, useNow } from '../ui/primitives';
 export function FeedStamp({ source, stale, staleSince }: { source: FeedSource; stale: boolean; staleSince: number | null }) {
   const now = useNow(1000);
   return (
-    <span className="mono text-[10.5px] text-ink-1/90" style={{ textShadow: '0 1px 2px rgb(0 0 0 / 0.9)' }}>
+    <span className="mono rounded-[3px] bg-bg-0/45 px-1 py-px text-[10.5px] text-ink-1/95" style={{ textShadow: '0 1px 2px rgb(0 0 0 / 0.9)' }}>
       {fmtClock(stale && staleSince ? staleSince : now)} GST <span className="text-ink-2">· {stale ? '0' : FEED_META[source].fps} FPS</span>
     </span>
   );
