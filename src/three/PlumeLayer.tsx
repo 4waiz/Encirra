@@ -117,7 +117,7 @@ const BIO_FRAG = /* glsl */ `
     vec3 v = normalize(cameraPosition - vW);
     float fres = pow(1.0 - abs(dot(normalize(vN), v)), 2.0);
     float n = n3(vW * 0.035 + vec3(0.0, uTime * 0.06, uTime * 0.03));
-    float a = (0.05 + fres * 0.32) * (0.65 + 0.7 * n) * uLevel * uOpacity;
+    float a = (0.028 + fres * 0.24) * (0.6 + 0.8 * n) * uLevel * uOpacity;
     gl_FragColor = vec4(vec3(0.38, 0.78, 1.0) * 1.3, a);
   }
 `;

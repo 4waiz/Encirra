@@ -50,7 +50,7 @@ function Clock() {
       <span className="mono text-[13px] font-medium tracking-[0.02em] text-ink-1">
         {fmtClock(now)} <span className="text-[10px] text-ink-3">GST</span>
       </span>
-      <span className="mt-[3px] font-cond text-[10px] uppercase tracking-[0.1em] text-ink-3">{fmtDate(now)}</span>
+      <span className="mt-[3px] font-cond text-[10px] uppercase tracking-[0.1em] text-ink-3 max-[1500px]:hidden">{fmtDate(now)}</span>
     </div>
   );
 }
@@ -64,7 +64,7 @@ function Freshness() {
     <div className="flex shrink-0 items-center gap-2 whitespace-nowrap" title="Time since the last synthetic telemetry update">
       <Radio size={14} strokeWidth={1.8} style={{ color: TONE_HEX[tone] }} aria-hidden />
       <div className="flex flex-col leading-none">
-        <span className="font-cond text-[10px] uppercase tracking-[0.1em] text-ink-3">Data age</span>
+        <span className="font-cond text-[10px] uppercase tracking-[0.1em] text-ink-3 max-[1500px]:hidden">Data age</span>
         <span className="mono mt-[3px] text-[12px] text-ink-1">{age < 2 ? '< 2 s' : `${age.toFixed(0)} s`}</span>
       </div>
     </div>
@@ -89,7 +89,7 @@ function Health() {
         <span className="font-cond text-[10px] uppercase tracking-[0.1em]" style={{ color: c }}>
           {health.level === 'nominal' ? 'System health' : health.level}
         </span>
-        <span className="mt-[3px] max-w-[150px] truncate text-[11.5px] text-ink-1 min-[1800px]:max-w-[220px]">{health.label}</span>
+        <span className="mt-[3px] max-w-[150px] truncate text-[11.5px] text-ink-1 max-[1500px]:max-w-[112px] min-[1800px]:max-w-[220px]">{health.label}</span>
       </span>
     </button>
   );
@@ -105,8 +105,9 @@ export function Header() {
         <span className="font-cond text-[20px] font-semibold tracking-[0.24em] text-ink-1">ENCIRRA</span>
         <span className="h-7 w-px bg-line-strong" aria-hidden />
         <div className="hidden flex-col leading-none lg:flex">
-          <span className="whitespace-nowrap font-cond text-[13.5px] font-semibold tracking-[0.13em] text-ink-1">BARAKAH CBRN COMMAND CENTER</span>
-          <span className="mt-[4px] whitespace-nowrap text-[10.5px] tracking-[0.02em] text-ink-3">Integrated CBRN Situational Awareness • Abu Dhabi, UAE</span>
+          <span className="whitespace-nowrap font-cond text-[13.5px] font-semibold tracking-[0.13em] text-ink-1 max-[1500px]:text-[12px]">BARAKAH CBRN COMMAND CENTER</span>
+          <span className="mt-[4px] whitespace-nowrap text-[10.5px] tracking-[0.02em] text-ink-3 max-[1500px]:hidden">Integrated CBRN Situational Awareness • Abu Dhabi, UAE</span>
+          <span className="mt-[4px] hidden whitespace-nowrap text-[10px] text-ink-3 max-[1500px]:block">Integrated Situational Awareness</span>
         </div>
       </div>
 
@@ -126,7 +127,7 @@ export function Header() {
               )}
             >
               <Icon size={15} strokeWidth={1.9} className={active ? 'text-cyan' : 'text-ink-3 group-hover:text-ink-2'} aria-hidden />
-              <span className="whitespace-nowrap">{n.label}</span>
+              <span className="whitespace-nowrap max-[1440px]:text-[11.5px]">{n.label}</span>
               <NavBadge screen={n.id} />
               <span
                 className={cx('absolute inset-x-2 bottom-0 h-[2px] rounded-full transition-opacity', active ? 'opacity-100' : 'opacity-0')}

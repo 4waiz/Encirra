@@ -105,7 +105,7 @@ export function detect(camera: THREE.PerspectiveCamera, width: number, height: n
       id: tr.id,
       label: tr.label,
       kind: tr.kind,
-      confidence: Math.min(0.995, tr.base + jitter(tr.id)),
+      confidence: Math.min(0.989, tr.base + jitter(tr.id)),
       x: cx0,
       y: cy0,
       w: Math.min(width - 1, x1) - cx0,
