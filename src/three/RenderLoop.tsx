@@ -19,7 +19,10 @@ import { envelope } from '../simulation/effects';
 import { useUI } from '../store/ui';
 import { SKY_COLORS } from './Environment';
 
-export const perfStats = { fps: 60, frameMs: 16.7, drawCalls: 0, triangles: 0 };
+export const perfStats = { fps: 60, frameMs: 16.7, drawCalls: 0, triangles: 0, renderScale: 1, mainMs: 0, feedsMs: 0 };
+/** Development switches for profiling (exposed on window.__ENCIRRA_RENDER__). */
+export const renderDebug = { main: true, feeds: true, overlays: true };
+(window as unknown as { __ENCIRRA_RENDER__: unknown }).__ENCIRRA_RENDER__ = { perfStats, renderDebug };
 
 // ---- snapshot requests (Live Feeds → "Snapshot")
 type SnapshotRequest = { viewId: string; resolve: (url: string) => void; reject: (e: Error) => void };
@@ -73,6 +76,9 @@ export function RenderLoop() {
       fpsFrames: 0,
       fpsT0: performance.now(),
       shadowFrame: 0,
+      /** dynamic resolution: adapts render-target size to keep interaction fluid on modest GPUs */
+      renderScale: 1,
+      lastGovern: performance.now(),
     };
   }, [gl]);
 
@@ -120,7 +126,9 @@ export function RenderLoop() {
     advanceSceneClock(delta * 1000);
     const t = sceneClock.t;
     const dpr = gl.getPixelRatio();
-    const scale = quality === 'high' ? 1 : 0.8;
+    const maxScale = quality === 'high' ? 1 : 0.8;
+    if (res.renderScale > maxScale) res.renderScale = maxScale;
+    const scale = res.renderScale;
 
     // thermal hotspots from the synthetic effects (shared by every heat material)
     thermalUniforms.uTime.value += delta;
@@ -141,9 +149,10 @@ export function RenderLoop() {
     gl.info.autoReset = false;
     gl.info.reset();
 
-    // shadows: refresh every frame on high quality, every other frame otherwise
+    // shadows: the campus is static, so the shadow map only needs a periodic refresh for the
+    // small moving assets (UGV, UAV, people)
     res.shadowFrame++;
-    gl.shadowMap.needsUpdate = quality === 'high' || res.shadowFrame % 2 === 0;
+    gl.shadowMap.needsUpdate = res.shadowFrame < 4 || res.shadowFrame % (quality === 'high' ? 20 : 40) === 0;
 
     const composite = (mat: THREE.ShaderMaterial, r: DOMRect) => {
       res.quad.material = mat;
@@ -159,7 +168,8 @@ export function RenderLoop() {
 
     // ------------------------------------------------------------------ main twin view
     const main = useViewports.getState().main;
-    if (main) {
+    const tMain = performance.now();
+    if (main && renderDebug.main) {
       const r = main.rectEl.getBoundingClientRect();
       if (visibleRect(r)) {
         const aspect = r.width / r.height;
@@ -167,11 +177,13 @@ export function RenderLoop() {
           camera.aspect = aspect;
           camera.updateProjectionMatrix();
         }
-        res.main = ensureRT(res.main, r.width * dpr * scale, r.height * dpr * scale, quality === 'high' ? 4 : 2);
+        res.main = ensureRT(res.main, r.width * dpr * scale, r.height * dpr * scale, quality === 'high' && scale > 0.75 ? 4 : 2);
         setThermalMode(false);
         gl.setRenderTarget(res.main);
         gl.setClearColor(SKY_COLORS.horizon, 1);
         gl.clear(true, true, false);
+        if (renderDebug.overlays) camera.layers.enable(LAYER.OVERLAY);
+        else camera.layers.disable(LAYER.OVERLAY);
         gl.render(scene, camera);
         res.grade.uniforms.tColor.value = res.main.texture;
         res.grade.uniforms.uRes.value.set(res.main.width, res.main.height);
@@ -184,16 +196,21 @@ export function RenderLoop() {
 
     // ------------------------------------------------------------------ camera feeds
     const now = performance.now();
-    for (const v of feedViews.values()) {
-      const r = v.el.getBoundingClientRect();
-      if (!visibleRect(r)) continue;
-      renderFeed(v, r, now, t);
+    perfStats.mainMs = perfStats.mainMs * 0.9 + (now - tMain) * 0.1;
+    if (renderDebug.feeds) {
+      for (const v of feedViews.values()) {
+        const r = v.el.getBoundingClientRect();
+        if (!visibleRect(r)) continue;
+        renderFeed(v, r, now, t);
+      }
     }
+    perfStats.feedsMs = perfStats.feedsMs * 0.9 + (performance.now() - now) * 0.1;
+    perfStats.renderScale = res.renderScale;
 
     gl.setRenderTarget(null);
     gl.setScissorTest(false);
 
-    // perf
+    // perf + dynamic resolution governor
     res.fpsFrames++;
     if (now - res.fpsT0 > 1000) {
       perfStats.fps = (res.fpsFrames * 1000) / (now - res.fpsT0);
@@ -201,6 +218,11 @@ export function RenderLoop() {
       res.fpsT0 = now;
       perfStats.drawCalls = gl.info.render.calls;
       perfStats.triangles = gl.info.render.triangles;
+      if (document.visibilityState === 'visible' && now - res.lastGovern > 1500) {
+        res.lastGovern = now;
+        if (perfStats.fps < 40 && res.renderScale > 0.5) res.renderScale = Math.max(0.5, res.renderScale - 0.1);
+        else if (perfStats.fps > 57 && res.renderScale < maxScale) res.renderScale = Math.min(maxScale, res.renderScale + 0.05);
+      }
     }
     perfStats.frameMs = perfStats.frameMs * 0.9 + (performance.now() - t0) * 0.1;
   }, 1);
@@ -221,11 +243,11 @@ export function RenderLoop() {
       cam.updateProjectionMatrix();
     }
     const stale = v.source !== 'PIP' && engine.isFeedStale(v.source);
-    const fps = large ? 30 : quality === 'high' ? 15 : 10;
+    const fps = large ? 24 : quality === 'high' ? 12 : 8;
     const due = now - tg.last >= 1000 / fps - 2;
     const needColor = v.mode !== 'thermal';
     const needHeat = v.mode !== 'visible';
-    const cap = large ? 1 : 0.85;
+    const cap = (large ? 1 : 0.8) * Math.max(0.6, res.renderScale);
     const cw = Math.min(r.width * dpr * cap, large ? 1920 : 760);
     const ch = Math.min(r.height * dpr * cap, large ? 1200 : 480);
     if (needColor) tg.color = ensureRT(tg.color, cw, ch, large ? 4 : 2);

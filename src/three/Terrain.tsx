@@ -7,18 +7,7 @@ import { SHORE_RECT } from './textures/shoreMask';
 import { registerThermal, thermalGround } from './thermal';
 import { useUI } from '../store/ui';
 
-const GLSL_NOISE = /* glsl */ `
-  float g_hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
-  float g_noise(vec2 p) {
-    vec2 i = floor(p); vec2 f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
-    return mix(mix(g_hash(i), g_hash(i + vec2(1.0, 0.0)), u.x), mix(g_hash(i + vec2(0.0, 1.0)), g_hash(i + vec2(1.0, 1.0)), u.x), u.y);
-  }
-  float g_fbm(vec2 p) {
-    float v = 0.0; float a = 0.5;
-    for (int i = 0; i < 5; i++) { v += a * g_noise(p); p = p * 2.03 + 11.7; a *= 0.5; }
-    return v;
-  }
-`;
+import { createNoiseTexture } from './textures/noise';
 
 /** Coastline polygon extended far inland so the horizon is land, not water. */
 function landPolygon(): [number, number][] {
@@ -96,6 +85,7 @@ export function Terrain({ shoreTex }: { shoreTex: THREE.Texture }) {
   const gl = useThree((s) => s.gl);
   const quality = useUI((s) => s.settings.quality);
   const geometry = useMemo(buildLand, []);
+  const noiseTex = useMemo(() => createNoiseTexture(256), []);
   const siteTex = useMemo(() => createSiteTexture(quality, gl.capabilities.getMaxAnisotropy()), [quality, gl]);
   const siteRect = useMemo(
     () => new THREE.Vector4(SITE_TEX_RECT.minX, SITE_TEX_RECT.minZ, SITE_TEX_RECT.maxX - SITE_TEX_RECT.minX, SITE_TEX_RECT.maxZ - SITE_TEX_RECT.minZ),
@@ -112,6 +102,7 @@ export function Terrain({ shoreTex }: { shoreTex: THREE.Texture }) {
         uShoreRect: { value: new THREE.Vector4(SHORE_RECT.minX, SHORE_RECT.minZ, SHORE_RECT.maxX - SHORE_RECT.minX, SHORE_RECT.maxZ - SHORE_RECT.minZ) },
         uSandA: { value: new THREE.Color('#dccaa6') },
         uSandB: { value: new THREE.Color('#c8b28c') },
+        uNoise: { value: noiseTex },
       });
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', '#include <common>\nvarying vec3 vGWorld;')
@@ -124,15 +115,15 @@ export function Terrain({ shoreTex }: { shoreTex: THREE.Texture }) {
           uniform sampler2D uSiteTex; uniform vec4 uSiteRect;
           uniform sampler2D uShore; uniform vec4 uShoreRect;
           uniform vec3 uSandA; uniform vec3 uSandB;
-          ${GLSL_NOISE}`,
+          uniform sampler2D uNoise;`,
         )
         .replace(
           '#include <map_fragment>',
           `
           vec2 gp = vGWorld.xz;
-          float n1 = g_fbm(gp * 0.0032);
-          float n2 = g_fbm(gp * 0.019 + 7.3);
-          float n3 = g_noise(gp * 0.42);
+          float n1 = texture2D(uNoise, gp * 0.00085).r;
+          float n2 = texture2D(uNoise, gp * 0.0105 + 0.37).g;
+          float n3 = texture2D(uNoise, gp * 0.11 + 0.71).b;
           vec3 sand = mix(uSandA, uSandB, smoothstep(0.3, 0.74, n1));
           sand *= 0.92 + 0.12 * n2 + 0.05 * (n3 - 0.5);
           sand *= 0.975 + 0.025 * sin(gp.x * 0.07 + gp.y * 0.04 + n2 * 7.0);
@@ -152,9 +143,9 @@ export function Terrain({ shoreTex }: { shoreTex: THREE.Texture }) {
           `,
         );
     };
-    m.customProgramCacheKey = () => 'encirra-ground-v1';
+    m.customProgramCacheKey = () => 'encirra-ground-v2';
     return m;
-  }, [siteTex, siteRect, shoreTex]);
+  }, [siteTex, siteRect, shoreTex, noiseTex]);
 
   const mesh = useMemo(() => {
     const m = new THREE.Mesh(geometry, material);

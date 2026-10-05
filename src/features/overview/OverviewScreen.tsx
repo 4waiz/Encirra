@@ -46,6 +46,7 @@ function FeedsPanel() {
       icon={Cctv}
       iconColor="#3cc8dc"
       className="h-full"
+      transparentBody
       actions={
         <button type="button" className="ctl h-[22px]" onClick={() => useUI.getState().setScreen('feeds')}>
           All feeds <ChevronRight size={12} />
