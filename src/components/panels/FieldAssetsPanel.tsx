@@ -22,7 +22,7 @@ export function FieldAssetsPanel({ limit = 4 }: { limit?: number }) {
   const selection = useUI((s) => s.selection);
   return (
     <Panel title="Field assets" icon={Truck}>
-      <div className="flex h-full flex-col">
+      <div className="absolute inset-0 flex flex-col overflow-y-auto">
         {ORDER.slice(0, limit).map((id) => {
           const a = assets[id];
           if (!a) return null;

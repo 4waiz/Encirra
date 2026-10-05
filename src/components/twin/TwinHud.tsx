@@ -41,7 +41,7 @@ export function LayerToggles({ size = 'sm' }: { size?: 'sm' | 'md' }) {
             title={`${on ? 'Hide' : 'Show'} ${l.label.toLowerCase()} layer`}
           >
             <Icon size={12} strokeWidth={2} style={{ color: on ? l.color : undefined }} aria-hidden />
-            {l.label}
+            <span className="max-[1500px]:sr-only">{l.label}</span>
           </button>
         );
       })}

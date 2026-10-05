@@ -89,7 +89,7 @@ function Health() {
         <span className="font-cond text-[10px] uppercase tracking-[0.1em]" style={{ color: c }}>
           {health.level === 'nominal' ? 'System health' : health.level}
         </span>
-        <span className="mt-[3px] max-w-[150px] truncate text-[11.5px] text-ink-1 max-[1500px]:max-w-[112px] min-[1800px]:max-w-[220px]">{health.label}</span>
+        <span className="mt-[3px] max-w-[150px] truncate text-[11.5px] text-ink-1 max-[1500px]:max-w-[112px] max-[1440px]:hidden min-[1800px]:max-w-[220px]">{health.label}</span>
       </span>
     </button>
   );
@@ -126,7 +126,7 @@ export function Header() {
                 active ? 'text-ink-1' : 'text-ink-3 hover:text-ink-1',
               )}
             >
-              <Icon size={15} strokeWidth={1.9} className={active ? 'text-cyan' : 'text-ink-3 group-hover:text-ink-2'} aria-hidden />
+              <Icon size={15} strokeWidth={1.9} className={cx(active ? 'text-cyan' : 'text-ink-3 group-hover:text-ink-2', 'max-[1440px]:hidden')} aria-hidden />
               <span className="whitespace-nowrap max-[1440px]:text-[11.5px]">{n.label}</span>
               <NavBadge screen={n.id} />
               <span

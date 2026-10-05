@@ -74,13 +74,13 @@ export function OverviewScreen() {
         }}
       >
         <div className="row-span-2 flex min-h-0 flex-col gap-2">
-          <div className="min-h-0 flex-[1.15]">
+          <div className="grid min-h-[150px] flex-[1.3]">
             <AIFusionPanel />
           </div>
-          <div className="min-h-0 flex-[0.85]">
+          <div className="grid shrink-0">
             <StreamHealthPanel />
           </div>
-          <div className="min-h-0 flex-1">
+          <div className="grid min-h-[132px] flex-1">
             <FieldAssetsPanel />
           </div>
         </div>

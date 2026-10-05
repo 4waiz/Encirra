@@ -2,7 +2,8 @@ import { BrainCircuit, Waypoints, TriangleAlert, UserCheck, Activity, Cctv, Wind
 import type { LucideIcon } from 'lucide-react';
 import { useSim } from '../../store/sim';
 import { useUI } from '../../store/ui';
-import { Panel, ProgressBar, Chip, Metric, cx } from '../ui/primitives';
+import { Panel, ProgressBar, Chip, Metric, Sparkline, cx } from '../ui/primitives';
+import { useSeriesTail } from '../charts/useSeries';
 import { TONE_HEX } from '../ui/tone';
 import type { Evidence, Observation, ObservationStatus, Tone } from '../../types';
 import { fmtClock } from '../../utils/format';
@@ -34,6 +35,32 @@ export function confidenceTone(c: number): string {
   return c >= 0.85 ? TONE_HEX.warn : c >= 0.65 ? TONE_HEX.watch : TONE_HEX.info;
 }
 
+/** Confidence trend + latest evidence — shown only when the panel has vertical room. */
+function FusionTrend({ id }: { id: string }) {
+  const data = useSeriesTail(`obs:${id}`, 120, 2);
+  const obs = useSim((s) => s.observations.find((o) => o.id === id));
+  if (!obs) return null;
+  return (
+    <div className="hidden flex-col gap-1.5 [@media(min-height:960px)]:flex">
+      <div className="rounded-[6px] border border-line bg-bg-1/60 px-2 pb-1 pt-1.5">
+        <div className="flex items-center justify-between">
+          <span className="micro">Confidence trend</span>
+          <span className="mono text-[10px] text-ink-3">since {fmtClock(obs.createdAt)}</span>
+        </div>
+        <Sparkline data={data} color="#b4a8ff" height={34} min={0.3} max={1} threshold={0.85} />
+      </div>
+      {obs.evidence.slice(-2).reverse().map((e) => (
+        <div key={e.id} className="flex items-start gap-2 text-[11px] leading-[14px]">
+          <span className="mono shrink-0 text-ink-3">{fmtClock(e.t)}</span>
+          <span className="min-w-0 text-ink-2">
+            <span className="text-ink-1">{e.source}</span> · {e.summary}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function AIFusionPanel() {
   const observations = useSim((s) => s.observations);
   const sensorsOnline = useSim((s) => s.metrics.sensorsOnline);
@@ -63,7 +90,7 @@ export function AIFusionPanel() {
         </div>
       ) : (
         <div className="flex h-full flex-col gap-2 p-2.5">
-          <div className="flex items-center gap-2 rounded-[6px] bg-surface-2 px-2.5 py-1.5">
+          <div className="flex items-center gap-2 rounded-[6px] bg-surface-2 px-2.5 py-1.5 [@media(max-height:820px)]:hidden">
             <Waypoints size={14} className="text-[#b4a8ff]" aria-hidden />
             <span className="text-[12px] text-ink-1">
               <span className="num font-semibold">{top.sources.length}</span> sources correlated
@@ -89,7 +116,8 @@ export function AIFusionPanel() {
             </div>
             <ProgressBar value={top.confidence} color={confidenceTone(top.confidence)} height={5} className="mt-1" />
           </div>
-          <div className="flex flex-wrap gap-1">
+          <FusionTrend id={top.id} />
+          <div className="flex flex-wrap gap-1 [@media(max-height:820px)]:hidden">
             {top.evidence.slice(-4).map((e) => {
               const Icon = EVIDENCE_ICON[e.sourceKind];
               return (

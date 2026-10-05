@@ -3,13 +3,13 @@ import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useSim } from '../../store/sim';
 import { useSeriesTail } from '../charts/useSeries';
-import { Panel, Metric, MicroBars } from '../ui/primitives';
+import { Panel, Metric, MicroBars, cx } from '../ui/primitives';
 import { TONE_HEX } from '../ui/tone';
 import type { Tone } from '../../types';
 
-function Row({ icon: Icon, label, children, bars, tone }: { icon: LucideIcon; label: string; children: ReactNode; bars: number[]; tone: Tone }) {
+function Row({ icon: Icon, label, children, bars, tone, optional }: { icon: LucideIcon; label: string; children: ReactNode; bars: number[]; tone: Tone; optional?: boolean }) {
   return (
-    <div className="flex h-[27px] items-center gap-2.5 border-b border-line px-3 last:border-b-0">
+    <div className={cx('flex h-[27px] items-center gap-2.5 border-b border-line px-3 last:border-b-0', optional && '[@media(max-height:820px)]:hidden')}>
       <Icon size={14} strokeWidth={1.9} style={{ color: TONE_HEX[tone] }} aria-hidden />
       <span className="text-[12px] text-ink-2">{label}</span>
       <span className="ml-auto flex items-baseline gap-1 whitespace-nowrap text-[12.5px] text-ink-1">{children}</span>
@@ -27,7 +27,7 @@ export function StreamHealthPanel() {
   const sensorTone: Tone = m.sensorsOnline < 190 ? 'watch' : 'ok';
   return (
     <Panel title="Stream health" icon={Activity}>
-      <div className="flex h-full flex-col justify-center">
+      <div className="flex flex-col py-1">
         <Row icon={Wifi} label="Sensors" tone={sensorTone} bars={sensors}>
           <Metric value={m.sensorsOnline} className="font-semibold" />
           <span className="text-[11px] text-ink-3">/ {m.sensorsTotal} online</span>
@@ -42,7 +42,7 @@ export function StreamHealthPanel() {
         <Row icon={HardHat} label="PPE detection" tone="ok" bars={ppe}>
           <Metric value={m.ppe} className="font-semibold" suffix="%" />
         </Row>
-        <Row icon={Gauge} label="Link latency" tone={m.latencyMs > 400 ? 'watch' : 'ok'} bars={lat}>
+        <Row icon={Gauge} label="Link latency" tone={m.latencyMs > 400 ? 'watch' : 'ok'} bars={lat} optional>
           <Metric value={m.latencyMs} className="font-semibold" />
           <span className="text-[11px] text-ink-3">ms</span>
         </Row>
