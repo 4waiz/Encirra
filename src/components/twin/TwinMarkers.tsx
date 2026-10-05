@@ -32,7 +32,7 @@ const SensorMarker = memo(function SensorMarker({ id, setRef }: { id: string; se
   const flagged = status === 'elevated' || status === 'alert';
   const offline = status === 'offline';
   return (
-    <div ref={setRef} className="pointer-events-none absolute left-0 top-0 will-change-transform" style={{ visibility: 'hidden' }}>
+    <div ref={setRef} className={cx('pointer-events-none absolute left-0 top-0 will-change-transform', selected ? 'z-20' : flagged && 'z-10')} style={{ visibility: 'hidden' }}>
       <div className="relative -translate-x-1/2 -translate-y-full">
         <button
           type="button"
@@ -244,8 +244,14 @@ export function TwinMarkers({ compact }: { compact?: boolean }) {
         }
         items.push({ key, el, p, s: isUnit || isZone ? 1 : Math.max(0.74, Math.min(1, 1250 / p.distance)) });
       }
-      // de-clutter: incidents > assets > unit labels
+      // de-clutter: selected sensor (marker + ID tag) > incidents > assets > unit labels
       const placed: { p: Projected; b: { w: number; h: number } }[] = [];
+      const sel = useUI.getState().selection;
+      if (sel?.kind === 'sensor') {
+        const it = items.find((i) => i.key === `sensor:${sel.id}`);
+        // footprint: 22 px marker + stem above the anchor, ID tag to its right (centred box ≈ ±76 px)
+        if (it?.p.visible) placed.push({ p: it.p, b: { w: 152, h: 36 } });
+      }
       for (const prefix of ['incident:', 'asset:', 'unit:']) {
         for (const it of items) {
           if (!it.key.startsWith(prefix) || !it.p.visible) continue;

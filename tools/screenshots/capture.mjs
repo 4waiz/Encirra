@@ -100,6 +100,7 @@ await ui(() => {
   if (inc) {
     window.__ENCIRRA__.engine.acknowledge(inc.id);
     window.__ENCIRRA__.engine.toggleChecklist(inc.id, 'supervisor');
+    window.__ENCIRRA__.engine.addNote?.(inc.id, 'Shift supervisor briefed; continuing remote assessment with UGV-01.');
     window.__ENCIRRA__.ui.getState().selectIncident(inc.id);
   }
   window.__ENCIRRA__.ui.getState().setScreen('incidents');
