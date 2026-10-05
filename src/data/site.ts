@@ -311,6 +311,15 @@ export function filletPath(pts: Vec2[], radius = 8, steps = 6): Vec2[] {
   return out;
 }
 
+/** Fillet every corner of a closed loop (returned without repeating the first point). */
+export function filletLoop(pts: Vec2[], radius = 8, steps = 6): Vec2[] {
+  const n = pts.length;
+  const wrapped = [pts[n - 1], ...pts, pts[0]];
+  const out = filletPath(wrapped, radius, steps);
+  // drop the duplicated endpoints introduced by wrapping
+  return out.slice(1, out.length - 1);
+}
+
 export class Polyline {
   readonly pts: Vec2[];
   readonly cum: number[];
