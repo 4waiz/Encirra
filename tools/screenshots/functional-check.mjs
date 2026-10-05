@@ -51,6 +51,7 @@ await check('command palette opens with Ctrl+K and focuses UGV-01', async () => 
 
 await check('trigger radiological scenario from palette', async () => {
   await page.keyboard.press('Control+k');
+  await page.waitForSelector('[aria-label="Command palette"]');
   await page.keyboard.type('Radiological Scenario');
   await page.keyboard.press('Enter');
   await page.waitForTimeout(1200);
@@ -58,19 +59,19 @@ await check('trigger radiological scenario from palette', async () => {
 });
 
 await check('settings drawer → About shows the disclosure', async () => {
-  await page.getByRole('button', { name: 'Settings' }).click();
+  await page.locator('header button[aria-label="Settings"]').click();
   await page.getByRole('button', { name: 'About ENCIRRA' }).click();
-  const text = await page.locator('[aria-label="Settings"]').innerText();
+  const text = await page.locator('[role="dialog"][aria-label="Settings"]').innerText();
   await page.screenshot({ path: resolve(outDir, 'settings-about.png') });
   await page.keyboard.press('Escape');
   return text.includes('Conceptual situational-awareness environment using synthetic local data. No connection to operational Barakah systems.');
 });
 
 await check('scenario control tab renders and resets', async () => {
-  await page.getByRole('button', { name: 'Settings' }).click();
+  await page.locator('header button[aria-label="Settings"]').click();
   await page.getByRole('button', { name: 'Scenario control' }).click();
   await page.screenshot({ path: resolve(outDir, 'settings-scenario.png') });
-  await page.getByRole('button', { name: 'Reset' }).click();
+  await page.getByRole('dialog', { name: 'Settings' }).getByRole('button', { name: 'Reset', exact: true }).click();
   await page.waitForTimeout(800);
   await page.keyboard.press('Escape');
   return (await state(() => window.__ENCIRRA__.sim.getState().run)) === null;

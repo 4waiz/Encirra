@@ -131,7 +131,6 @@ export function CommandPalette() {
     if (open) {
       setQ('');
       setActive(0);
-      requestAnimationFrame(() => inputRef.current?.focus());
     }
   }, [open]);
 
@@ -164,6 +163,7 @@ export function CommandPalette() {
           <Search size={16} className="text-ink-3" aria-hidden />
           <input
             ref={inputRef}
+            autoFocus
             value={q}
             onChange={(e) => {
               setQ(e.target.value);
