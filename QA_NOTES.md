@@ -9,8 +9,8 @@ Status legend: **Fixed** · **Mitigated** (improved, residual documented) · **A
 
 | # | Finding | Where | Fix | Status |
 |---|---------|-------|-----|--------|
-| C1 | No keyboard navigation — owner asked to move around with WASD | Twin, Live Feeds | W/A/S/D ground-relative movement, Q/E height, Shift ×3, speed scales with zoom; in Live Feeds the same keys move a *virtual view* of CAM-01/CAM-02 (labelled, with "Return to mount"); keys ignored in inputs, sliders, menus and dialogs | Fixed |
-| C2 | The opening story is hard to see on the Overview: from the home camera the heat field, UGV route and beacon at Unit 3 are a few pixels, so "the heat field appears / UGV is dispatched" does not land | 01-overview | Auto-frame new incidents: when an incident opens and the operator hasn't touched the camera for 20 s, the twin flies to a framing of the incident (setting, default on); home view tightened | Fixed |
+| C1 | No keyboard navigation — owner asked to move around with WASD | Twin, Live Feeds | W/A/S/D ground-relative movement, Q/E height, Shift ×3, speed scales with zoom; in Live Feeds the same keys move a *virtual view* of CAM-01/CAM-02 (labelled, with "Return to mount"); ignored while typing, in menus and while the palette or settings are open; radios, tabs and sliders keep their arrow keys but WASD still works after clicking them | Fixed |
+| C2 | The opening story is hard to see on the Overview: from the home camera the heat field, UGV route and beacon at Unit 3 are a few pixels, so "the heat field appears / UGV is dispatched" does not land | 01-overview | Auto-frame new incidents: when an incident opens and the operator hasn't moved the camera for 20 s, the twin flies to a framing of the incident (Settings → Display → "Frame new incidents", on by default); home view tightened (M7); the selected sensor's marker and ID tag are kept clear of incident and asset labels | Fixed |
 
 ## HIGH
 
@@ -57,10 +57,49 @@ Status legend: **Fixed** · **Mitigated** (improved, residual documented) · **A
 | P6 | Clocks tick out of step (header vs feed stamps); one timer per component | all | Shared ticker per cadence (`useSyncExternalStore`) — one interval, all clocks update together | Fixed |
 | P7 | Main-feed OSD (REC/LIVE, mode/PTZ line, virtual-view tag) is low contrast over bright scenes | 03 | Translucent dark backing | Fixed |
 
+## Verification (Phase 2 build)
+
+All runs use the locally installed Microsoft Edge through `playwright-core`, GPU via ANGLE/D3D11, 1600×900 unless noted.
+
+**Functional** (`tools/screenshots/functional-check.mjs --url=http://localhost:4173/`, production build): **23 / 23 pass** —
+footer attribution · navigation + hash routing · command palette · Normal → Radiological → Chemical → Normal · settings
+disclosure · incident trigger → acknowledge → assign UGV + UAV → resolve · replay scrub + Live · 3D picking · select sensor →
+inspector → Focus · select UGV/UAV → follow · layer toggle · WASD move / height / strafe · WASD ignored while typing ·
+feeds source switch + thermal on/off + snapshot · CAM-02 virtual view (with focus left on a mode radio) + Return to mount ·
+wind change · auto-frame · operator note · persisted state across reload · no page overflow at 1366×768 / 1600×900 /
+1920×1080. **No failed requests, no console errors, no console warnings.**
+
+**Scenarios** (`scenario-check.mjs`, production): chemical plume, plume after a wind shift, biological aerosol, thermal
+hotspot and degraded network render and propagate to sensors, events, incidents, feeds and KPIs; no console errors.
+
+**Performance** (`perf-probe.mjs`, production, integrated Intel GPU): render-loop JS ≈ 1 ms/frame, ~110 draw calls and
+~184 k triangles on the Overview; headless frame rate uncapped at ≈ 237 fps (vsync-limited to 60 on a display). After
+three full cycles through all five screens: feed render targets steady at 4, textures steady at 15, geometries plateau
+at 113, JS heap 28–46 MB with no upward trend (no leaks). Cold load: 0 WebGL errors (was 257, H8).
+
+**Payload:** 3D models 6.7 MB → 0.68 MB (Draco) + 0.25 MB decoder; JS 94 KB (app) + 192 KB (three) + 153 KB (r3f) gzipped.
+
 ## Checklists
 
-**Visual:** header alignment ✓ · nav spacing ✓ · no clipped labels (H4, P2) · KPI baselines ✓ · padding/borders/radii consistent ✓ · icon sizes 12–15 px ✓ · no oversized elements ✓ · dead zones (M2, M3) · no decorative gradients ✓ · 3D model (C2, M7) · ocean ✓ · lighting ✓ · overlays don't obscure (M8) · marker size ✓ · chart axes/labels ✓ · charts fit ✓ · tooltips inside viewport ✓ · thermal (P4) · camera labels ✓ · event density ✓ · scroll areas ✓ · footer link ✓ · console (M6) · no 404s ✓ · no React warnings ✓ · scenario sync ✓ · selection consistent across screens ✓ · asset/feed/event positions consistent ✓ · navigation ✓
+**Visual:** header alignment ✓ · nav spacing ✓ · clipped labels fixed (H4, M9, M10, P2) · KPI baselines ✓ · padding/borders/
+radii consistent ✓ · icon sizes 12–15 px ✓ · no oversized elements ✓ · dead zones filled (M2, M3) · no decorative
+gradients ✓ · 3D framing (C2, M7) · ocean ✓ · lighting ✓ · overlays no longer obscure the subject (M8) · marker size ✓ ·
+chart axes/labels (H4, M11) · charts fit their panels (M4) · tooltips inside viewport ✓ · thermal (P4) · camera labels
+(M10, P5, P7) · event density ✓ · scroll areas ✓ · footer link ✓ · console clean (H8, M6) · no 404s ✓ · no React
+warnings ✓ · scenario sync ✓ · selection consistent across screens ✓ · asset/feed/event positions consistent ✓ ·
+navigation ✓
 
-**Functional (scripted, `tools/screenshots/functional-check.mjs`):** see the Phase 2 run log in the final report.
+**Performance:** no per-frame React renders (DOM overlays positioned from the frame bus) ✓ · single scene and GL context
+✓ · capped buffers ✓ (+M5) · render-target lifecycle (H6) · one engine interval and one shared UI ticker (P6) · narrow
+zustand selectors (`useShallow` for derived arrays) ✓ · dynamic-resolution governor ✓ · GLB size (H7).
 
-**Performance:** frame loop has no per-frame React renders ✓ · single scene/context ✓ · capped buffers ✓ (+M5) · RT lifecycle (H6) · one engine interval ✓ · narrow zustand selectors (`useShallow` for derived arrays) ✓ · dynamic resolution governor ✓ · GLB size (H7).
+## Remaining limitations
+
+- The thermal imagery is a stylised synthetic rendering (per-material heat, sun loading and world-space hotspots), not a
+  radiometric simulation (P4).
+- Detection boxes come from projected scene objects with a line-of-sight test against generalized building volumes; small
+  props can still be reported through gaps the volumes don't model.
+- The `THREE.Clock` notice is filtered at the console hook rather than removed upstream (M6); it disappears once React
+  Three Fiber moves to `THREE.Timer`.
+- Frame-rate figures come from headless Edge on one integrated GPU; the resolution governor adapts on slower hardware but
+  has not been profiled on other GPUs.
