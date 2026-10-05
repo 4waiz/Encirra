@@ -22,7 +22,9 @@ Status legend: **Fixed** · **Mitigated** (improved, residual documented) · **A
 | H4 | Telemetry lane threshold label clips at the lane top ("review 0.8") | 01 telemetry | Label flips below the line near the top edge | Fixed |
 | H5 | The selected sensor cannot be identified in the twin (RAD-S17 is "one of the orange badges"); flagged sensors carry no ID | 02 | Selected and flagged sensors always show an ID tag; the selected marker gets a cyan ring separated by a dark gap | Fixed |
 | H6 | GPU memory: feed render targets of views that unmount (screen changes) are never released | RenderLoop | Targets of unregistered views are disposed every second | Fixed |
-| H7 | 3D payload is 6.7 MB of uncompressed GLB | public/models | Draco-compressed export from Blender + locally bundled decoder (no CDN) | Fixed |
+| H7 | 3D payload is 6.7 MB of uncompressed GLB | public/models | Draco-compressed export from Blender (6.7 MB → 0.68 MB) + locally served WebAssembly decoder (no CDN) | Fixed |
+| H8 | Cold load floods the console with `GL_INVALID_OPERATION: Mismatch between texture format and sampler type` (found by the new warning capture in the functional script) — on a cold load the sun and models resolve after the 4-frame shadow warm-up, so for up to 20 frames standard materials sample three's placeholder depth texture (bound without a compare mode by the `sampler2DShadow` array path) and those draws are dropped | all | Render loop finds the sun when the scene graph resolves, restarts the warm-up, and forces a shadow pass whenever a shadow-casting light has no map yet; 0 GL errors across repeated cold loads (was 257) | Fixed |
+| H9 | Overview document is 24 px taller than the viewport at every size: the telemetry chart's `sr-only` table ignores the 1 px clip (table boxes don't honour `height`/`overflow`), so the root becomes scrollable and `scrollIntoView` could shift the whole layout | 01 | Clip applied to a block wrapper around the table; scroll size equals the viewport at 1366×768, 1600×900 and 1920×1080 | Fixed |
 
 ## MEDIUM
 
@@ -40,6 +42,8 @@ Status legend: **Fixed** · **Mitigated** (improved, residual documented) · **A
 | M10 | Feed caption repeats the source ("UGV-01 UGV-01 · mast camera") | 03 | Feed metadata split into label / short label; captions no longer repeat the ID | Fixed |
 | M11 | Confidence timeline: "human validation threshold" label is drawn on top of the series | 04 | Label moved to the left end under the line, with a halo | Fixed |
 | M12 | Evidence table wraps findings into 4–5 lines and scrolls (narrow Finding column) | 04 | Source and time merged into one column; all five evidence rows fit | Fixed |
+| M13 | Thumbnail detection labels can sit on top of the timestamp row | 01 UAV tile | Labels start below the timestamp row (22 px) | Fixed |
+| M14 | With CAM-01/02 selected, the taller PTZ control squeezes Detections to a header on 900 px screens | 03 | Compact single-line WASD hint; the Stream card yields to Detections below 1000 px height for fixed cameras | Fixed |
 
 ## POLISH
 
@@ -51,6 +55,7 @@ Status legend: **Fixed** · **Mitigated** (improved, residual documented) · **A
 | P4 | Thermal ground reads flat in the UGV view | 03 | Added sun-baked mottling and asphalt/lawn contrast (Phase 1 late fix) — further radiometric realism out of scope | Accepted |
 | P5 | Feed timestamps are hard to read over a bright sky | 01, 03 | Timestamp sits on a translucent dark backing | Fixed |
 | P6 | Clocks tick out of step (header vs feed stamps); one timer per component | all | Shared ticker per cadence (`useSyncExternalStore`) — one interval, all clocks update together | Fixed |
+| P7 | Main-feed OSD (REC/LIVE, mode/PTZ line, virtual-view tag) is low contrast over bright scenes | 03 | Translucent dark backing | Fixed |
 
 ## Checklists
 

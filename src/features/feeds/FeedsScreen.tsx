@@ -140,7 +140,7 @@ function MainFeed({ source, onDetections }: { source: FeedSource; onDetections: 
           </span>
           <FeedStamp source={source} stale={stale} staleSince={feed?.staleSince ?? null} />
         </div>
-        <div className="pointer-events-none absolute right-3 top-2.5 z-[3] flex items-center gap-2">
+        <div className="pointer-events-none absolute right-3 top-2.5 z-[3] flex items-center gap-2 rounded-[4px] bg-bg-0/45 px-1.5 py-0.5">
           {pb.mode === 'replay' ? (
             <span className="rounded-[3px] bg-[rgb(242_179_61/0.2)] px-1.5 py-[1px] font-cond text-[10.5px] font-semibold uppercase tracking-[0.1em] text-amber">
               Replay {fmtClock(pb.cursor)}
@@ -162,7 +162,7 @@ function MainFeed({ source, onDetections }: { source: FeedSource; onDetections: 
             <ThermalScale />
           </div>
         )}
-        <div className="pointer-events-none absolute bottom-2.5 left-3 z-[3] flex items-center gap-2 font-cond text-[10.5px] uppercase tracking-[0.12em] text-ink-1" style={{ textShadow: '0 1px 3px #000' }}>
+        <div className="pointer-events-none absolute bottom-2.5 left-3 z-[3] flex items-center gap-2 rounded-[4px] bg-bg-0/45 px-1.5 py-0.5 font-cond text-[10.5px] uppercase tracking-[0.12em] text-ink-1" style={{ textShadow: '0 1px 3px #000' }}>
           <span>{mode === 'visible' ? 'EO · Visible' : mode === 'thermal' ? 'LWIR · Thermal' : 'Fusion · EO + LWIR'}</span>
           {ptz && (
             <span className="mono normal-case tracking-normal text-ink-2">
@@ -170,7 +170,7 @@ function MainFeed({ source, onDetections }: { source: FeedSource; onDetections: 
             </span>
           )}
           {moved > 0.5 && (
-            <span className="rounded-[3px] bg-[rgb(60_200_220/0.18)] px-1.5 py-[1px] normal-case tracking-normal text-cyan">
+            <span className="rounded-[3px] bg-[rgb(60_200_220/0.22)] px-1.5 py-[1px] normal-case tracking-normal text-[#8fe8f5]">
               Virtual view · {Math.round(moved)} m from mount
             </span>
           )}
@@ -247,7 +247,7 @@ function StreamInfo({ source }: { source: FeedSource }) {
 
 function MoveHint() {
   return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10.5px] text-ink-3">
+    <div className="flex items-center gap-1.5 whitespace-nowrap text-[10.5px] text-ink-3" title="Move a virtual view of this camera: W A S D move, Q / E height, Shift faster">
       <span className="flex items-center gap-0.5">
         <Kbd>W</Kbd>
         <Kbd>A</Kbd>
@@ -260,8 +260,6 @@ function MoveHint() {
         <Kbd>E</Kbd>
       </span>
       height
-      <Kbd>Shift</Kbd>
-      faster
     </div>
   );
 }
@@ -330,7 +328,7 @@ function Ptz({ source }: { source: FeedSource }) {
           <span className="text-[10.5px] text-ink-3">Drag the image to look · scroll to zoom</span>
         </div>
       </div>
-      <div className="flex items-center justify-between gap-2 rounded-[6px] border border-line bg-surface-2/50 px-2.5 py-2">
+      <div className="flex min-h-[24px] items-center justify-between gap-2">
         <MoveHint />
         {moved > 0.5 && (
           <button type="button" className="ctl h-[22px] shrink-0" onClick={resetAll}>
@@ -447,7 +445,13 @@ export function FeedsScreen() {
               })}
           </div>
         </Panel>
-        <Panel title="Stream" icon={Activity} className="shrink-0 [@media(max-height:820px)]:hidden" subtitle={main}>
+        {/* fixed cameras carry the taller PTZ control: the stream card yields to Detections on 900 px screens */}
+        <Panel
+          title="Stream"
+          icon={Activity}
+          className={cx('shrink-0', main === 'CAM-01' || main === 'CAM-02' ? '[@media(max-height:1000px)]:hidden' : '[@media(max-height:820px)]:hidden')}
+          subtitle={main}
+        >
           <StreamInfo source={main} />
         </Panel>
         <Panel title="Playback" icon={Rewind} className="shrink-0">

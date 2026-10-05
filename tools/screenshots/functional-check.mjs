@@ -87,9 +87,11 @@ await check('scenario: Normal → Radiological (palette)', async () => {
 });
 
 await check('scenario: Radiological → Chemical plume', async () => {
+  const before = await ui(() => window.__ENCIRRA__.sim.getState().run?.preset);
   await ui(() => window.__ENCIRRA__.engine.trigger({ preset: 'chemical', severity: 'moderate', locationId: 'SERVICE', windDir: 315, windSpeed: 12, duration: 0 }));
   await page.waitForTimeout(1200);
-  return (await ui(() => window.__ENCIRRA__.sim.getState().run?.preset)) === 'chemical';
+  const after = await ui(() => window.__ENCIRRA__.sim.getState().run?.preset);
+  return (before === 'radiological' && after === 'chemical') || `before=${before} after=${after}`;
 });
 
 await check('settings drawer → About shows the disclosure', async () => {
@@ -183,13 +185,18 @@ await check('select UGV-01 and UAV-01 → inspector + follow', async () => {
   return t1.includes('UAV-01') && t2.includes('UGV-01') && follow === 'UGV-01';
 });
 
-await check('layer toggles: Weather on/off from the twin HUD', async () => {
-  const btn = page.getByRole('group', { name: '3D layers' }).first().getByRole('button', { name: /weather layer/i });
+await check('layer toggles: Weather on/off from the Overview twin panel', async () => {
+  await ui(() => window.__ENCIRRA__.ui.getState().setScreen('overview'));
+  await page.waitForTimeout(600);
+  const btn = page.getByRole('group', { name: '3D layers' }).first().getByRole('button', { name: 'Weather', exact: true });
   const before = await ui(() => window.__ENCIRRA__.ui.getState().layers.weather);
   await btn.click();
   const mid = await ui(() => window.__ENCIRRA__.ui.getState().layers.weather);
+  await page.screenshot({ path: resolve(outDir, 'overview-weather-layer.png') });
   await btn.click();
   const after = await ui(() => window.__ENCIRRA__.ui.getState().layers.weather);
+  await ui(() => window.__ENCIRRA__.ui.getState().setScreen('twin'));
+  await page.waitForTimeout(600);
   return mid === !before && after === before;
 });
 
@@ -336,11 +343,11 @@ await check('resize: 1366×768 and 1920×1080 have no page overflow', async () =
       await state((sc) => window.__ENCIRRA__.ui.getState().setScreen(sc), screen);
       await page.waitForTimeout(350);
       const o = await state(() => ({ sw: document.documentElement.scrollWidth, sh: document.documentElement.scrollHeight, w: window.innerWidth, h: window.innerHeight }));
-      out.push(o.sw <= o.w && o.sh <= o.h);
+      if (o.sw > o.w || o.sh > o.h) out.push(`${w}×${h} ${screen}: ${o.sw}×${o.sh}`);
     }
     if (w === 1366) await page.screenshot({ path: resolve(outDir, 'incidents-1366.png') });
   }
-  return out.every(Boolean);
+  return out.length === 0 || out.join('; ');
 });
 
 console.log(results.join('\n'));

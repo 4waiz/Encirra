@@ -41,7 +41,8 @@ function DetectionOverlay({ viewId, exclude, compact, onDetections }: { viewId: 
       const dets = detect(f.camera, f.rect.width, f.rect.height, f.t, exclude).sort((a, b) => PRIORITY[a.kind] - PRIORITY[b.kind]);
       cb.current?.(dets);
       labels.length = 0;
-      const minTop = compact ? 0 : 44;
+      // keep labels below the timestamp row (thumbnails) or the caption block (main feed)
+      const minTop = compact ? 22 : 44;
       while (pool.length < dets.length) {
         const box = document.createElement('div');
         box.className = 'absolute rounded-[1px]';
