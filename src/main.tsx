@@ -6,6 +6,7 @@ import '@fontsource/ibm-plex-sans-condensed/600.css';
 import '@fontsource/ibm-plex-mono/400.css';
 import '@fontsource/ibm-plex-mono/500.css';
 import './styles/index.css';
+import './three/consoleFilter';
 import App from './App';
 import { engine } from './simulation/engine';
 import { useUI } from './store/ui';

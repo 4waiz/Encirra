@@ -1,0 +1,55 @@
+# ENCIRRA — Phase 2 QA notes
+
+Scope: the five Phase 1 captures (`screenshots/phase-1/01–05`, 1600×900, production build in Edge), plus scripted
+functional and performance passes. Owner feedback is merged in: **"make it so I can move around using WASD"**.
+
+Status legend: **Fixed** · **Mitigated** (improved, residual documented) · **Accepted** (documented limitation)
+
+## CRITICAL
+
+| # | Finding | Where | Fix | Status |
+|---|---------|-------|-----|--------|
+| C1 | No keyboard navigation — owner asked to move around with WASD | Twin, Live Feeds | W/A/S/D ground-relative movement, Q/E height, Shift ×3, speed scales with zoom; in Live Feeds the same keys move a *virtual view* of CAM-01/CAM-02 (labelled, with "Return to mount"); keys ignored in inputs, sliders, menus and dialogs | Fixed |
+| C2 | The opening story is hard to see on the Overview: from the home camera the heat field, UGV route and beacon at Unit 3 are a few pixels, so "the heat field appears / UGV is dispatched" does not land | 01-overview | Auto-frame new incidents: when an incident opens and the operator hasn't touched the camera for 20 s, the twin flies to a framing of the incident (setting, default on); home view tightened | Fixed |
+
+## HIGH
+
+| # | Finding | Where | Fix | Status |
+|---|---------|-------|-----|--------|
+| H1 | Wind-field arrows are white on white roofs — the weather layer is nearly invisible | 02-digital-twin | Darker cyan chevrons with normal blending, larger, and a ground-shadow pass so they read on sand, roofs and sea | Fixed |
+| H2 | Visible CCTV/UAV feeds look washed out (milky, low contrast) | 01, 03 thumbnails | Lower feed exposure, S-curve contrast, slight saturation, vignette tuned | Fixed |
+| H3 | Count KPIs ("Under review", "Samples to lab") use sparklines that are flat lines — read as meaningless rules | 01 KPI row | Replaced with 3-minute bucketed micro-bars (shows *when* reviews happened) | Fixed |
+| H4 | Telemetry lane threshold label clips at the lane top ("review 0.8") | 01 telemetry | Label flips below the line near the top edge | Fixed |
+| H5 | The selected sensor cannot be identified in the twin (RAD-S17 is "one of the orange badges"); flagged sensors carry no ID | 02 | Selected and flagged sensors always show an ID tag; selected marker gets an accent halo | Fixed |
+| H6 | GPU memory: feed render targets of views that unmount (screen changes) are never released | RenderLoop | Targets of unregistered views are disposed every second | Fixed |
+| H7 | 3D payload is 6.7 MB of uncompressed GLB | public/models | Draco-compressed export from Blender + locally bundled decoder (no CDN) | Fixed |
+
+## MEDIUM
+
+| # | Finding | Where | Fix | Status |
+|---|---------|-------|-----|--------|
+| M1 | Distant "Structure 98%" boxes clutter the UGV thermal feed and CAM-01; overlapping dome boxes stack labels | 03 | Per-class range limits (structures ≤ 650 m, people ≤ 220 m) and label de-overlap | Fixed |
+| M2 | Live Feeds right column has a large empty area below Detections | 03 | New "Stream" panel: resolution, codec, bitrate, latency, keyframe, link | Fixed |
+| M3 | Incidents centre columns end half-way down; no way to add an operator note | 05 | Operator log input appends timeline entries (Enter to add) | Fixed |
+| M4 | AI Insights correlation graph renders small inside its panel | 04 | Graph re-laid out to the panel aspect | Fixed |
+| M5 | Long sessions: incidents, observations and vehicle plan segments are unbounded | engine | Capped (incidents 60, observations 60) and plan segments pruned beyond the 30-min replay window | Fixed |
+| M6 | Console shows a third-party deprecation notice (`THREE.Clock`, emitted inside React Three Fiber) | console | Narrow filter for that exact upstream notice; no other warnings | Mitigated |
+| M7 | Overview home view frames the campus small (lots of sea/desert) | 01 | Home camera ~20 % closer, same composition | Fixed |
+| M8 | Sensor callout can sit over the incident it describes | 01 | Callout prefers the side away from the view centre | Fixed |
+
+## POLISH
+
+| # | Finding | Where | Fix | Status |
+|---|---------|-------|-----|--------|
+| P1 | "Checklist 33 %" in Nuclear readiness is ambiguous during an incident | 01 | Label switches to "Response checklist" while an incident is active | Fixed |
+| P2 | Feed tile titles truncate ("Exterior · Units …") | 01 | Shorter feed labels for tiles | Fixed |
+| P3 | Event rows truncate details with no way to read them | 01 | Full text on hover (title) + expand on click (existing) | Fixed |
+| P4 | Thermal ground reads flat in the UGV view | 03 | Added sun-baked mottling and asphalt/lawn contrast (Phase 1 late fix) — further radiometric realism out of scope | Accepted |
+
+## Checklists
+
+**Visual:** header alignment ✓ · nav spacing ✓ · no clipped labels (H4, P2) · KPI baselines ✓ · padding/borders/radii consistent ✓ · icon sizes 12–15 px ✓ · no oversized elements ✓ · dead zones (M2, M3) · no decorative gradients ✓ · 3D model (C2, M7) · ocean ✓ · lighting ✓ · overlays don't obscure (M8) · marker size ✓ · chart axes/labels ✓ · charts fit ✓ · tooltips inside viewport ✓ · thermal (P4) · camera labels ✓ · event density ✓ · scroll areas ✓ · footer link ✓ · console (M6) · no 404s ✓ · no React warnings ✓ · scenario sync ✓ · selection consistent across screens ✓ · asset/feed/event positions consistent ✓ · navigation ✓
+
+**Functional (scripted, `tools/screenshots/functional-check.mjs`):** see the Phase 2 run log in the final report.
+
+**Performance:** frame loop has no per-frame React renders ✓ · single scene/context ✓ · capped buffers ✓ (+M5) · RT lifecycle (H6) · one engine interval ✓ · narrow zustand selectors (`useShallow` for derived arrays) ✓ · dynamic resolution governor ✓ · GLB size (H7).

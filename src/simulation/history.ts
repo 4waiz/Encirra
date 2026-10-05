@@ -22,6 +22,10 @@ class HistoryStore {
   get(key: string): TimeSeries | undefined {
     return this.map.get(key);
   }
+
+  delete(key: string) {
+    this.map.delete(key);
+  }
 }
 
 export const history = new HistoryStore();

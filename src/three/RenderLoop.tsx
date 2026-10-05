@@ -19,7 +19,7 @@ import { envelope } from '../simulation/effects';
 import { useUI } from '../store/ui';
 import { SKY_COLORS } from './Environment';
 
-export const perfStats = { fps: 60, frameMs: 16.7, drawCalls: 0, triangles: 0, renderScale: 1, mainMs: 0, feedsMs: 0 };
+export const perfStats = { fps: 60, frameMs: 16.7, drawCalls: 0, triangles: 0, renderScale: 1, mainMs: 0, feedsMs: 0, feedTargets: 0 };
 /** Development switches for profiling (exposed on window.__ENCIRRA_RENDER__). */
 export const renderDebug = { main: true, feeds: true, overlays: true };
 (window as unknown as { __ENCIRRA_RENDER__: unknown }).__ENCIRRA_RENDER__ = { perfStats, renderDebug };
@@ -72,7 +72,6 @@ export function RenderLoop() {
       fusion: createFusionFeedMaterial(ironbow),
       main: null as THREE.WebGLRenderTarget | null,
       feeds: new Map<string, Targets>(),
-      snapRT: null as THREE.WebGLRenderTarget | null,
       fpsFrames: 0,
       fpsT0: performance.now(),
       shadowFrame: 0,
@@ -97,7 +96,6 @@ export function RenderLoop() {
         t.color?.dispose();
         t.heat?.dispose();
       }
-      res.snapRT?.dispose();
       [res.grade, res.visible, res.thermal, res.fusion].forEach((m) => m.dispose());
       res.ironbow.dispose();
       res.whitehot.dispose();
@@ -218,6 +216,14 @@ export function RenderLoop() {
       res.fpsT0 = now;
       perfStats.drawCalls = gl.info.render.calls;
       perfStats.triangles = gl.info.render.triangles;
+      // release the render targets of feed views that have unmounted (screen changes)
+      for (const [key, tg] of res.feeds) {
+        if (feedViews.has(key)) continue;
+        tg.color?.dispose();
+        tg.heat?.dispose();
+        res.feeds.delete(key);
+      }
+      perfStats.feedTargets = res.feeds.size;
       if (document.visibilityState === 'visible' && now - res.lastGovern > 1500) {
         res.lastGovern = now;
         if (perfStats.fps < 40 && res.renderScale > 0.5) res.renderScale = Math.max(0.5, res.renderScale - 0.1);
@@ -250,9 +256,18 @@ export function RenderLoop() {
     const cap = (large ? 1 : 0.8) * Math.max(0.6, res.renderScale);
     const cw = Math.min(r.width * dpr * cap, large ? 1920 : 760);
     const ch = Math.min(r.height * dpr * cap, large ? 1200 : 480);
+    // a freshly allocated target must be drawn this frame, whatever the feed's frame rate
+    const firstFrame = (needColor && !tg.color) || (needHeat && !tg.heat);
     if (needColor) tg.color = ensureRT(tg.color, cw, ch, large ? 4 : 2);
+    else if (tg.color) {
+      tg.color.dispose();
+      tg.color = null;
+    }
     if (needHeat) tg.heat = ensureRT(tg.heat, cw * 0.55, ch * 0.55, 0);
-    const firstFrame = (needColor && tg.color && tg.last === 0) || (needHeat && tg.heat && tg.last === 0);
+    else if (tg.heat) {
+      tg.heat.dispose();
+      tg.heat = null;
+    }
 
     if ((due && !stale) || firstFrame) {
       if (v.source === 'PIP') updatePipCamera(cam, v.pip ?? { x: 0, z: 0 });
@@ -293,7 +308,7 @@ export function RenderLoop() {
       mat.uniforms.uRes.value.set(tg.color.width, tg.color.height);
       mat.uniforms.uStale.value = stale ? 1 : 0;
       mat.uniforms.uNoise.value = v.source === 'PIP' ? 0.012 : 0.032;
-      mat.uniforms.uSat.value = v.source === 'PIP' ? 1 : v.source === 'UAV-01' ? 0.92 : 0.8;
+      mat.uniforms.uSat.value = v.source === 'PIP' ? 1 : v.source === 'UAV-01' ? 0.98 : 0.9;
     } else return;
     mat.uniforms.uTime.value = now / 1000;
 

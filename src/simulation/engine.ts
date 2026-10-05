@@ -43,6 +43,24 @@ import { zoneAt } from '../data/site';
 
 const TICK_MS = 1000;
 const MAX_EVENTS = 240;
+/** Record caps for long-running sessions; open records are never dropped, the oldest closed ones go first. */
+const MAX_INCIDENTS = 60;
+const MAX_OBSERVATIONS = 60;
+const MAX_NOTE_LENGTH = 280;
+
+/** Trims a newest-first record list to `max`, dropping the oldest closed records first. */
+function capRecords<T>(list: T[], max: number, closed: (x: T) => boolean): T[] {
+  let excess = list.length - max;
+  if (excess <= 0) return list;
+  const drop = new Set<T>();
+  for (let i = list.length - 1; i >= 0 && excess > 0; i--) {
+    if (closed(list[i])) {
+      drop.add(list[i]);
+      excess--;
+    }
+  }
+  return drop.size ? list.filter((x) => !drop.has(x)) : list;
+}
 
 interface SensorRuntime {
   def: (typeof SENSORS)[number];
@@ -241,6 +259,9 @@ export class SimulationEngine {
       }
     }
 
+    // ---- bounded memory: prune vehicle plans and closed records once a minute
+    if (live && this.tickIndex % 60 === 0) this.pruneRecords(t);
+
     // ---- aggregates
     const metrics = this.computeMetrics(t);
     const kpis = this.computeKpis(t);
@@ -277,6 +298,19 @@ export class SimulationEngine {
 
   private lastMetrics: Metrics | null = null;
   private lastKpis: ResponseKpis | null = null;
+
+  private pruneRecords(t: number) {
+    const before = t - HISTORY_CAPACITY * 1000;
+    this.ugv.prune(before);
+    this.uav.prune(before);
+    this.incidents = capRecords(this.incidents, MAX_INCIDENTS, (i) => i.status === 'resolved');
+    const kept = capRecords(this.observations, MAX_OBSERVATIONS, (o) => o.status === 'cleared' || o.status === 'validated');
+    if (kept !== this.observations) {
+      const ids = new Set(kept.map((o) => o.id));
+      for (const o of this.observations) if (!ids.has(o.id)) history.delete(`obs:${o.id}`);
+      this.observations = kept;
+    }
+  }
 
   private updateAssets(t: number, dt: number) {
     const seg = this.ugv.current(t);
@@ -904,6 +938,17 @@ export class SimulationEngine {
     this.patchIncident(id, (i) => ({ ...i, severity }));
     this.addTimeline(id, 'operator', `Severity set to ${severity}`, 'Operator');
     this.commit();
+  }
+
+  /** Operator log entry on an incident timeline (free text, trimmed and length-limited). */
+  addNote(id: string, text: string) {
+    const note = text.replace(/\s+/g, ' ').trim().slice(0, MAX_NOTE_LENGTH);
+    const inc = this.incidents.find((i) => i.id === id);
+    if (!note || !inc) return false;
+    this.now = Date.now();
+    this.addTimeline(id, 'operator', 'Operator note', 'Operator', note);
+    this.commit();
+    return true;
   }
 
   toggleChecklist(id: string, itemId: string) {

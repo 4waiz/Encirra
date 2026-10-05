@@ -87,6 +87,15 @@ const findSegment = <T extends { t0: number }>(segs: T[], t: number) => {
   return lo;
 };
 
+/**
+ * Drops plan segments that ended before `before` (the start of the replay window), keeping a couple
+ * of predecessors because poses blend across segment boundaries. Keeps memory bounded in long sessions.
+ */
+function pruneSegments<T extends { t0: number }>(segs: T[], before: number, keep = 2) {
+  const cut = findSegment(segs, before) - keep;
+  if (cut > 0) segs.splice(0, cut);
+}
+
 export class UgvController {
   segments: UgvSegment[];
   readonly patrolSpeed = 3.6;
@@ -97,6 +106,10 @@ export class UgvController {
 
   current(t: number) {
     return this.segments[findSegment(this.segments, t)];
+  }
+
+  prune(before: number) {
+    pruneSegments(this.segments, before);
   }
 
   pose(t: number): Pose {
@@ -215,6 +228,10 @@ export class UavController {
 
   current(t: number) {
     return this.segments[findSegment(this.segments, t)];
+  }
+
+  prune(before: number) {
+    pruneSegments(this.segments, before);
   }
 
   private segPose(seg: UavSegment, t: number): Pose {

@@ -128,32 +128,52 @@ const ARROW_VERT = /* glsl */ `
 
 const ARROW_FRAG = /* glsl */ `
   uniform float uOpacity;
+  uniform vec3 uColor;
+  uniform float uAlpha;
   varying float vAlpha;
   void main() {
-    gl_FragColor = vec4(vec3(0.82, 0.95, 1.0) * 1.4, vAlpha * 0.55 * uOpacity);
+    gl_FragColor = vec4(uColor, vAlpha * uAlpha * uOpacity);
   }
 `;
+
+/** Miter-offsets a simple polygon outward by `d` (dark outline behind each wind chevron). */
+function offsetPolygon(pts: THREE.Vector2[], d: number) {
+  const n = pts.length;
+  let area = 0;
+  for (let i = 0; i < n; i++) {
+    const a = pts[i];
+    const b = pts[(i + 1) % n];
+    area += a.x * b.y - b.x * a.y;
+  }
+  const sign = area < 0 ? 1 : -1;
+  const normal = (a: THREE.Vector2, b: THREE.Vector2) => {
+    const e = b.clone().sub(a).normalize();
+    return new THREE.Vector2(-e.y * sign, e.x * sign);
+  };
+  return pts.map((cur, i) => {
+    const n0 = normal(pts[(i + n - 1) % n], cur);
+    const n1 = normal(cur, pts[(i + 1) % n]);
+    const m = n0.clone().add(n1).normalize();
+    return cur.clone().addScaledVector(m, d / Math.max(0.2, m.dot(n1)));
+  });
+}
 
 export function WeatherLayer() {
   const visible = useUI((s) => s.layers.weather);
   const opacity = useRef(0);
-  const { arrows, vane, uniforms } = useMemo(() => {
+  const { arrows, outlines, vane, uniforms } = useMemo(() => {
     const uniforms = { uWind: { value: new THREE.Vector2(0.7, 0.7) }, uTime: { value: 0 }, uSpeed: { value: 3.3 }, uOpacity: { value: 0 } };
-    // chevron in local (x = across, z = along wind)
-    const shape = new THREE.Shape();
-    shape.moveTo(-9, -6);
-    shape.lineTo(0, 6);
-    shape.lineTo(9, -6);
-    shape.lineTo(5, -6);
-    shape.lineTo(0, 1);
-    shape.lineTo(-5, -6);
-    shape.closePath();
-    const sg = new THREE.ShapeGeometry(shape);
-    sg.rotateX(Math.PI / 2); // shape y -> world z(along)
-    const ig = new THREE.InstancedBufferGeometry();
-    ig.index = sg.index;
-    ig.setAttribute('position', sg.getAttribute('position'));
-    ig.setAttribute('uv', sg.getAttribute('uv'));
+    // chevron in local (x = across, z = along wind); a dark miter outline drawn underneath keeps the
+    // cyan fill legible on white roofs, pale sand and open sea alike
+    const S = 1.3;
+    const chevron = [
+      [-9, -6],
+      [0, 6],
+      [9, -6],
+      [5, -6],
+      [0, 1],
+      [-5, -6],
+    ].map(([x, y]) => new THREE.Vector2(x * S, y * S));
     const bases: number[] = [];
     const phases: number[] = [];
     for (let x = -720; x <= 720; x += 160) {
@@ -162,20 +182,40 @@ export function WeatherLayer() {
         phases.push(Math.random());
       }
     }
-    ig.setAttribute('aBase', new THREE.InstancedBufferAttribute(new Float32Array(bases), 3));
-    ig.setAttribute('aPhase', new THREE.InstancedBufferAttribute(new Float32Array(phases), 1));
-    ig.instanceCount = phases.length;
-    const arrows = new THREE.Mesh(ig, new THREE.ShaderMaterial({ uniforms, vertexShader: ARROW_VERT, fragmentShader: ARROW_FRAG, transparent: true, depthWrite: false, side: THREE.DoubleSide }));
-    arrows.frustumCulled = false;
-    arrows.renderOrder = 6;
+    const aBase = new THREE.InstancedBufferAttribute(new Float32Array(bases), 3);
+    const aPhase = new THREE.InstancedBufferAttribute(new Float32Array(phases), 1);
+    const instanced = (pts: THREE.Vector2[], color: THREE.Color, alpha: number, order: number) => {
+      const sg = new THREE.ShapeGeometry(new THREE.Shape(pts));
+      sg.rotateX(Math.PI / 2); // shape y -> world z (along wind)
+      const ig = new THREE.InstancedBufferGeometry();
+      ig.index = sg.index;
+      ig.setAttribute('position', sg.getAttribute('position'));
+      ig.setAttribute('uv', sg.getAttribute('uv'));
+      ig.setAttribute('aBase', aBase);
+      ig.setAttribute('aPhase', aPhase);
+      ig.instanceCount = phases.length;
+      const mat = new THREE.ShaderMaterial({
+        uniforms: { ...uniforms, uColor: { value: color }, uAlpha: { value: alpha } },
+        vertexShader: ARROW_VERT,
+        fragmentShader: ARROW_FRAG,
+        transparent: true,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      });
+      const mesh = new THREE.Mesh(ig, mat);
+      mesh.frustumCulled = false;
+      mesh.renderOrder = order;
+      return overlay(mesh) as THREE.Mesh;
+    };
+    const outlines = instanced(offsetPolygon(chevron, 1.5), new THREE.Color(0.004, 0.018, 0.045), 0.62, 5);
+    const arrows = instanced(chevron, new THREE.Color(0.02, 0.4, 0.95), 0.92, 6);
     // wind vane above the met mast
     const vg = new THREE.ConeGeometry(4, 16, 3);
     vg.rotateX(Math.PI / 2);
-    const vane = new THREE.Mesh(vg, new THREE.MeshBasicMaterial({ color: '#bde9ff', transparent: true, opacity: 0.85 }));
+    const vane = new THREE.Mesh(vg, new THREE.MeshBasicMaterial({ color: '#38a8f0', transparent: true, opacity: 0.9 }));
     vane.position.set(SITE.metMast.x, SITE.metMast.h + 12, SITE.metMast.z);
-    overlay(arrows);
     overlay(vane);
-    return { arrows, vane, uniforms };
+    return { arrows, outlines, vane, uniforms };
   }, []);
 
   useFrame((_, dt) => {
@@ -186,13 +226,14 @@ export function WeatherLayer() {
     uniforms.uTime.value += dt;
     opacity.current += ((visible ? 1 : 0) - opacity.current) * (1 - Math.exp(-dt * 6));
     uniforms.uOpacity.value = opacity.current;
-    arrows.visible = vane.visible = opacity.current > 0.01;
+    arrows.visible = outlines.visible = vane.visible = opacity.current > 0.01;
     vane.rotation.y = Math.atan2(uniforms.uWind.value.x, uniforms.uWind.value.y);
-    (vane.material as THREE.MeshBasicMaterial).opacity = 0.85 * opacity.current;
+    (vane.material as THREE.MeshBasicMaterial).opacity = 0.9 * opacity.current;
   });
 
   return (
     <>
+      <primitive object={outlines} />
       <primitive object={arrows} />
       <primitive object={vane} />
     </>
