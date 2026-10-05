@@ -866,6 +866,37 @@ export class SimulationEngine {
     this.commit();
   }
 
+  /** Operator recall: UGV back to patrol, UAV back to its perimeter route, team released. */
+  recall(asset: AssetId) {
+    this.now = Date.now();
+    if (asset === 'UGV-01') {
+      const seg = this.ugv.current(this.now);
+      if (seg.type === 'patrol' || (seg.type === 'route' && seg.purpose === 'return')) return;
+      this.ugv.returnToPatrol(this.now);
+    } else if (asset === 'UAV-01') {
+      if (!this.uav.isOrbiting(this.now)) return;
+      this.uav.resumePerimeter(this.now);
+    } else if (asset === 'TEAM-1') {
+      this.teamTask = null;
+    } else return;
+    this.pushEvent({ category: 'asset', tone: 'info', title: `${asset} recalled`, detail: 'Resuming routine tasking', focus: { kind: 'asset', id: asset } });
+    this.commit();
+  }
+
+  /** Operator tasking from the inspector: send an asset to an arbitrary location. */
+  taskAsset(asset: AssetId, x: number, z: number, label: string) {
+    this.now = Date.now();
+    if (asset === 'UGV-01') {
+      const target = ROADS.project({ x, z }).point;
+      const r = this.ugv.dispatch(this.now, target, { x, z }, 'inspect', `Inspection · ${label}`);
+      this.pushEvent({ category: 'asset', tone: 'info', title: 'UGV-01 tasked', detail: `${label} · ${Math.round(r.distance)} m`, focus: { kind: 'asset', id: asset } });
+    } else if (asset === 'UAV-01') {
+      this.uav.orbit(this.now, x, z, `Overwatch · ${label}`);
+      this.pushEvent({ category: 'asset', tone: 'info', title: 'UAV-01 tasked', detail: `Overwatch orbit · ${label}`, focus: { kind: 'asset', id: asset } });
+    }
+    this.commit();
+  }
+
   setSeverity(id: string, severity: Severity) {
     const inc = this.incidents.find((i) => i.id === id);
     if (!inc || inc.severity === severity) return;

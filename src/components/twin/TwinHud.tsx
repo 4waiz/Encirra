@@ -164,13 +164,25 @@ function ReplayChip() {
   );
 }
 
-export function TwinHud({ expandable = true, showLegend = true }: { expandable?: boolean; showLegend?: boolean }) {
+export function TwinHud({
+  expandable = true,
+  showLegend = true,
+  leftInset = 10,
+  rightInset = 10,
+  bottomInset = 10,
+}: {
+  expandable?: boolean;
+  showLegend?: boolean;
+  leftInset?: number;
+  rightInset?: number;
+  bottomInset?: number;
+}) {
   const selection = useUI((s) => s.selection);
   const screen = useUI((s) => s.screen);
   const immersive = useUI((s) => s.twinImmersive);
   return (
     <>
-      <div className="pointer-events-none absolute left-2.5 top-2.5 z-10 flex flex-col gap-1">
+      <div className="pointer-events-none absolute top-2.5 z-10 flex flex-col gap-1" style={{ left: leftInset }}>
         <div className="pointer-events-auto flex flex-col gap-1 rounded-[7px] border border-line-strong bg-surface-1/88 p-1 shadow-[0_6px_18px_rgb(0_0_0/0.35)]">
           <IconButton icon={Plus} label="Zoom in" onClick={() => zoomBy(0.35)} size={26} />
           <IconButton icon={Minus} label="Zoom out" onClick={() => zoomBy(-0.5)} size={26} />
@@ -197,15 +209,15 @@ export function TwinHud({ expandable = true, showLegend = true }: { expandable?:
           )}
         </div>
       </div>
-      <div className="pointer-events-none absolute right-2.5 top-2.5 z-10 flex flex-col items-end gap-2">
+      <div className="pointer-events-none absolute top-2.5 z-10 flex flex-col items-end gap-2" style={{ right: rightInset }}>
         <Compass />
         <ReplayChip />
       </div>
-      <div className="pointer-events-none absolute bottom-2.5 left-2.5 z-10 flex items-end gap-2">
+      <div className="pointer-events-none absolute z-10 flex items-end gap-2" style={{ left: leftInset, bottom: bottomInset }}>
         <span className="rounded-[4px] border border-line bg-surface-1/80 px-2 py-[3px] font-cond text-[10px] uppercase tracking-[0.12em] text-ink-3">Generalized site layout</span>
       </div>
       {showLegend && (
-        <div className="pointer-events-none absolute bottom-2.5 right-2.5 z-10">
+        <div className="pointer-events-none absolute z-10" style={{ right: rightInset, bottom: bottomInset }}>
           <Legend />
         </div>
       )}
