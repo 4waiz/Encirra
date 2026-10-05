@@ -46,12 +46,12 @@ const RAD_FRAG = /* glsl */ `
     vec3 red = vec3(0.86, 0.12, 0.09);
     vec3 col = mix(yellow, orange, smoothstep(0.12, 0.5, f));
     col = mix(col, red, smoothstep(0.55, 0.95, f));
-    float alpha = smoothstep(0.015, 0.3, f) * 0.42 + smoothstep(0.45, 1.0, f) * 0.2;
+    float alpha = smoothstep(0.015, 0.3, f) * 0.5 + smoothstep(0.45, 1.0, f) * 0.22;
     float lv = f * 8.0 - uTime * 0.22;
     float g = fract(lv);
     float dist = min(g, 1.0 - g);
     float contour = 1.0 - smoothstep(0.0, fwidth(lv) * 1.4, dist);
-    alpha += contour * 0.4 * smoothstep(0.04, 0.2, f);
+    alpha += contour * 0.5 * smoothstep(0.04, 0.2, f);
     col = mix(col, vec3(1.0, 0.92, 0.75), contour * 0.35);
     gl_FragColor = vec4(col * 1.25, clamp(alpha, 0.0, 0.85) * uOpacity);
   }

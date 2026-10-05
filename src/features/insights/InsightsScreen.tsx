@@ -29,10 +29,55 @@ import { fmtClock, fmtAgo } from '../../utils/format';
 import { SeededRandom, hashString } from '../../utils/random';
 import type { Observation } from '../../types';
 
+function FusionEngineCard() {
+  const sensors = useSim((s) => s.metrics.sensorsOnline);
+  const now = useSim((s) => s.now);
+  const models: [string, string][] = [
+    ['Trend detector', 'v3.1'],
+    ['Dispersion model', 'v2.3'],
+    ['Thermal analytics', 'v1.8'],
+    ['Visual detector', 'v4.0'],
+  ];
+  return (
+    <div className="mt-auto rounded-[7px] border border-line bg-surface-2/50 p-2.5">
+      <div className="flex items-center gap-2">
+        <Waypoints size={13} className="text-[#b4a8ff]" aria-hidden />
+        <span className="panel-title text-[11px]">Fusion engine</span>
+        <span className="ml-auto flex items-center gap-1 text-[10.5px] text-green">
+          <StatusDot tone="ok" size={6} /> Running
+        </span>
+      </div>
+      <div className="mt-2 grid grid-cols-3 gap-1.5 text-center">
+        {[
+          [String(sensors), 'sensors'],
+          ['4', 'cameras'],
+          ['2', 'robots'],
+        ].map(([v, l]) => (
+          <div key={l} className="rounded-[5px] bg-bg-1/60 py-1">
+            <div className="num text-[14px] font-semibold text-ink-1">{v}</div>
+            <div className="text-[9.5px] uppercase tracking-[0.08em] text-ink-3">{l}</div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-2">
+        {models.map(([m, v]) => (
+          <div key={m} className="flex items-center justify-between py-[2px] text-[11px]">
+            <span className="text-ink-2">{m}</span>
+            <span className="mono text-[10.5px] text-ink-3">{v}</span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-1.5 border-t border-line pt-1.5 text-[10.5px] text-ink-3">
+        Review ≥ 60% · human validation ≥ 85% · last pass <span className="mono text-ink-2">{fmtClock(now)}</span>
+      </div>
+    </div>
+  );
+}
+
 function ObservationList({ list, selected }: { list: Observation[]; selected: Observation | undefined }) {
   return (
     <Panel title="Active observations" icon={BrainCircuit} iconColor="#b4a8ff" className="min-h-0">
-      <div className="absolute inset-0 overflow-y-auto p-2">
+      <div className="absolute inset-0 flex flex-col overflow-y-auto p-2">
         {list.length === 0 && <EmptyState icon={ShieldCheck} title="No observations" detail="The fusion model has nothing above the review threshold." />}
         {list.map((o) => {
           const st = OBS_STATUS[o.status];
@@ -64,6 +109,7 @@ function ObservationList({ list, selected }: { list: Observation[]; selected: Ob
             </button>
           );
         })}
+        <FusionEngineCard />
       </div>
     </Panel>
   );

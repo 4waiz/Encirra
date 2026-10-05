@@ -89,14 +89,34 @@ function IncidentList({ selected }: { selected: Incident | undefined }) {
       </button>
     );
   };
+  const acked = incidents.filter((i) => i.acknowledgedAt);
+  const meanAck = acked.length ? acked.reduce((a, i) => a + ((i.acknowledgedAt ?? i.createdAt) - i.createdAt), 0) / acked.length / 1000 : null;
+  const openActions = active.flatMap((i) => i.checklist).filter((c) => !c.done).length;
   return (
     <Panel title="Incidents" icon={Siren} iconColor="#ff8a3d" className="min-h-0" subtitle={`${active.length} active`}>
-      <div className="absolute inset-0 overflow-y-auto p-2">
+      <div className="absolute inset-0 flex flex-col overflow-y-auto p-2">
         {incidents.length === 0 && <EmptyState icon={ShieldCheck} title="No incidents" detail="The site is operating within its baseline. New incidents appear here automatically." />}
         {active.length > 0 && <div className="micro mb-1 px-1">Active</div>}
         {active.map(card)}
         {resolved.length > 0 && <div className="micro mb-1 mt-2 px-1">Resolved</div>}
         {resolved.map(card)}
+        <div className="mt-auto rounded-[7px] border border-line bg-surface-2/50 p-2.5">
+          <div className="panel-title text-[11px]">Shift summary</div>
+          <div className="mt-2 grid grid-cols-2 gap-1.5">
+            {[
+              ['Opened', String(incidents.length)],
+              ['Resolved', String(resolved.length)],
+              ['Mean ack', meanAck === null ? '—' : fmtDuration(meanAck)],
+              ['Open actions', String(openActions)],
+            ].map(([l, v]) => (
+              <div key={l} className="rounded-[5px] bg-bg-1/60 px-2 py-1.5">
+                <div className="text-[9.5px] uppercase tracking-[0.08em] text-ink-3">{l}</div>
+                <div className="num text-[15px] font-semibold text-ink-1">{v}</div>
+              </div>
+            ))}
+          </div>
+          <p className="mt-2 text-[10.5px] leading-[14px] text-ink-3">Acknowledgement target &lt; 5 min. Severity and resolution are operator decisions.</p>
+        </div>
       </div>
     </Panel>
   );

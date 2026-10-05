@@ -62,10 +62,11 @@ await shot('01-overview');
 await ui(() => {
   const s = window.__ENCIRRA__.ui.getState();
   s.setScreen('twin');
+  s.setTwinImmersive(true);
   s.setLayer('weather', true);
   s.setLayer('radiation', true);
   s.select({ kind: 'sensor', id: 'RAD-S17' });
-  window.__ENCIRRA_CAMERA__.setCameraPose([-70, 175, -330], [175, 0, -115], false);
+  window.__ENCIRRA_CAMERA__.setCameraPose([470, 300, 150], [185, 0, -120], false);
 });
 await wait(3500);
 await shot('02-digital-twin');
@@ -73,6 +74,7 @@ await shot('02-digital-twin');
 // 03 — live feeds: thermal UGV feed as the main view
 await ui(() => {
   const s = window.__ENCIRRA__.ui.getState();
+  s.setTwinImmersive(false);
   s.setLayer('weather', false);
   s.setFeedMain('UGV-01');
   s.setFeedMode('UGV-01', 'thermal');

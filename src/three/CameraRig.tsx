@@ -108,11 +108,19 @@ export function CameraRig() {
     };
   }, []);
 
+  const tmpTarget = useRef(new THREE.Vector3());
   useFrame(() => {
     const c = rig.controls;
     const follow = useUI.getState().follow;
     if (!c || !follow) return;
     const p = assetPosition(follow);
+    c.getTarget(tmpTarget.current);
+    if (tmpTarget.current.distanceTo(p) > 120) {
+      // large jump (replay scrub, re-tasking): re-frame from a clean angle instead of dragging
+      // the camera through buildings
+      lookAtFrom(p, follow === 'UAV-01' ? 210 : 95, follow === 'UAV-01' ? 1.0 : 0.95);
+      return;
+    }
     void c.moveTo(p.x, p.y, p.z, true);
   }, 0.6);
 

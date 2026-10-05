@@ -71,14 +71,15 @@ function DetectionOverlay({ viewId, exclude, compact, onDetections }: { viewId: 
         const lw = text.length * (compact ? 5.8 : 6.4) + 8;
         // keep labels clear of the feed caption and of each other
         const inside = d.y - lh - 1 < minTop;
-        const ly = inside ? d.y + 1 : d.y - lh - 1;
+        const insideOffset = Math.max(1, minTop - d.y + 1);
+        const ly = inside ? d.y + insideOffset : d.y - lh - 1;
         const clash = labels.some((o) => d.x < o.x + o.w && d.x + lw > o.x && ly < o.y + o.h && ly + lh > o.y);
         label.style.display = clash ? 'none' : 'block';
         if (!clash) labels.push({ x: d.x, y: ly, w: lw, h: lh });
         label.style.background = c;
         label.style.fontSize = compact ? '9.5px' : '10.5px';
         label.style.lineHeight = `${lh}px`;
-        label.style.top = inside ? '1px' : `${-lh - 1}px`;
+        label.style.top = inside ? `${insideOffset}px` : `${-lh - 1}px`;
         label.textContent = text;
       });
     });

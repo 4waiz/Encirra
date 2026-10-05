@@ -91,9 +91,11 @@ const FRAG_GROUND = /* glsl */ `
       vec4 site = texture2D(uSiteTex, suv);
       float lum = dot(site.rgb, vec3(0.2126, 0.7152, 0.0722));
       float green = clamp((site.g - site.r) * 6.0, 0.0, 1.0);
-      float siteHeat = 0.46 + 0.32 * (1.0 - clamp(lum * 1.6, 0.0, 1.0)) - 0.16 * green;
+      float siteHeat = 0.44 + 0.4 * (1.0 - clamp(lum * 1.6, 0.0, 1.0)) - 0.2 * green;
       heat = mix(heat, siteHeat, site.a);
     }
+    // sun-baked mottling and tyre/joint lines read as texture in the thermal image
+    heat += 0.05 * (th_noise(wp * 0.11) - 0.5) + 0.02 * (th_noise(wp * 1.3) - 0.5);
     heat += hotspotHeat(vWorldPos);
     gl_FragColor = vec4(vec3(atmosphere(heat)), 1.0);
   }
