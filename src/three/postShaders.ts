@@ -83,10 +83,12 @@ export function createVisibleFeedMaterial() {
         c.g = texture2D(tColor, uv).g;
         c.b = texture2D(tColor, uv - dir).b;
         float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
-        c = mix(vec3(l), c, uSat) * 1.05;
+        // security-camera exposure: slightly darker and more contrasty than the operator view
+        c = mix(vec3(l), c, uSat) * 0.8;
         gl_FragColor = vec4(c, 1.0);
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
+        gl_FragColor.rgb = smoothstep(0.02, 1.02, gl_FragColor.rgb);
         float n = pp_hash(uv * uRes + fract(uTime * 3.7) * 91.0) - 0.5;
         gl_FragColor.rgb += n * uNoise;
         gl_FragColor.rgb *= 0.97 + 0.03 * sin(uv.y * uRes.y * 1.7);

@@ -42,12 +42,12 @@ export function FeedTile({ source, viewId }: { source: FeedSource; viewId: strin
   return (
     <div className="group relative flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[6px] border border-line transition-colors hover:border-line-bright">
       <div className="flex h-[25px] shrink-0 items-center gap-1.5 bg-surface-2 px-2">
-        <span className="mono text-[11px] font-medium text-ink-1">{source}</span>
-        <span className="text-ink-4" aria-hidden>
+        <span className="mono shrink-0 whitespace-nowrap text-[11px] font-medium text-ink-1">{source}</span>
+        <span className="shrink-0 text-ink-4" aria-hidden>
           |
         </span>
-        <span className="truncate text-[11px] text-ink-2">{meta.label.replace(/^UGV-01 · |^UAV-01 · /, '')}</span>
-        <span className="ml-auto">
+        <span className="min-w-0 truncate text-[11px] text-ink-2">{meta.label.replace(/^UGV-01 · |^UAV-01 · /, '')}</span>
+        <span className="ml-auto shrink-0">
           <LiveChip stale={stale} />
         </span>
       </div>

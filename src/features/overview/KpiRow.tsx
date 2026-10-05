@@ -16,7 +16,7 @@ function Section({ title, icon: Icon, color, status, children, footnote }: { tit
           <Icon size={13} strokeWidth={2} style={{ color }} aria-hidden />
         </span>
         <h2 className="panel-title text-[13px]">{title}</h2>
-        {footnote && <span className="hidden truncate text-[10.5px] text-ink-3 2xl:inline">{footnote}</span>}
+        {footnote && <span className="hidden truncate text-[10.5px] text-ink-3 min-[1800px]:inline">{footnote}</span>}
         <span className="ml-auto">
           <Chip tone={status.tone} icon={StatusIcon}>
             {status.label}
@@ -53,11 +53,11 @@ function Chemical() {
         <Metric value={m.voc} decimals={2} className={big} />
         <span className={unit}>ppm</span>
       </Block>
-      <Block label="Gas sensors online" chart={<MicroBars values={online} color={CATEGORY_HEX.chem} bars={10} height={16} />}>
+      <Block label="Gas sensors" chart={<MicroBars values={online} color={CATEGORY_HEX.chem} bars={10} height={16} />}>
         <Metric value={m.gasOnline} className={big} />
         <span className={unit}>/ {m.gasTotal}</span>
       </Block>
-      <Block label="Alerts under review" chart={<Sparkline data={alerts} color="#a9b3be" height={18} min={0} max={4} fill={false} />}>
+      <Block label="Under review" chart={<Sparkline data={alerts} color="#a9b3be" height={18} min={0} max={4} fill={false} />}>
         <Metric value={m.chemAlerts} className={big} />
       </Block>
     </Section>
@@ -71,14 +71,14 @@ function Biological() {
   const status: { tone: Tone; label: string } = m.bioAlerts > 0 ? { tone: 'watch', label: 'Screening' } : { tone: 'ok', label: 'Nominal' };
   return (
     <Section title="Biological" icon={Biohazard} color={CATEGORY_HEX.bio} status={status} footnote="Screening only · lab confirmation required">
-      <Block label="Aerosol anomaly index" chart={<Sparkline data={aer} color={CATEGORY_HEX.bio} height={18} min={0} threshold={30} />}>
+      <Block label="Aerosol index" chart={<Sparkline data={aer} color={CATEGORY_HEX.bio} height={18} min={0} threshold={30} />}>
         <Metric value={m.aerosol} className={big} />
         <span className={unit}>/ 100</span>
       </Block>
-      <Block label="Samples awaiting lab" chart={<Sparkline data={samples} color="#a9b3be" height={18} min={0} max={6} fill={false} />}>
+      <Block label="Samples to lab" chart={<Sparkline data={samples} color="#a9b3be" height={18} min={0} max={6} fill={false} />}>
         <Metric value={m.samplesPending} className={big} />
       </Block>
-      <Block label="Detectors online" chart={<MicroBars values={[1, 1, 1, 1, 1, 1, 1, 1, 1, m.bioOnline / m.bioTotal]} color={CATEGORY_HEX.bio} bars={10} height={16} />}>
+      <Block label="Detectors" chart={<MicroBars values={[1, 1, 1, 1, 1, 1, 1, 1, 1, m.bioOnline / m.bioTotal]} color={CATEGORY_HEX.bio} bars={10} height={16} />}>
         <Metric value={m.bioOnline} className={big} />
         <span className={unit}>/ {m.bioTotal}</span>
       </Block>
@@ -95,15 +95,15 @@ function Radiological() {
     m.radAlerts > 1 || m.gamma >= 0.32 ? { tone: 'warn', label: 'Elevated' } : m.radAlerts > 0 ? { tone: 'watch', label: 'Review' } : { tone: 'ok', label: 'Nominal' };
   return (
     <Section title="Radiological" icon={Radiation} color={CATEGORY_HEX.rad} status={status}>
-      <Block label="Gamma dose rate · site max" chart={<Sparkline data={gamma} color={CATEGORY_HEX.rad} height={18} threshold={0.18} />}>
+      <Block label="Gamma · site max" chart={<Sparkline data={gamma} color={CATEGORY_HEX.rad} height={18} threshold={0.18} />}>
         <Metric value={m.gamma} decimals={2} className={big} />
         <span className={unit}>µSv/h</span>
       </Block>
-      <Block label="Dosimeters online" chart={<MicroBars values={dos} color={CATEGORY_HEX.rad} bars={10} height={16} />}>
+      <Block label="Dosimeters" chart={<MicroBars values={dos} color={CATEGORY_HEX.rad} bars={10} height={16} />}>
         <Metric value={m.dosimetersOnline} className={big} />
         <span className={unit}>/ {m.dosimetersTotal}</span>
       </Block>
-      <Block label="Alerts under review" chart={<Sparkline data={alerts} color="#a9b3be" height={18} min={0} max={4} fill={false} />}>
+      <Block label="Under review" chart={<Sparkline data={alerts} color="#a9b3be" height={18} min={0} max={4} fill={false} />}>
         <Metric value={m.radAlerts} className={big} />
       </Block>
     </Section>
@@ -117,15 +117,15 @@ function Readiness() {
   const status: { tone: Tone; label: string } = m.commsUp < m.commsTotal ? { tone: 'watch', label: 'Degraded' } : { tone: 'ok', label: 'Ready' };
   return (
     <Section title="Nuclear readiness" icon={Atom} color={CATEGORY_HEX.nuc} status={status}>
-      <Block label="Response readiness" chart={<Sparkline data={ready} color={CATEGORY_HEX.nuc} height={18} min={88} max={100} />}>
+      <Block label="Readiness" chart={<Sparkline data={ready} color={CATEGORY_HEX.nuc} height={18} min={88} max={100} />}>
         <Metric value={m.readiness} className={big} />
         <span className={unit}>%</span>
       </Block>
-      <Block label="Comms channels" chart={<MicroBars values={comms} color={CATEGORY_HEX.nuc} bars={10} height={16} />}>
+      <Block label="Comms" chart={<MicroBars values={comms} color={CATEGORY_HEX.nuc} bars={10} height={16} />}>
         <Metric value={m.commsUp} className={big} />
         <span className={unit}>/ {m.commsTotal}</span>
       </Block>
-      <Block label="Checklist completion" chart={<div className="pt-[7px]"><ProgressBar value={m.checklistPct / 100} color={CATEGORY_HEX.nuc} /></div>}>
+      <Block label="Checklist" chart={<div className="pt-[7px]"><ProgressBar value={m.checklistPct / 100} color={CATEGORY_HEX.nuc} /></div>}>
         <Metric value={m.checklistPct} className={big} />
         <span className={unit}>%</span>
       </Block>

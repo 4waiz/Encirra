@@ -176,17 +176,27 @@ export function TwinMarkers({ compact }: { compact?: boolean }) {
   };
 
   useEffect(() => {
-    const p: Projected = { x: 0, y: 0, visible: false, distance: 0 };
+    // approximate label footprints (px) above their anchor, used for de-cluttering
+    const box = (key: string) =>
+      key.startsWith('incident:') ? { w: 92, h: 50 } : key.startsWith('asset:') ? { w: 150, h: 30 } : key.startsWith('unit:') ? { w: 62, h: 24 } : null;
+    const overlap = (a: Projected, ab: { w: number; h: number }, b: Projected, bb: { w: number; h: number }) =>
+      Math.abs(a.x - b.x) * 2 < ab.w + bb.w && a.y - ab.h < b.y && b.y - bb.h < a.y;
+    const pool = new Map<string, Projected>();
     return frameBus.onMain((f) => {
+      const items: { key: string; el: HTMLElement; p: Projected; s: number }[] = [];
       for (const [key, el] of refs.current) {
         if (!el) continue;
         const a = anchors.current.get(key);
         if (!a) continue;
         const [x, y, z] = a();
+        let p = pool.get(key);
+        if (!p) {
+          p = { x: 0, y: 0, visible: false, distance: 0 };
+          pool.set(key, p);
+        }
         project(f.camera, f.rect, x, y, z, p);
         const isUnit = key.startsWith('unit:');
         const isZone = key.startsWith('zone:');
-        const s = isUnit || isZone ? 1 : Math.max(0.74, Math.min(1, 1250 / p.distance));
         if (isUnit && p.distance > 3200) p.visible = false;
         if (key === 'callout') {
           const side = p.x > f.rect.width - 300 ? 'left' : 'right';
@@ -196,8 +206,28 @@ export function TwinMarkers({ compact }: { compact?: boolean }) {
           placeEl(el, p, 1);
           continue;
         }
-        placeEl(el, p, s);
+        items.push({ key, el, p, s: isUnit || isZone ? 1 : Math.max(0.74, Math.min(1, 1250 / p.distance)) });
       }
+      // de-clutter: incidents > assets > unit labels
+      const placed: { p: Projected; b: { w: number; h: number } }[] = [];
+      for (const prefix of ['incident:', 'asset:', 'unit:']) {
+        for (const it of items) {
+          if (!it.key.startsWith(prefix) || !it.p.visible) continue;
+          const b = box(it.key);
+          if (!b) continue;
+          if (prefix === 'unit:') {
+            if (placed.some((o) => overlap(it.p, b, o.p, o.b))) it.p.visible = false;
+          } else {
+            for (let tries = 0; tries < 3; tries++) {
+              const hit = placed.find((o) => overlap(it.p, b, o.p, o.b));
+              if (!hit) break;
+              it.p.y = hit.p.y - hit.b.h - 2;
+            }
+          }
+          if (it.p.visible) placed.push({ p: it.p, b });
+        }
+      }
+      for (const it of items) placeEl(it.el, it.p, it.s);
     });
   }, []);
 

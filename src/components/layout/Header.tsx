@@ -61,7 +61,7 @@ function Freshness() {
   const age = last ? Math.max(0, (now - last) / 1000) : 99;
   const tone = age < 2.5 ? 'ok' : age < 6 ? 'watch' : 'warn';
   return (
-    <div className="flex items-center gap-2" title="Time since the last synthetic telemetry update">
+    <div className="flex shrink-0 items-center gap-2 whitespace-nowrap" title="Time since the last synthetic telemetry update">
       <Radio size={14} strokeWidth={1.8} style={{ color: TONE_HEX[tone] }} aria-hidden />
       <div className="flex flex-col leading-none">
         <span className="font-cond text-[10px] uppercase tracking-[0.1em] text-ink-3">Data age</span>
@@ -80,16 +80,16 @@ function Health() {
     <button
       type="button"
       onClick={() => useUI.getState().setScreen(health.level === 'nominal' ? 'overview' : 'incidents')}
-      className="flex items-center gap-2 rounded-[6px] border px-2 py-1 text-left transition-colors hover:bg-surface-2"
+      className="flex shrink-0 items-center gap-2 rounded-[6px] border px-2 py-1 text-left transition-colors hover:bg-surface-2"
       style={{ borderColor: `${c}40`, background: `${c}0d` }}
-      title="System health"
+      title={`System health: ${health.label}`}
     >
       <Icon size={15} strokeWidth={1.9} style={{ color: c }} aria-hidden />
       <span className="flex flex-col leading-none">
         <span className="font-cond text-[10px] uppercase tracking-[0.1em]" style={{ color: c }}>
           {health.level === 'nominal' ? 'System health' : health.level}
         </span>
-        <span className="mt-[3px] max-w-[190px] truncate text-[11.5px] text-ink-1">{health.label}</span>
+        <span className="mt-[3px] max-w-[150px] truncate text-[11.5px] text-ink-1 min-[1800px]:max-w-[220px]">{health.label}</span>
       </span>
     </button>
   );
@@ -99,14 +99,14 @@ export function Header() {
   const screen = useUI((s) => s.screen);
   const setScreen = useUI((s) => s.setScreen);
   return (
-    <header className="relative z-20 flex h-[52px] shrink-0 items-center gap-4 border-b border-line bg-bg-1/95 px-4">
-      <div className="flex min-w-0 items-center gap-3">
+    <header className="relative z-20 flex h-[52px] shrink-0 items-center gap-3 border-b border-line bg-bg-1/95 px-4">
+      <div className="flex shrink-0 items-center gap-3">
         <LogoMark size={26} />
         <span className="font-cond text-[20px] font-semibold tracking-[0.24em] text-ink-1">ENCIRRA</span>
         <span className="h-7 w-px bg-line-strong" aria-hidden />
-        <div className="hidden min-w-0 flex-col leading-none lg:flex">
-          <span className="truncate font-cond text-[13.5px] font-semibold tracking-[0.13em] text-ink-1">BARAKAH CBRN COMMAND CENTER</span>
-          <span className="mt-[4px] truncate text-[10.5px] tracking-[0.02em] text-ink-3">Integrated CBRN Situational Awareness • Abu Dhabi, UAE</span>
+        <div className="hidden flex-col leading-none lg:flex">
+          <span className="whitespace-nowrap font-cond text-[13.5px] font-semibold tracking-[0.13em] text-ink-1">BARAKAH CBRN COMMAND CENTER</span>
+          <span className="mt-[4px] whitespace-nowrap text-[10.5px] tracking-[0.02em] text-ink-3">Integrated CBRN Situational Awareness • Abu Dhabi, UAE</span>
         </div>
       </div>
 
@@ -121,7 +121,7 @@ export function Header() {
               onClick={() => setScreen(n.id)}
               aria-current={active ? 'page' : undefined}
               className={cx(
-                'group relative flex items-center gap-2 px-3.5 font-cond text-[12.5px] font-semibold uppercase tracking-[0.09em] transition-colors',
+                'group relative flex items-center gap-1.5 px-2.5 font-cond text-[12.5px] font-semibold uppercase tracking-[0.08em] transition-colors min-[1800px]:gap-2 min-[1800px]:px-3.5',
                 active ? 'text-ink-1' : 'text-ink-3 hover:text-ink-1',
               )}
             >
@@ -137,7 +137,7 @@ export function Header() {
         })}
       </nav>
 
-      <div className="flex items-center gap-4">
+      <div className="flex shrink-0 items-center gap-3.5">
         <Clock />
         <span className="h-7 w-px bg-line" aria-hidden />
         <Freshness />
@@ -145,7 +145,7 @@ export function Header() {
         <button
           type="button"
           onClick={() => useUI.getState().setPaletteOpen(true)}
-          className="ctl hidden h-[26px] gap-1.5 xl:inline-flex"
+          className="ctl hidden h-[26px] gap-1.5 min-[1700px]:inline-flex"
           title="Command palette (Ctrl+K)"
         >
           <Command size={13} strokeWidth={1.9} aria-hidden />

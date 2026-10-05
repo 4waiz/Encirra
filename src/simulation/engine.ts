@@ -296,7 +296,7 @@ export class SimulationEngine {
   private emitRoutine(t: number) {
     const sensorIds = SENSORS.filter((s) => s.kind !== 'met').map((s) => s.id);
     const pool = routineEvents(
-      windText(this.weather.current.windDir, this.weather.current.windSpeed) + ` Â· stability ${this.weather.current.stability}`,
+      windText(this.weather.current.windDir, this.weather.current.windSpeed) + ` · stability ${this.weather.current.stability}`,
       sensorIds[this.routineCursor % sensorIds.length],
       (this.routineCursor % 12) + 1,
     );
@@ -517,7 +517,7 @@ export class SimulationEngine {
         name: 'RV-02',
         status: anyActive ? 'Standing by' : 'Staged',
         tone: anyActive ? 'info' : 'neutral',
-        task: 'Response vehicle Â· service yard',
+        task: 'Response vehicle · service yard',
         area: 'Service zone',
         battery: null,
         speed: 0,
@@ -613,7 +613,7 @@ export class SimulationEngine {
       scenarioRunId: run.runId,
     };
     this.incidents = [inc, ...this.incidents];
-    this.pushEvent({ category: 'system', tone: spec.severity === 'low' ? 'watch' : 'warn', title: 'Incident opened', detail: `${inc.id} Â· ${spec.title}`, incidentId: inc.id, focus: { kind: 'location', x: loc.x, z: loc.z, label: loc.short, radius: 120 } });
+    this.pushEvent({ category: 'system', tone: spec.severity === 'low' ? 'watch' : 'warn', title: 'Incident opened', detail: `${inc.id} · ${spec.title}`, incidentId: inc.id, focus: { kind: 'location', x: loc.x, z: loc.z, label: loc.short, radius: 120 } });
     return inc;
   }
 
@@ -807,7 +807,7 @@ export class SimulationEngine {
     const hadActivity = this.activeRun !== null || this.incidents.some((i) => i.status !== 'resolved');
     this.windDown('Returned to normal operations');
     this.samplesPending = 2;
-    if (hadActivity) this.pushEvent({ category: 'system', tone: 'ok', title: 'Normal operations', detail: 'Conditions returning to baseline Â· assets resuming routine tasks' });
+    if (hadActivity) this.pushEvent({ category: 'system', tone: 'ok', title: 'Normal operations', detail: 'Conditions returning to baseline · assets resuming routine tasks' });
     this.commit();
   }
 
@@ -830,7 +830,7 @@ export class SimulationEngine {
     this.now = Date.now();
     this.patchIncident(id, (i) => ({ ...i, status: i.assigned.length ? 'investigating' : 'acknowledged', acknowledgedAt: this.now }));
     this.addTimeline(id, 'operator', 'Incident acknowledged', 'Operator');
-    this.pushEvent({ category: 'system', tone: 'ok', title: 'Incident acknowledged', detail: `${id} Â· response time ${Math.round((this.now - inc.createdAt) / 1000)} s`, incidentId: id });
+    this.pushEvent({ category: 'system', tone: 'ok', title: 'Incident acknowledged', detail: `${id} · response time ${Math.round((this.now - inc.createdAt) / 1000)} s`, incidentId: id });
     this.commit();
   }
 
@@ -841,17 +841,17 @@ export class SimulationEngine {
     const loc = LOCATIONS.find((l) => Math.hypot(l.x - inc.location.x, l.z - inc.location.z) < 5);
     const target: Vec2 = loc ? loc.inspect : ROADS.project(inc.location).point;
     if (asset === 'UGV-01') {
-      const r = this.ugv.dispatch(this.now, target, { x: inc.location.x, z: inc.location.z }, 'inspect', `Inspection Â· ${loc?.short ?? inc.location.label}`);
+      const r = this.ugv.dispatch(this.now, target, { x: inc.location.x, z: inc.location.z }, 'inspect', `Inspection · ${loc?.short ?? inc.location.label}`);
       if (this.ctx && this.activeRun?.runId === inc.scenarioRunId) {
         this.ctx.vars.dispatchedAt = this.now;
         this.ctx.vars.arrivedAt = undefined;
       }
       this.addTimeline(id, 'asset', 'UGV-01 assigned', 'Operator', `Route ${Math.round(r.distance)} m`);
     } else if (asset === 'UAV-01') {
-      this.uav.orbit(this.now, inc.location.x, inc.location.z, `Overwatch Â· ${loc?.short ?? inc.location.label}`);
+      this.uav.orbit(this.now, inc.location.x, inc.location.z, `Overwatch · ${loc?.short ?? inc.location.label}`);
       this.addTimeline(id, 'asset', 'UAV-01 assigned', 'Operator', 'Overwatch orbit');
     } else if (asset === 'TEAM-1') {
-      this.teamTask = `Field check Â· ${loc?.short ?? inc.location.label}`;
+      this.teamTask = `Field check · ${loc?.short ?? inc.location.label}`;
       this.addTimeline(id, 'asset', 'Survey Team assigned', 'Operator');
     } else {
       this.addTimeline(id, 'asset', 'RV-02 placed on standby', 'Operator');
@@ -862,7 +862,7 @@ export class SimulationEngine {
       status: i.status === 'new' ? 'new' : 'investigating',
     }));
     if (inc.checklist.some((c) => c.id === 'dispatch')) this.setChecklist(id, 'dispatch', true);
-    this.pushEvent({ category: 'asset', tone: 'info', title: `${asset} assigned`, detail: `${id} Â· ${inc.location.label}`, incidentId: id, focus: { kind: 'asset', id: asset } });
+    this.pushEvent({ category: 'asset', tone: 'info', title: `${asset} assigned`, detail: `${id} · ${inc.location.label}`, incidentId: id, focus: { kind: 'asset', id: asset } });
     this.commit();
   }
 
@@ -901,7 +901,7 @@ export class SimulationEngine {
       this.ctx = null;
     }
     if (!this.incidents.some((i) => i.status !== 'resolved')) this.recallAssets(now);
-    this.pushEvent({ category: 'system', tone: 'ok', title: 'Incident resolved', detail: `${id} Â· assets returning to routine tasks`, incidentId: id });
+    this.pushEvent({ category: 'system', tone: 'ok', title: 'Incident resolved', detail: `${id} · assets returning to routine tasks`, incidentId: id });
     this.commit();
   }
 
@@ -910,8 +910,8 @@ export class SimulationEngine {
     if (!obs || obs.status === 'validated' || obs.status === 'cleared') return;
     this.now = Date.now();
     this.patchObservation(obsId, (o) => ({ ...o, status: 'validated', updatedAt: this.now }));
-    if (obs.incidentId) this.addTimeline(obs.incidentId, 'operator', 'AI observation validated by operator', 'Operator', `${obs.id} Â· ${Math.round(obs.confidence * 100)}%`);
-    this.pushEvent({ category: 'ai', tone: 'ok', title: 'Observation validated', detail: `${obs.id} Â· ${obs.title}`, observationId: obsId, incidentId: obs.incidentId });
+    if (obs.incidentId) this.addTimeline(obs.incidentId, 'operator', 'AI observation validated by operator', 'Operator', `${obs.id} · ${Math.round(obs.confidence * 100)}%`);
+    this.pushEvent({ category: 'ai', tone: 'ok', title: 'Observation validated', detail: `${obs.id} · ${obs.title}`, observationId: obsId, incidentId: obs.incidentId });
     this.commit();
   }
 
@@ -924,7 +924,7 @@ export class SimulationEngine {
     const run = this.runs.find((r) => r.runId === obs.scenarioRunId) ?? this.runs[this.runs.length - 1];
     const loc = LOCATIONS.find((l) => Math.hypot(l.x - obs.location.x, l.z - obs.location.z) < 5) ?? LOCATIONS[0];
     if (!run) return null;
-    const inc = this.createIncident({ title: `${obs.title} Â· ${loc.short}`, category: obs.category, severity: 'moderate', sensors: obs.sources.filter((s) => /^(RAD|AIR|BIO)-/.test(s)), checklist: [
+    const inc = this.createIncident({ title: `${obs.title} · ${loc.short}`, category: obs.category, severity: 'moderate', sensors: obs.sources.filter((s) => /^(RAD|AIR|BIO)-/.test(s)), checklist: [
       { id: 'evidence', text: 'Review AI evidence and sources', priority: 'high' },
       { id: 'dispatch', text: 'Dispatch inspection asset', priority: 'medium' },
       { id: 'assessment', text: 'Record operator assessment', priority: 'medium' },

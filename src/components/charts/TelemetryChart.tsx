@@ -162,8 +162,8 @@ export function TelemetryChart({ lanes = LANES, compact }: { lanes?: LaneDef[]; 
                 {ty > top && ty < top + laneH && (
                   <>
                     <line x1={padL} x2={padL + plotW} y1={ty} y2={ty} stroke="#f2b33d" strokeOpacity="0.55" strokeDasharray="3 3" />
-                    {!compact && (
-                      <text x={padL + plotW - 4} y={ty - 3} textAnchor="end" fontSize="9" fill="#a9b3be" className="font-cond">
+                    {!compact && laneH > 30 && (
+                      <text x={padL + 5} y={ty - 3} fontSize="9" fill="#a9b3be" className="font-cond">
                         review {d.lane.threshold}
                       </text>
                     )}
@@ -182,11 +182,8 @@ export function TelemetryChart({ lanes = LANES, compact }: { lanes?: LaneDef[]; 
                     {d.lane.unit}
                   </text>
                 </g>
-                <text x={padL + plotW + 8} y={Math.max(top + 10, Math.min(top + laneH - 2, lastY + 4))} fontSize="11.5" fill="#ece7df" className="num" fontWeight="600">
+                <text x={padL + plotW + 8} y={Math.max(top + 11, Math.min(top + laneH - 2, lastY + 4))} fontSize="11.5" fill="#ece7df" className="num" fontWeight="600">
                   {last !== undefined ? last.toFixed(d.lane.decimals) : '—'}
-                </text>
-                <text x={padL + plotW + 8} y={top + 9} fontSize="8.5" fill="#75818e" className="font-cond">
-                  {d.lo.toFixed(d.lane.decimals > 2 ? 2 : d.lane.decimals)}–{d.hi.toFixed(d.lane.decimals > 2 ? 2 : d.lane.decimals)}
                 </text>
               </g>
             );
