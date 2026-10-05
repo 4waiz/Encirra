@@ -36,7 +36,7 @@ export function ResponseKpisPanel({ className }: { className?: string }) {
           icon={Timer}
           label="Acknowledgement"
           color={TONE_HEX[ackTone]}
-          sub={k.ackRunning ? <span className="text-amber">Awaiting acknowledgement · target &lt; 5 min</span> : 'Target < 5 min'}
+          sub={k.ackRunning ? <span className="text-amber">Awaiting ack · target &lt; 5 min</span> : 'Target < 5 min'}
         >
           <span className={cx('mono text-[22px] font-semibold leading-[24px]', k.ackRunning ? 'text-amber' : 'text-ink-1')}>{k.ackSeconds === null ? '--:--' : fmtDuration(k.ackSeconds)}</span>
         </Instrument>

@@ -131,8 +131,11 @@ export function createThermalFeedMaterial(palette: THREE.Texture) {
       float heatAt(vec2 uv) { return texture2D(tHeat, uv).r; }
       void main() {
         vec2 px = 1.0 / uRes;
-        float h = heatAt(vUv) * 0.36
-          + (heatAt(vUv + vec2(px.x, 0.0)) + heatAt(vUv - vec2(px.x, 0.0)) + heatAt(vUv + vec2(0.0, px.y)) + heatAt(vUv - vec2(0.0, px.y))) * 0.16;
+        float c0 = heatAt(vUv);
+        float near = (heatAt(vUv + vec2(px.x, 0.0)) + heatAt(vUv - vec2(px.x, 0.0)) + heatAt(vUv + vec2(0.0, px.y)) + heatAt(vUv - vec2(0.0, px.y))) * 0.25;
+        float wide = (heatAt(vUv + vec2(px.x, px.y) * 2.5) + heatAt(vUv - vec2(px.x, px.y) * 2.5) + heatAt(vUv + vec2(px.x, -px.y) * 2.5) + heatAt(vUv + vec2(-px.x, px.y) * 2.5)) * 0.25;
+        // digital detail enhancement (DDE): lift edges the way real thermal cores do
+        float h = c0 * 0.36 + near * 0.64 + (near - wide) * 1.35;
         float glow = 0.0;
         for (int i = 0; i < 8; i++) {
           float a = float(i) * 0.785398;

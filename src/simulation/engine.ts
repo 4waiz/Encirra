@@ -428,9 +428,9 @@ export class SimulationEngine {
     const active = this.incidents.filter((i) => i.status !== 'resolved');
     const unacked = active.filter((i) => i.status === 'new');
     const dropoutLive = this.effects.some((e) => e.kind === 'dropout' && isEffectLive(e, t) && t >= e.t0 + 2000);
-    if (unacked.length) return { level: 'alert', label: `${unacked.length} incident${unacked.length > 1 ? 's' : ''} awaiting acknowledgement` };
+    if (unacked.length) return { level: 'alert', label: `${unacked.length} incident${unacked.length > 1 ? 's' : ''} · ack pending` };
     if (dropoutLive) return { level: 'degraded', label: 'Sensor network degraded' };
-    if (active.length) return { level: 'watch', label: `${active.length} incident${active.length > 1 ? 's' : ''} under investigation` };
+    if (active.length) return { level: 'watch', label: `${active.length} incident${active.length > 1 ? 's' : ''} · investigating` };
     if (this.observations.some((o) => o.status === 'monitoring' || o.status === 'review' || o.status === 'validation'))
       return { level: 'watch', label: 'AI observation under review' };
     return { level: 'nominal', label: 'All systems nominal' };

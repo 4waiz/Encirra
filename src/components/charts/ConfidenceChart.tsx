@@ -88,7 +88,7 @@ export function ConfidenceChart({ obs }: { obs: Observation }) {
           </text>
           {timeTicks.map((t) => (
             <text key={t} x={x(t)} y={H - 5} fontSize="9.5" textAnchor="middle" fill="#75818e" className="mono">
-              {fmtClockShort(t)}
+              {t1 - t0 > 600_000 ? fmtClockShort(t) : fmtClock(t)}
             </text>
           ))}
           {area && <path d={area} fill="url(#conf-fill)" />}

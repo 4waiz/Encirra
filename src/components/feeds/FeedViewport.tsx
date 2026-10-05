@@ -35,9 +35,13 @@ function DetectionOverlay({ viewId, exclude, compact, onDetections }: { viewId: 
     const host = ref.current;
     if (!host) return;
     const pool: HTMLDivElement[] = [];
+    const PRIORITY: Record<Detection['kind'], number> = { hotspot: 0, person: 1, robot: 2, vehicle: 3, aircraft: 4, structure: 5 };
+    const labels: { x: number; y: number; w: number; h: number }[] = [];
     return frameBus.onFeed(viewId, (f) => {
-      const dets = detect(f.camera, f.rect.width, f.rect.height, f.t, exclude);
+      const dets = detect(f.camera, f.rect.width, f.rect.height, f.t, exclude).sort((a, b) => PRIORITY[a.kind] - PRIORITY[b.kind]);
       cb.current?.(dets);
+      labels.length = 0;
+      const minTop = compact ? 0 : 44;
       while (pool.length < dets.length) {
         const box = document.createElement('div');
         box.className = 'absolute rounded-[1px]';
@@ -62,11 +66,20 @@ function DetectionOverlay({ viewId, exclude, compact, onDetections }: { viewId: 
         Object.assign(box.style, bracket(c));
         box.style.boxShadow = `inset 0 0 0 1px ${c}55`;
         const label = box.firstChild as HTMLDivElement;
+        const text = `${d.label} ${Math.round(d.confidence * 100)}%${d.extra ? ` · ${d.extra}` : ''}`;
+        const lh = compact ? 13 : 15;
+        const lw = text.length * (compact ? 5.8 : 6.4) + 8;
+        // keep labels clear of the feed caption and of each other
+        const inside = d.y - lh - 1 < minTop;
+        const ly = inside ? d.y + 1 : d.y - lh - 1;
+        const clash = labels.some((o) => d.x < o.x + o.w && d.x + lw > o.x && ly < o.y + o.h && ly + lh > o.y);
+        label.style.display = clash ? 'none' : 'block';
+        if (!clash) labels.push({ x: d.x, y: ly, w: lw, h: lh });
         label.style.background = c;
         label.style.fontSize = compact ? '9.5px' : '10.5px';
-        label.style.lineHeight = compact ? '13px' : '15px';
-        label.style.top = compact ? '-14px' : '-16px';
-        label.textContent = `${d.label} ${Math.round(d.confidence * 100)}%${d.extra ? ` · ${d.extra}` : ''}`;
+        label.style.lineHeight = `${lh}px`;
+        label.style.top = inside ? '1px' : `${-lh - 1}px`;
+        label.textContent = text;
       });
     });
   }, [viewId, exclude, compact]);

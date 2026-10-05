@@ -23,7 +23,7 @@ export function SeriesToggles() {
             <span className="flex h-[11px] w-[11px] items-center justify-center rounded-[2px]" style={{ background: on ? l.color : 'transparent', boxShadow: `inset 0 0 0 1.5px ${l.color}` }}>
               {on && <svg viewBox="0 0 10 10" className="h-[8px] w-[8px]" aria-hidden><path d="M2 5.2 L4.2 7.2 L8 3" stroke="#0b0f14" strokeWidth="1.7" fill="none" /></svg>}
             </span>
-            {l.label.split(' · ')[0]}
+            {l.key === 'chem' ? 'Chem' : l.key === 'bio' ? 'Bio' : 'Rad'}
           </button>
         );
       })}

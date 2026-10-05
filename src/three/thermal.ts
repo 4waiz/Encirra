@@ -69,9 +69,11 @@ const FRAG_SOLID = /* glsl */ `
   void main() {
     vec3 n = normalize(vNormalW);
     float sun = max(dot(n, normalize(uSunDir)), 0.0);
-    float heat = uHeat + uSunGain * (sun - 0.42);
-    heat -= 0.05 * clamp(-n.y, 0.0, 1.0);
-    heat += 0.03 * (th_noise(vWorldPos.xz * 0.45 + vWorldPos.y * 0.3) - 0.5);
+    float heat = uHeat + uSunGain * 1.6 * (sun - 0.42);
+    heat -= 0.07 * clamp(-n.y, 0.0, 1.0);
+    // walls cool with height above the hot ground; roofs keep their solar load
+    heat -= 0.0018 * clamp(vWorldPos.y, 0.0, 40.0) * (1.0 - abs(n.y));
+    heat += 0.045 * (th_noise(vWorldPos.xz * 0.45 + vWorldPos.y * 0.3) - 0.5);
     heat += hotspotHeat(vWorldPos);
     gl_FragColor = vec4(vec3(atmosphere(heat)), 1.0);
   }

@@ -40,6 +40,8 @@ export default function SceneCanvas() {
       onCreated={({ gl }) => {
         gl.shadowMap.autoUpdate = false;
         gl.toneMappingExposure = 1.0;
+        // driver compiler notes (e.g. ANGLE/D3D precision remarks) are noise in production builds
+        gl.debug.checkShaderErrors = import.meta.env.DEV;
         gl.domElement.addEventListener('webglcontextlost', (e) => {
           e.preventDefault();
           useSceneStatus.getState().setError('The 3D renderer lost its graphics context. Reload to restore the digital twin.');

@@ -86,10 +86,10 @@ function CorrelationGraph({ obs }: { obs: Observation }) {
           <g key={e.id}>
             <path d={`M150,${yy} C220,${yy} 230,${fy} ${fx - 22},${fy}`} fill="none" stroke="#b4a8ff" strokeOpacity={0.25 + e.weight * 0.6} strokeWidth={1 + e.weight * 4.5} />
             <rect x="6" y={yy - 13} width="144" height="26" rx="5" fill="#151d27" stroke="rgb(148 163 184 / 0.22)" />
-            <text x="16" y={yy + 4} fontSize="11" fill="#ece7df" className="mono">
-              {e.source.length > 17 ? `${e.source.slice(0, 16)}…` : e.source}
+            <text x="14" y={yy + 4} fontSize="10.5" fill="#ece7df" className="mono">
+              {e.source.length > 15 ? `${e.source.slice(0, 14)}…` : e.source}
             </text>
-            <text x={fx - 34 - (i % 2) * 10} y={(yy + fy) / 2 - 3} fontSize="9" fill="#a9b3be" className="num" textAnchor="end">
+            <text x="143" y={yy + 4} fontSize="9.5" fill="#a9b3be" className="num" textAnchor="end">
               {Math.round(e.weight * 100)}%
             </text>
           </g>
@@ -133,7 +133,7 @@ function HistoricalPattern({ obs }: { obs: Observation }) {
       </div>
       <div className="mt-2 flex min-h-0 flex-1 items-end gap-[3px]" role="img" aria-label={`${total} similar anomaly patterns in the previous 30 days`}>
         {bars.map((b, i) => (
-          <div key={i} className="flex flex-1 flex-col justify-end" title={`Day −${29 - i}: ${b}`}>
+          <div key={i} className="flex h-full flex-1 flex-col justify-end" title={`Day −${29 - i}: ${b}`}>
             <div
               className="w-full rounded-t-[2px]"
               style={{ height: b ? `${Math.min(100, b * 45)}%` : '2px', background: i === 29 ? '#ff8a3d' : b ? '#7f8a97' : 'rgb(148 163 184 / 0.18)' }}
