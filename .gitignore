@@ -1,0 +1,21 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+*.tsbuildinfo
+.vite/
+
+# Blender backup files
+*.blend1
+*.blend2
+
+# logs / OS
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# local tooling
+.playwright/
+test-results/

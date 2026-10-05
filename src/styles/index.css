@@ -1,0 +1,265 @@
+@import 'tailwindcss';
+
+/* ------------------------------------------------------------------------------------------------
+   ENCIRRA design tokens
+   Graphite command surfaces, warm off-white ink, semantic status hues, CBRN category hues.
+   ------------------------------------------------------------------------------------------------ */
+@theme {
+  --font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-cond: 'IBM Plex Sans Condensed', 'Inter Variable', ui-sans-serif, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  --color-bg-0: #0b0f14;
+  --color-bg-1: #0e1319;
+  --color-surface-1: #121922;
+  --color-surface-2: #151d27;
+  --color-surface-3: #18212c;
+  --color-surface-4: #1d2733;
+  --color-line: rgb(148 163 184 / 0.1);
+  --color-line-strong: rgb(148 163 184 / 0.18);
+  --color-line-bright: rgb(148 163 184 / 0.3);
+
+  --color-ink-1: #ece7df;
+  --color-ink-2: #a9b3be;
+  --color-ink-3: #75818e;
+  --color-ink-4: #4d5865;
+
+  --color-cyan: #3cc8dc;
+  --color-green: #3dd68c;
+  --color-amber: #f2b33d;
+  --color-orange: #ff8a3d;
+  --color-red: #f0534d;
+  --color-blue: #4c94ff;
+  --color-violet: #9c8cff;
+
+  --color-chem: #2dd4bf;
+  --color-bio: #6ec1f5;
+  --color-rad: #ff9142;
+  --color-nuc: #8aa4ff;
+
+  --text-micro: 10px;
+  --text-micro--line-height: 13px;
+  --text-label: 11px;
+  --text-label--line-height: 14px;
+  --text-body: 12px;
+  --text-body--line-height: 16px;
+  --text-panel: 13px;
+  --text-panel--line-height: 17px;
+  --text-kpi: 22px;
+  --text-kpi--line-height: 24px;
+  --text-title: 20px;
+  --text-title--line-height: 24px;
+
+  --radius-panel: 8px;
+  --radius-ctl: 5px;
+
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --animate-pulse-ring: pulse-ring 1.8s var(--ease-out-quart) infinite;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-fade-in: fade-in 260ms var(--ease-out-quart) both;
+  --animate-slide-in: slide-in 360ms var(--ease-out-quart) both;
+  --animate-flash: flash 900ms var(--ease-out-quart);
+  --animate-blink: blink 1.2s steps(2, start) infinite;
+
+  @keyframes pulse-ring {
+    0% { transform: scale(0.85); opacity: 0.85; }
+    70% { transform: scale(1.9); opacity: 0; }
+    100% { transform: scale(1.9); opacity: 0; }
+  }
+  @keyframes shimmer {
+    0% { background-position: -320px 0; }
+    100% { background-position: 320px 0; }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(2px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateY(-6px); background-color: rgb(60 200 220 / 0.1); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes flash {
+    0% { color: var(--color-ink-1); text-shadow: 0 0 10px rgb(236 231 223 / 0.35); }
+    100% { text-shadow: none; }
+  }
+  @keyframes blink {
+    to { visibility: hidden; }
+  }
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  html {
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    margin: 0;
+    background: var(--color-bg-0);
+    color: var(--color-ink-1);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    font-feature-settings: 'cv11', 'ss01', 'ss03';
+    overflow: hidden;
+  }
+  button {
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+  }
+  button:disabled {
+    cursor: default;
+  }
+  :focus-visible {
+    outline: 1.5px solid var(--color-cyan);
+    outline-offset: 1px;
+    border-radius: 3px;
+  }
+  ::selection {
+    background: rgb(60 200 220 / 0.3);
+  }
+  /* precision-instrument scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(148 163 184 / 0.22) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: rgb(148 163 184 / 0.2);
+    border-radius: 6px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgb(148 163 184 / 0.34);
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer components {
+  .panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    background: var(--color-surface-1);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-panel);
+    transition: border-color 160ms ease;
+  }
+  .panel:hover {
+    border-color: var(--color-line-strong);
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 34px;
+    flex: none;
+    padding: 0 10px 0 12px;
+    border-bottom: 1px solid var(--color-line);
+  }
+  .panel-title {
+    font-family: var(--font-cond);
+    font-weight: 600;
+    font-size: 12.5px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--color-ink-1);
+    white-space: nowrap;
+  }
+  .micro {
+    font-family: var(--font-cond);
+    font-size: var(--text-micro);
+    line-height: var(--text-micro--line-height);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink-3);
+    white-space: nowrap;
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum', 'cv11';
+  }
+  .mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .ctl {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: var(--radius-ctl);
+    border: 1px solid var(--color-line-strong);
+    background: var(--color-surface-2);
+    color: var(--color-ink-2);
+    font-size: var(--text-label);
+    white-space: nowrap;
+    transition:
+      background-color 140ms ease,
+      border-color 140ms ease,
+      color 140ms ease;
+  }
+  .ctl:hover:not(:disabled) {
+    background: var(--color-surface-3);
+    border-color: var(--color-line-bright);
+    color: var(--color-ink-1);
+  }
+  .ctl:disabled {
+    opacity: 0.45;
+  }
+  .ctl[data-active='true'] {
+    color: var(--color-ink-1);
+    border-color: rgb(60 200 220 / 0.45);
+    background: rgb(60 200 220 / 0.09);
+  }
+  .ctl-icon {
+    width: 24px;
+    padding: 0;
+  }
+  .skeleton {
+    background: linear-gradient(90deg, rgb(148 163 184 / 0.05) 0, rgb(148 163 184 / 0.11) 40%, rgb(148 163 184 / 0.05) 80%);
+    background-size: 640px 100%;
+    animation: var(--animate-shimmer);
+  }
+  .hole {
+    /* transparent window through which the shared WebGL canvas is visible */
+    position: relative;
+    background: transparent;
+    overflow: hidden;
+  }
+}
+
+/* Reduced motion — honours both the OS preference and the in-app setting */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 1ms !important;
+}

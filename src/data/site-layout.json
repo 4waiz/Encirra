@@ -1,0 +1,128 @@
+{
+  "meta": {
+    "name": "ENCIRRA generalized coastal energy campus",
+    "units": "metres",
+    "axes": "x = east, y = up, z = south (three.js world space)",
+    "note": "Fictional, generalized layout artistically inspired by a four-unit coastal energy campus. It is not a geospatial replica of any real facility and contains no real security, sensor, camera or access information."
+  },
+  "platform": { "minX": -600, "maxX": 600, "minZ": -300, "maxZ": 300 },
+  "seawall": { "z": -300, "minX": -600, "maxX": 600 },
+  "coastline": [
+    [-4200, -124], [-2400, -156], [-1800, -186], [-1350, -214], [-1050, -210], [-880, -232],
+    [-760, -240], [-680, -268], [-622, -294], [-600, -300], [600, -300], [622, -295],
+    [662, -278], [760, -257], [900, -239], [1100, -228], [1400, -219], [1800, -204],
+    [2400, -178], [4200, -146], [4200, 4200], [-4200, 4200]
+  ],
+  "roads": [
+    { "id": "CST", "label": "Coastal road", "points": [[-588, -284], [588, -284]], "width": 10 },
+    { "id": "N", "label": "North road", "points": [[-588, -222], [588, -222]], "width": 10 },
+    { "id": "M", "label": "Main avenue", "points": [[-588, 0], [588, 0]], "width": 14 },
+    { "id": "S1", "label": "South link", "points": [[-400, 120], [400, 120]], "width": 10 },
+    { "id": "P", "label": "Perimeter south", "points": [[-588, 270], [588, 270]], "width": 10 },
+    { "id": "W2", "label": "West perimeter", "points": [[-588, -284], [-588, 270]], "width": 10 },
+    { "id": "W1", "label": "West avenue", "points": [[-400, -284], [-400, 270]], "width": 10 },
+    { "id": "C1", "label": "Sector A corridor", "points": [[-200, -284], [-200, 120]], "width": 10 },
+    { "id": "C0", "label": "Central corridor", "points": [[0, -284], [0, 120]], "width": 10 },
+    { "id": "C2", "label": "Sector B corridor", "points": [[200, -284], [200, 120]], "width": 10 },
+    { "id": "E1", "label": "East avenue", "points": [[400, -284], [400, 270]], "width": 10 },
+    { "id": "E2", "label": "East perimeter", "points": [[588, -284], [588, 270]], "width": 10 },
+    { "id": "AD", "label": "Administration drive", "points": [[-588, 40], [-400, 40]], "width": 8 },
+    { "id": "VS", "label": "Visitor drive", "points": [[-588, 200], [-400, 200]], "width": 8 },
+    { "id": "SY", "label": "Service yard spur", "points": [[400, 198], [492, 198]], "width": 8 },
+    { "id": "DK", "label": "Robotics apron", "points": [[400, 232], [428, 232]], "width": 8 },
+    { "id": "SL", "label": "Service lane", "points": [[400, 112], [588, 112]], "width": 8 },
+    { "id": "SW", "label": "Switchyard track", "points": [[0, 120], [0, 146]], "width": 6 },
+    { "id": "SWT", "label": "Switchyard track", "points": [[-140, 146], [140, 146]], "width": 6 }
+  ],
+  "units": [
+    { "id": "U1", "label": "Unit 1", "x": -300, "z": -64 },
+    { "id": "U2", "label": "Unit 2", "x": -100, "z": -64 },
+    { "id": "U3", "label": "Unit 3", "x": 100, "z": -64 },
+    { "id": "U4", "label": "Unit 4", "x": 300, "z": -64 }
+  ],
+  "buildings": [
+    { "id": "ADM", "label": "Administration", "kind": "office", "x": -505, "z": 80, "w": 110, "d": 34, "h": 18 },
+    { "id": "TRN", "label": "Training centre", "kind": "office", "x": -470, "z": 165, "w": 60, "d": 40, "h": 12 },
+    { "id": "FIR", "label": "Emergency services", "kind": "industrial", "x": -550, "z": 170, "w": 36, "d": 26, "h": 9 },
+    { "id": "VIS", "label": "Visitor centre", "kind": "office", "x": -505, "z": 235, "w": 80, "d": 26, "h": 10 },
+    { "id": "WTR", "label": "Water treatment", "kind": "industrial", "x": -255, "z": 175, "w": 60, "d": 36, "h": 11 },
+    { "id": "SIM", "label": "Simulator building", "kind": "office", "x": -100, "z": 62, "w": 80, "d": 40, "h": 14 },
+    { "id": "OPS", "label": "Operations support", "kind": "office", "x": 100, "z": 62, "w": 80, "d": 40, "h": 14 },
+    { "id": "MNT", "label": "Maintenance centre", "kind": "industrial", "x": 300, "z": 62, "w": 100, "d": 44, "h": 13 },
+    { "id": "CLD", "label": "Stores", "kind": "warehouse", "x": 300, "z": 205, "w": 90, "d": 36, "h": 10 },
+    { "id": "WH1", "label": "Warehouse 1", "kind": "warehouse", "x": 505, "z": 72, "w": 130, "d": 48, "h": 16 },
+    { "id": "WH2", "label": "Warehouse 2", "kind": "warehouse", "x": 470, "z": 150, "w": 76, "d": 40, "h": 13 },
+    { "id": "WSH", "label": "Workshop", "kind": "industrial", "x": 555, "z": 150, "w": 40, "d": 44, "h": 11 },
+    { "id": "RBG", "label": "Robotics garage", "kind": "garage", "x": 446, "z": 232, "w": 32, "d": 20, "h": 7 },
+    { "id": "AUX-W", "label": "Auxiliary services", "kind": "industrial", "x": -490, "z": -90, "w": 64, "d": 36, "h": 12 },
+    { "id": "DSL", "label": "Desalination plant", "kind": "industrial", "x": 500, "z": -150, "w": 110, "d": 46, "h": 12 },
+    { "id": "GEN", "label": "Standby generation", "kind": "generator", "x": 495, "z": -62, "w": 70, "d": 30, "h": 10 },
+    { "id": "CMP-A", "label": "Compound building A", "kind": "industrial", "x": -229, "z": -65, "w": 34, "d": 70, "h": 20 },
+    { "id": "ELE-A", "label": "Electrical building A", "kind": "industrial", "x": -171, "z": -60, "w": 30, "d": 60, "h": 16 },
+    { "id": "CMP-B", "label": "Compound building B", "kind": "industrial", "x": 229, "z": -65, "w": 34, "d": 70, "h": 20 },
+    { "id": "ELE-B", "label": "Electrical building B", "kind": "industrial", "x": 171, "z": -60, "w": 30, "d": 60, "h": 16 },
+    { "id": "CSB-E", "label": "Central support", "kind": "industrial", "x": 29, "z": -70, "w": 38, "d": 70, "h": 22 },
+    { "id": "CSB-W", "label": "Access building", "kind": "office", "x": -29, "z": -60, "w": 34, "d": 50, "h": 14 },
+    { "id": "SWC", "label": "Switchyard control", "kind": "office", "x": 128, "z": 238, "w": 24, "d": 14, "h": 6 },
+    { "id": "CW1", "label": "Circulating water building 1", "kind": "coastal", "x": -300, "z": -254, "w": 66, "d": 20, "h": 12 },
+    { "id": "CW2", "label": "Circulating water building 2", "kind": "coastal", "x": -100, "z": -254, "w": 66, "d": 20, "h": 12 },
+    { "id": "CW3", "label": "Circulating water building 3", "kind": "coastal", "x": 100, "z": -254, "w": 66, "d": 20, "h": 12 },
+    { "id": "CW4", "label": "Circulating water building 4", "kind": "coastal", "x": 300, "z": -254, "w": 66, "d": 20, "h": 12 },
+    { "id": "MRN", "label": "Marine services", "kind": "coastal", "x": -505, "z": -254, "w": 70, "d": 22, "h": 9 },
+    { "id": "CHL", "label": "Chlorination plant", "kind": "coastal", "x": 505, "z": -254, "w": 60, "d": 22, "h": 9 }
+  ],
+  "tanks": [
+    { "id": "T1", "x": -355, "z": 55, "r": 11, "h": 14 },
+    { "id": "T2", "x": -325, "z": 55, "r": 11, "h": 14 },
+    { "id": "T3", "x": -295, "z": 55, "r": 11, "h": 14 },
+    { "id": "T4", "x": -355, "z": 85, "r": 9, "h": 12 },
+    { "id": "T5", "x": -325, "z": 85, "r": 9, "h": 12 },
+    { "id": "T6", "x": -295, "z": 85, "r": 9, "h": 12 },
+    { "id": "FW1", "x": -470, "z": -165, "r": 14, "h": 16 },
+    { "id": "FW2", "x": -510, "z": -165, "r": 14, "h": 16 },
+    { "id": "DT1", "x": 462, "z": -196, "r": 7, "h": 10 },
+    { "id": "DT2", "x": 486, "z": -196, "r": 7, "h": 10 },
+    { "id": "DT3", "x": 510, "z": -196, "r": 7, "h": 10 }
+  ],
+  "intakes": [
+    { "unit": "U1", "x": -300, "crane": true },
+    { "unit": "U2", "x": -100, "crane": false },
+    { "unit": "U3", "x": 100, "crane": true },
+    { "unit": "U4", "x": 300, "crane": false }
+  ],
+  "parking": [
+    { "id": "PA", "minX": -386, "maxX": -322, "rows": [160, 172, 196, 208, 232, 244], "stall": 2.8, "fill": 0.72 },
+    { "id": "PB", "minX": 222, "maxX": 382, "rows": [136, 148, 160], "stall": 2.8, "fill": 0.58 },
+    { "id": "PC", "minX": -575, "maxX": -440, "rows": [118, 130], "stall": 2.8, "fill": 0.66 }
+  ],
+  "switchyard": { "minX": -150, "maxX": 150, "minZ": 150, "maxZ": 252 },
+  "laydown": { "minX": 500, "maxX": 582, "minZ": 205, "maxZ": 262 },
+  "serviceYard": { "minX": 412, "maxX": 496, "minZ": 182, "maxZ": 216 },
+  "lawns": [
+    [-580, -546, -274, -232], [-464, -408, -274, -232], [-394, -341, -274, -232], [-259, -206, -274, -232],
+    [-194, -141, -274, -232], [-59, -6, -274, -232], [6, 59, -274, -232], [141, 194, -274, -232],
+    [206, 259, -274, -232], [341, 394, -274, -232], [406, 469, -274, -232], [541, 580, -274, -232],
+    [-275, -212, 14, 50], [-275, -212, 58, 110], [-190, -148, 14, 110], [-52, -10, 14, 110],
+    [-140, -60, 12, 36], [-140, -60, 88, 110], [10, 52, 14, 110], [148, 190, 14, 110], [60, 140, 12, 36],
+    [60, 140, 88, 110], [210, 242, 14, 110], [358, 390, 14, 110], [250, 350, 92, 110],
+    [-290, -212, 200, 262], [-290, -212, 128, 150], [-192, -158, 128, 262], [158, 192, 128, 262],
+    [210, 250, 172, 262], [352, 392, 172, 262], [-392, -372, -110, -14], [372, 392, -110, -14],
+    [-575, -420, 46, 58], [-575, -420, 18, 30], [-560, -450, 205, 216], [-575, -510, 100, 112]
+  ],
+  "unitPads": { "minDX": -58, "maxDX": 60, "minDZ": -152, "maxDZ": 50 },
+  "breakwaters": [
+    { "id": "BW-W", "points": [[-470, -301], [-470, -370], [-462, -420], [-430, -462], [-370, -495], [-280, -515], [-150, -525]] },
+    { "id": "BW-E", "points": [[470, -301], [470, -366], [460, -415], [425, -455], [360, -485], [270, -503], [150, -512]] }
+  ],
+  "pylonLines": [
+    { "id": "L1", "x": -60, "zs": [330, 570, 810, 1050, 1290, 1530, 1770] },
+    { "id": "L2", "x": 60, "zs": [330, 570, 810, 1050, 1290, 1530, 1770] }
+  ],
+  "metMast": { "x": -560, "z": -150, "h": 50 },
+  "skids": [
+    { "id": "SK-B3", "label": "Equipment skid B3", "x": 178, "z": -150 },
+    { "id": "SK-A1", "label": "Equipment skid A1", "x": -362, "z": -118 },
+    { "id": "SK-SY", "label": "Switchyard transformer bay", "x": 40, "z": 196 }
+  ],
+  "ugvDock": { "x": 420, "z": 232 }
+}
