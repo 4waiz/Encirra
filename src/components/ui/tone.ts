@@ -11,13 +11,15 @@ export const TONE_HEX: Record<Tone, string> = {
 };
 
 export const CATEGORY_HEX: Record<Category | 'thermal' | 'network' | 'multi' | 'asset' | 'system' | 'ai', string> = {
-  chem: '#2dd4bf',
-  bio: '#6ec1f5',
-  rad: '#ff9142',
+  // categorical CBRN identity — validated (dark, #121922 + #0b0f14): lightness band, chroma,
+  // CVD ΔE ≥ 13.4 and normal-vision ΔE ≥ 18.2 across all pairs
+  chem: '#16a894',
+  bio: '#5b8def',
+  rad: '#d96f2a',
   nuc: '#8aa4ff',
-  thermal: '#ff6a5c',
+  thermal: '#e0574a',
   network: '#a7b1bb',
-  multi: '#ff9142',
+  multi: '#d96f2a',
   asset: '#4c94ff',
   system: '#a7b1bb',
   ai: '#b4a8ff',

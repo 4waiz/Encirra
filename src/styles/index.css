@@ -32,9 +32,10 @@
   --color-blue: #4c94ff;
   --color-violet: #9c8cff;
 
-  --color-chem: #2dd4bf;
-  --color-bio: #6ec1f5;
-  --color-rad: #ff9142;
+  /* validated categorical CBRN identity (see components/ui/tone.ts) */
+  --color-chem: #16a894;
+  --color-bio: #5b8def;
+  --color-rad: #d96f2a;
   --color-nuc: #8aa4ff;
 
   --text-micro: 10px;
