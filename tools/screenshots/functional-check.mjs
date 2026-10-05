@@ -22,10 +22,11 @@ page.on('console', (m) => {
 page.on('response', (r) => r.status() >= 400 && failedRequests.push(`${r.status()} ${r.url()}`));
 page.on('requestfailed', (r) => failedRequests.push(`failed ${r.url()} (${r.failure()?.errorText})`));
 const results = [];
+// a check returns true to pass; false or a string (the observed state) fails
 const check = async (name, fn) => {
   try {
     const ok = await fn();
-    results.push(`${ok ? 'PASS' : 'FAIL'}  ${name}`);
+    results.push(ok === true ? `PASS  ${name}` : `FAIL  ${name}${typeof ok === 'string' ? ` — observed: ${ok}` : ''}`);
   } catch (e) {
     results.push(`FAIL  ${name} — ${e.message.split('\n')[0]}`);
   }

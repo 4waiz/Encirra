@@ -75,6 +75,8 @@ export function RenderLoop() {
       fpsFrames: 0,
       fpsT0: performance.now(),
       shadowFrame: 0,
+      /** the shadow-casting sun, once the scene graph has resolved */
+      sun: null as THREE.DirectionalLight | null,
       /** dynamic resolution: adapts render-target size to keep interaction fluid on modest GPUs */
       renderScale: 1,
       lastGovern: performance.now(),
@@ -148,9 +150,18 @@ export function RenderLoop() {
     gl.info.reset();
 
     // shadows: the campus is static, so the shadow map only needs a periodic refresh for the
-    // small moving assets (UGV, UAV, people)
+    // small moving assets (UGV, UAV, people). The scene graph (sun + models) resolves after the first
+    // frames on a cold load: when the sun appears, restart the warm-up so its shadow map exists
+    // before any material samples it (three would otherwise bind a placeholder depth texture
+    // without a compare mode to the sampler2DShadow array, an invalid draw).
+    if (res.sun && !res.sun.parent) res.sun = null;
+    if (!res.sun) {
+      res.sun = (scene.getObjectByProperty('isDirectionalLight', true) as THREE.DirectionalLight | undefined) ?? null;
+      if (res.sun) res.shadowFrame = 0;
+    }
     res.shadowFrame++;
-    gl.shadowMap.needsUpdate = res.shadowFrame < 4 || res.shadowFrame % (quality === 'high' ? 20 : 40) === 0;
+    gl.shadowMap.needsUpdate =
+      (!!res.sun?.castShadow && !res.sun.shadow.map) || res.shadowFrame < 4 || res.shadowFrame % (quality === 'high' ? 20 : 40) === 0;
 
     const composite = (mat: THREE.ShaderMaterial, r: DOMRect) => {
       res.quad.material = mat;

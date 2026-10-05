@@ -20,38 +20,28 @@ await page.addInitScript(() => {
   const oUP = P.useProgram;
   P.useProgram = function (p) { cur = p; return oUP.call(this, p); };
   window.__glbad = new Map();
-  let checks = 0;
-  for (const fn of ['drawElements', 'drawElementsInstanced', 'drawArrays', 'drawArraysInstanced']) {
+  const ring = [];
+  let n = 0;
+  for (const fn of ['drawElements', 'drawElementsInstanced', 'drawArrays', 'drawArraysInstanced', 'drawRangeElements']) {
     const o = P[fn];
+    if (!o) continue;
     P[fn] = function (...a) {
       const r = o.apply(this, a);
-      if (checks++ < 400000) {
+      ring.push(cur);
+      if (++n % 40 === 0) {
         const e = this.getError();
         if (e) {
-          const n = (cur && names.get(cur)) || 'unknown';
-          // list sampler uniforms of the current program
-          let samplers = '';
-          try {
-            const cnt = this.getProgramParameter(cur, this.ACTIVE_UNIFORMS);
-            for (let i = 0; i < cnt; i++) {
-              const u = this.getActiveUniform(cur, i);
-              if ([this.SAMPLER_2D, this.SAMPLER_2D_SHADOW, this.SAMPLER_CUBE, this.SAMPLER_3D, this.SAMPLER_2D_ARRAY, this.INT_SAMPLER_2D, this.UNSIGNED_INT_SAMPLER_2D].includes(u.type)) {
-                const unit = this.getUniform(cur, this.getUniformLocation(cur, u.name));
-                samplers += `${u.name}:${u.type === this.SAMPLER_2D_SHADOW ? 'shadow' : u.type === this.SAMPLER_2D ? '2d' : u.type}@${unit};`;
-              }
-            }
-          } catch {}
-          const key = `${fn} ${n} err=${e} ${samplers}`;
+          const set = new Set(ring.map((p) => (p && names.get(p)) || 'unknown'));
+          const key = `err=${e} among: ${[...set].join(' | ')}`;
           window.__glbad.set(key, (window.__glbad.get(key) || 0) + 1);
         }
+        ring.length = 0;
       }
       return r;
     };
   }
 });
 await page.goto(`${base}#/overview`, { waitUntil: 'networkidle' });
-await page.evaluate(() => localStorage.clear());
-await page.reload({ waitUntil: 'networkidle' });
 await page.waitForFunction(() => window.__ENCIRRA__?.sim.getState().ready, null, { timeout: 30000 });
 await page.evaluate(() => { window.__ENCIRRA__.ui.getState().setSettings({ autoplay: false }); window.__ENCIRRA__.engine.cancelAutoplay(); });
 await page.waitForTimeout(9000);

@@ -236,20 +236,23 @@ export function TelemetryChart({ lanes = LANES, compact }: { lanes?: LaneDef[]; 
         </div>
       )}
       {!visible.length && <div className="absolute inset-0 flex items-center justify-center text-label text-ink-3">All series hidden — enable a series above.</div>}
-      {/* screen-reader table of the latest values */}
-      <table className="sr-only">
-        <caption>Latest synthetic telemetry values</caption>
-        <tbody>
-          {data.map((d) => (
-            <tr key={d.lane.key}>
-              <th scope="row">{d.lane.label}</th>
-              <td>
-                {[...d.v].reverse().find((v) => Number.isFinite(v))?.toFixed(d.lane.decimals) ?? '—'} {d.lane.unit}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* screen-reader table of the latest values; the clipping lives on a block wrapper because table
+          boxes ignore sr-only's 1px size and overflow (the table would otherwise extend the page) */}
+      <div className="sr-only">
+        <table>
+          <caption>Latest synthetic telemetry values</caption>
+          <tbody>
+            {data.map((d) => (
+              <tr key={d.lane.key}>
+                <th scope="row">{d.lane.label}</th>
+                <td>
+                  {[...d.v].reverse().find((v) => Number.isFinite(v))?.toFixed(d.lane.decimals) ?? '—'} {d.lane.unit}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
