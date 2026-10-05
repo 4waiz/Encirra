@@ -249,8 +249,9 @@ await check('live feeds: switch source + thermal on/off + snapshot', async () =>
   return mode === 'thermal' && mode2 === 'visible' && !!download;
 });
 
-await check('WASD: CAM-02 virtual view moves, is labelled, and returns to mount', async () => {
-  await ui(() => document.activeElement?.blur?.());
+await check('WASD: CAM-02 virtual view moves (focus still on the mode radio), is labelled, returns to mount', async () => {
+  // the previous check left keyboard focus on the "Visible" radio: letter keys must still move the view
+  const focusedRole = await ui(() => document.activeElement?.getAttribute('role'));
   await hold('w', 1200);
   await page.waitForTimeout(400);
   const moved = await ui(() => window.__ENCIRRA__.ui.getState().feedMoved['CAM-02']);
@@ -259,7 +260,7 @@ await check('WASD: CAM-02 virtual view moves, is labelled, and returns to mount'
   await page.getByRole('button', { name: 'Return to mount' }).click();
   await page.waitForTimeout(300);
   const back = await ui(() => window.__ENCIRRA__.ui.getState().feedMoved['CAM-02']);
-  return moved > 5 && label > 0 && back === 0;
+  return (moved > 5 && label > 0 && back === 0) || `focus=${focusedRole} moved=${moved} label=${label} back=${back}`;
 });
 
 await check('wind change rotates the dispersion direction', async () => {

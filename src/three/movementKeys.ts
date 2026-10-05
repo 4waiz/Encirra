@@ -1,5 +1,5 @@
 // Held-key state for WASD navigation (twin camera and repositionable feed cameras).
-// Keys typed into inputs, sliders, menus and dialogs are ignored.
+// Keys typed into text fields and menus are ignored; arrow-key widgets keep their arrows.
 
 const CODES = {
   forward: ['KeyW', 'ArrowUp'],
@@ -12,15 +12,23 @@ const CODES = {
 
 const MOVE_CODES = new Set<string>(Object.values(CODES).flat());
 const SHIFT = new Set(['ShiftLeft', 'ShiftRight']);
+// Text entry and open menus swallow every movement key; widgets that navigate with the arrow keys
+// (segmented radios, tabs, sliders, lists, checkboxes) only swallow the arrow / page keys, so WASD keeps
+// working after clicking one of them.
+const TEXT_INPUT_TYPES = new Set(['text', 'search', 'email', 'number', 'password', 'url', 'tel', 'date', 'time']);
+const TEXT_ROLES = new Set(['textbox', 'searchbox', 'combobox', 'spinbutton', 'menu', 'menuitem']);
+const ARROW_ROLES = new Set(['slider', 'listbox', 'option', 'radio', 'radiogroup', 'tab', 'tablist', 'grid', 'tree']);
 const held = new Set<string>();
 
-function ignoredTarget(t: EventTarget | null) {
+function ignoredTarget(t: EventTarget | null, code: string) {
   const el = t as HTMLElement | null;
   if (!el || !el.tagName) return false;
   const tag = el.tagName;
-  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable) return true;
-  const role = el.getAttribute('role');
-  return role === 'slider' || role === 'combobox' || role === 'listbox' || role === 'menu' || role === 'menuitem' || role === 'option';
+  const role = el.getAttribute('role') ?? '';
+  if (tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable || TEXT_ROLES.has(role)) return true;
+  if (tag === 'INPUT' && TEXT_INPUT_TYPES.has((el as HTMLInputElement).type)) return true;
+  const arrowKey = !code.startsWith('Key');
+  return arrowKey && (ARROW_ROLES.has(role) || tag === 'INPUT');
 }
 
 /** Installs global listeners; `enabled` decides whether a movement target is currently active. */
@@ -29,7 +37,7 @@ export function installMovementKeys(enabled: () => boolean) {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     const isMove = MOVE_CODES.has(e.code);
     if (!isMove && !SHIFT.has(e.code)) return;
-    if (ignoredTarget(e.target) || !enabled()) return;
+    if (ignoredTarget(e.target, e.code) || !enabled()) return;
     held.add(e.code);
     // arrows / page keys would otherwise scroll a panel under the pointer
     if (isMove && !e.code.startsWith('Key')) e.preventDefault();
