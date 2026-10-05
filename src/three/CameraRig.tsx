@@ -83,6 +83,14 @@ export function cameraAzimuth() {
   return rig.controls?.azimuthAngle ?? 0;
 }
 
+export function setCameraPose(pos: [number, number, number], target: [number, number, number], smooth = true) {
+  useUI.getState().setFollow(null);
+  void rig.controls?.setLookAt(pos[0], pos[1], pos[2], target[0], target[1], target[2], smooth);
+}
+
+// automation hook (scripted demos / screenshot capture)
+(window as unknown as { __ENCIRRA_CAMERA__: unknown }).__ENCIRRA_CAMERA__ = { focusOn, resetView, setCameraPose };
+
 export function CameraRig() {
   const main = useViewports((s) => s.main);
   const ref = useRef<CameraControlsImpl>(null);
