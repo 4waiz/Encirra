@@ -182,6 +182,7 @@ function DisplayTab() {
   const rows: [string, string, React.ReactNode][] = [
     ['Render quality', 'High uses full resolution, 4× MSAA and 4K shadows.', <Segmented key="q" label="Render quality" value={settings.quality} onChange={(v) => set({ quality: v })} options={[{ value: 'high', label: 'High' }, { value: 'balanced', label: 'Balanced' }]} />],
     ['Sensor markers in 3D', 'Show sensor badges and ground rings.', <Toggle key="l" checked={settings.labels} onChange={(v) => set({ labels: v })} label="Sensor markers" />],
+    ['Frame new incidents', 'Bring a new incident into the 3D view unless the camera was moved in the last 20 s.', <Toggle key="f" checked={settings.autoFrame} onChange={(v) => set({ autoFrame: v })} label="Frame new incidents" />],
     ['Reduce motion', 'Minimise UI animation (honours the OS setting too).', <Toggle key="r" checked={settings.reduceMotion} onChange={(v) => set({ reduceMotion: v })} label="Reduce motion" />],
     ['Thermal palette', 'Colour map for thermal feeds.', <Segmented key="p" label="Thermal palette" value={settings.palette} onChange={(v) => set({ palette: v })} options={[{ value: 'ironbow', label: 'Ironbow' }, { value: 'whitehot', label: 'White-hot' }]} />],
   ];

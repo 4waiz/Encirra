@@ -49,7 +49,7 @@ interface UIState {
   telemetry: { paused: boolean; pausedAt: number | null; range: 5 | 15 | 30; series: { chem: boolean; bio: boolean; rad: boolean } };
   eventFilter: EventFilter;
   playback: PlaybackState;
-  settings: { quality: Quality; labels: boolean; reduceMotion: boolean; autoplay: boolean; palette: 'ironbow' | 'whitehot' };
+  settings: { quality: Quality; labels: boolean; reduceMotion: boolean; autoplay: boolean; palette: 'ironbow' | 'whitehot'; autoFrame: boolean };
   scenarioDraft: ScenarioParams;
   paletteOpen: boolean;
   settingsOpen: boolean;
@@ -108,7 +108,7 @@ export const useUI = create<UIState>()(
       telemetry: { paused: false, pausedAt: null, range: 15, series: { chem: true, bio: true, rad: true } },
       eventFilter: 'all',
       playback: { mode: 'live', cursor: Date.now(), playing: false, speed: 1 },
-      settings: { quality: 'high', labels: true, reduceMotion: false, autoplay: true, palette: 'ironbow' },
+      settings: { quality: 'high', labels: true, reduceMotion: false, autoplay: true, palette: 'ironbow', autoFrame: true },
       scenarioDraft: { preset: 'radiological', severity: 'moderate', locationId: 'U3-EAST', windDir: 315, windSpeed: 12, duration: 0 },
       paletteOpen: false,
       settingsOpen: false,
@@ -165,6 +165,19 @@ export const useUI = create<UIState>()(
         settings: s.settings,
         scenarioDraft: s.scenarioDraft,
       }),
+      // nested objects merge over the defaults, so settings added in later versions get their defaults
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<UIState>;
+        return {
+          ...current,
+          ...p,
+          layers: { ...current.layers, ...p.layers },
+          feedModes: { ...current.feedModes, ...p.feedModes },
+          telemetry: { ...current.telemetry, ...p.telemetry, series: { ...current.telemetry.series, ...p.telemetry?.series } },
+          settings: { ...current.settings, ...p.settings },
+          scenarioDraft: { ...current.scenarioDraft, ...p.scenarioDraft },
+        };
+      },
     },
   ),
 );

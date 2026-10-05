@@ -163,7 +163,8 @@ export function TelemetryChart({ lanes = LANES, compact }: { lanes?: LaneDef[]; 
                   <>
                     <line x1={padL} x2={padL + plotW} y1={ty} y2={ty} stroke="#f2b33d" strokeOpacity="0.55" strokeDasharray="3 3" />
                     {!compact && laneH > 30 && (
-                      <text x={padL + 5} y={ty - 3} fontSize="9" fill="#a9b3be" className="font-cond">
+                      // near the lane top the label sits under the line so it is never clipped
+                      <text x={padL + 5} y={ty - top < 12 ? ty + 10 : ty - 3} fontSize="9" fill="#a9b3be" className="font-cond">
                         review {d.lane.threshold}
                       </text>
                     )}

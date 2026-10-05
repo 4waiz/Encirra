@@ -69,16 +69,19 @@ function DetectionOverlay({ viewId, exclude, compact, onDetections }: { viewId: 
         const text = `${d.label} ${Math.round(d.confidence * 100)}%${d.extra ? ` · ${d.extra}` : ''}`;
         const lh = compact ? 13 : 15;
         const lw = text.length * (compact ? 5.8 : 6.4) + 8;
-        // keep labels clear of the feed caption and of each other
+        // keep labels clear of the feed caption, inside the frame and clear of each other
         const inside = d.y - lh - 1 < minTop;
         const insideOffset = Math.max(1, minTop - d.y + 1);
         const ly = inside ? d.y + insideOffset : d.y - lh - 1;
-        const clash = labels.some((o) => d.x < o.x + o.w && d.x + lw > o.x && ly < o.y + o.h && ly + lh > o.y);
+        const shift = Math.max(0, d.x + lw - (f.rect.width - 2));
+        const lx = d.x - shift;
+        const clash = labels.some((o) => lx < o.x + o.w && lx + lw > o.x && ly < o.y + o.h && ly + lh > o.y);
         label.style.display = clash ? 'none' : 'block';
-        if (!clash) labels.push({ x: d.x, y: ly, w: lw, h: lh });
+        if (!clash) labels.push({ x: lx, y: ly, w: lw, h: lh });
         label.style.background = c;
         label.style.fontSize = compact ? '9.5px' : '10.5px';
         label.style.lineHeight = `${lh}px`;
+        label.style.left = `${-1 - shift}px`;
         label.style.top = inside ? `${insideOffset}px` : `${-lh - 1}px`;
         label.textContent = text;
       });

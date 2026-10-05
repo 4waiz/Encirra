@@ -5,6 +5,7 @@ import { CameraControls } from '@react-three/drei';
 import type CameraControlsImpl from 'camera-controls';
 import { useViewports } from './viewports';
 import { useUI, type Selection } from '../store/ui';
+import { useSim } from '../store/sim';
 import { SENSOR_BY_ID } from '../simulation/sensors';
 import { zoneById } from '../data/site';
 import { assetVisual } from './AssetLayer';
@@ -15,9 +16,17 @@ import { FIXED_CAMS, feedOffsets, fixedCamYaw } from './feedCameras';
 import { clamp } from '../utils/math';
 
 /** Initial oblique aerial view from over the sea, looking south-east across the campus. */
-export const HOME = { pos: new THREE.Vector3(-1080, 560, -1230), target: new THREE.Vector3(30, 0, -40) };
+export const HOME = { pos: new THREE.Vector3(-970, 505, -1110), target: new THREE.Vector3(30, 0, -40) };
 
-const rig: { controls: CameraControlsImpl | null } = { controls: null };
+/** A new incident is framed automatically only if the operator hasn't moved the camera this recently. */
+const AUTO_FRAME_IDLE_MS = 20_000;
+
+const rig: { controls: CameraControlsImpl | null; lastManual: number } = { controls: null, lastManual: -Infinity };
+
+/** Any operator-driven camera change (drag, wheel, keys, focus buttons) defers auto-framing. */
+const markManual = () => {
+  rig.lastManual = performance.now();
+};
 
 function lookAtFrom(target: THREE.Vector3, distance: number, polar: number, smooth = true) {
   const c = rig.controls;
@@ -39,6 +48,7 @@ function assetPosition(id: AssetId): THREE.Vector3 {
 }
 
 export function focusOn(target: FocusTarget | Exclude<Selection, null>) {
+  markManual();
   const ui = useUI.getState();
   switch (target.kind) {
     case 'sensor': {
@@ -72,6 +82,7 @@ export function focusOn(target: FocusTarget | Exclude<Selection, null>) {
 }
 
 export function resetView() {
+  markManual();
   useUI.getState().setFollow(null);
   void rig.controls?.setLookAt(HOME.pos.x, HOME.pos.y, HOME.pos.z, HOME.target.x, HOME.target.y, HOME.target.z, true);
 }
@@ -79,6 +90,7 @@ export function resetView() {
 export function zoomBy(factor: number) {
   const c = rig.controls;
   if (!c) return;
+  markManual();
   void c.dolly(c.distance * factor, true);
 }
 
@@ -87,6 +99,7 @@ export function cameraAzimuth() {
 }
 
 export function setCameraPose(pos: [number, number, number], target: [number, number, number], smooth = true) {
+  markManual();
   useUI.getState().setFollow(null);
   void rig.controls?.setLookAt(pos[0], pos[1], pos[2], target[0], target[1], target[2], smooth);
 }
@@ -103,12 +116,30 @@ export function CameraRig() {
     if (!c) return;
     rig.controls = c;
     void c.setLookAt(HOME.pos.x, HOME.pos.y, HOME.pos.z, HOME.target.x, HOME.target.y, HOME.target.z, false);
-    const stopFollow = () => useUI.getState().setFollow(null);
+    const stopFollow = () => {
+      markManual();
+      useUI.getState().setFollow(null);
+    };
     c.addEventListener('controlstart', stopFollow);
     return () => {
       c.removeEventListener('controlstart', stopFollow);
       rig.controls = null;
     };
+  }, []);
+
+  // ---- frame new incidents (Settings → Display), unless the operator is driving the camera
+  useEffect(() => {
+    const seen = new Set(useSim.getState().incidents.map((i) => i.id));
+    return useSim.subscribe((s) => {
+      for (const inc of s.incidents) {
+        if (seen.has(inc.id)) continue;
+        seen.add(inc.id);
+        const ui = useUI.getState();
+        if (inc.status === 'resolved' || !ui.settings.autoFrame || ui.follow || ui.playback.mode === 'replay') continue;
+        if (performance.now() - rig.lastManual < AUTO_FRAME_IDLE_MS) continue;
+        lookAtFrom(new THREE.Vector3(inc.location.x, 6, inc.location.z), 780, 1.02);
+      }
+    });
   }, []);
 
   // ---- WASD navigation: twin camera on Overview / 3D Twin, virtual view of fixed cameras in Live Feeds
@@ -128,6 +159,7 @@ export function CameraRig() {
   useFrame((_, delta) => {
     const ax = movementAxes();
     if (!ax.active) return;
+    markManual();
     const ui = useUI.getState();
     if (ui.paletteOpen || ui.settingsOpen) {
       clearMovementKeys();

@@ -46,7 +46,9 @@ export function FeedTile({ source, viewId }: { source: FeedSource; viewId: strin
         <span className="shrink-0 text-ink-4" aria-hidden>
           |
         </span>
-        <span className="min-w-0 truncate text-[11px] text-ink-2">{meta.label.replace(/^UGV-01 · |^UAV-01 · /, '')}</span>
+        <span className="min-w-0 truncate text-[11px] text-ink-2" title={meta.label}>
+          {meta.short}
+        </span>
         <span className="ml-auto shrink-0">
           <LiveChip stale={stale} />
         </span>

@@ -49,7 +49,13 @@ const SensorMarker = memo(function SensorMarker({ id, setRef }: { id: string; se
               (hovered || selected) && 'scale-[1.18]',
               'group-focus-visible:ring-2 group-focus-visible:ring-cyan',
             )}
-            style={{ background: 'rgb(14 19 25 / 0.88)', boxShadow: `0 0 0 1.5px ${ring}, 0 2px 8px rgb(0 0 0 / 0.45)${selected ? `, 0 0 0 4px ${TONE_HEX.info}55` : ''}` }}
+            style={{
+              background: 'rgb(14 19 25 / 0.88)',
+              // selected: a cyan ring separated by a dark gap reads on white roofs and open sea alike
+              boxShadow: selected
+                ? `0 0 0 1.5px ${ring}, 0 0 0 3.5px rgb(10 14 19 / 0.92), 0 0 0 5.5px var(--color-cyan), 0 2px 10px rgb(0 0 0 / 0.5)`
+                : `0 0 0 1.5px ${ring}, 0 2px 8px rgb(0 0 0 / 0.45)`,
+            }}
           >
             {flagged && <span className="absolute inset-0 rounded-full animate-pulse-ring" style={{ background: TONE_HEX[tone] }} />}
             <Icon size={12} strokeWidth={2.1} style={{ color: offline ? TONE_HEX.offline : SENSOR_COLOR[def.kind] }} aria-hidden />
@@ -61,6 +67,17 @@ const SensorMarker = memo(function SensorMarker({ id, setRef }: { id: string; se
             {offline && <span className="absolute h-[1.5px] w-[16px] rotate-45 rounded-full bg-ink-3" />}
           </span>
           <span className="h-[9px] w-px" style={{ background: ring }} />
+          {(selected || flagged) && !hovered && (
+            <span
+              className={cx(
+                'pointer-events-none absolute left-[calc(50%+16px)] top-[3px] whitespace-nowrap rounded-[3px] px-1 mono text-[9.5px] leading-[15px] shadow-[0_2px_6px_rgb(0_0_0/0.4)]',
+                selected ? 'bg-cyan font-semibold text-bg-0' : 'border border-line-strong bg-surface-1/92 text-ink-1',
+              )}
+              aria-hidden
+            >
+              {id}
+            </span>
+          )}
           <span
             className={cx(
               'pointer-events-none absolute bottom-[34px] left-1/2 z-10 w-max -translate-x-1/2 rounded-[6px] border border-line-strong bg-surface-2/95 px-2.5 py-1.5 text-left shadow-[0_8px_24px_rgb(0_0_0/0.45)] transition-opacity duration-150',
@@ -199,7 +216,14 @@ export function TwinMarkers({ compact }: { compact?: boolean }) {
         const isZone = key.startsWith('zone:');
         if (isUnit && p.distance > 3200) p.visible = false;
         if (key === 'callout') {
-          const side = p.x > f.rect.width - 300 ? 'left' : 'right';
+          // open toward the nearer edge, away from the middle of the view where the subject usually
+          // is; hysteresis keeps it from flipping while the camera moves; fall back when it won't fit
+          const mid = f.rect.width / 2;
+          let side = el.dataset.side ?? 'right';
+          if (p.x < mid - 40) side = 'left';
+          else if (p.x > mid + 40) side = 'right';
+          if (side === 'left' && p.x < 290) side = 'right';
+          else if (side === 'right' && p.x > f.rect.width - 290) side = 'left';
           const vside = p.y < 175 ? 'below' : 'above';
           if (el.dataset.side !== side) el.dataset.side = side;
           if (el.dataset.vside !== vside) el.dataset.vside = vside;

@@ -29,10 +29,61 @@ interface Trackable {
   center: THREE.Vector3;
   size: THREE.Vector3;
   extra?: string;
+  /** point used for the line-of-sight test (defaults to the centre) */
+  probe?: THREE.Vector3;
+}
+
+/** Beyond these ranges (m) a class is too small for the synthetic detector to report. */
+const MAX_RANGE: Record<Detection['kind'], number> = { person: 220, robot: 380, vehicle: 450, hotspot: 420, structure: 650, aircraft: 900 };
+
+// Line-of-sight occluders: generalized building volumes from the shared layout plus the main blocks of
+// each reactor unit (as authored by tools/blender/build_facility.py). Objects hidden behind them are
+// not reported, so boxes never float over a facade.
+interface Occluder {
+  min: THREE.Vector3;
+  max: THREE.Vector3;
+  owner?: string;
+}
+const OCCLUDERS: Occluder[] = (() => {
+  const out: Occluder[] = [];
+  const add = (x: number, y: number, z: number, w: number, h: number, d: number, owner?: string) =>
+    out.push({ min: new THREE.Vector3(x - w / 2, y - h / 2, z - d / 2), max: new THREE.Vector3(x + w / 2, y + h / 2, z + d / 2), owner });
+  for (const b of SITE.buildings) add(b.x, b.h / 2, b.z, b.w, b.h, b.d);
+  for (const u of SITE.units) {
+    add(u.x, 12, u.z, 96, 24, 92);
+    add(u.x, 15.5, u.z - 102, 70, 31, 88);
+    add(u.x + 44, 9, u.z - 102, 18, 18, 80);
+    add(u.x, 35, u.z, 53, 70, 53, `dome-${u.id}`);
+  }
+  return out;
+})();
+
+/** Does the segment a→b pass through an occluder (other than the target's own volume)? */
+function occluded(a: THREE.Vector3, b: THREE.Vector3, owner: string) {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const dz = b.z - a.z;
+  for (const o of OCCLUDERS) {
+    if (o.owner === owner) continue;
+    let t0 = 0.002;
+    let t1 = 0.985;
+    const slab = (p: number, d: number, lo: number, hi: number) => {
+      if (Math.abs(d) < 1e-9) return p >= lo && p <= hi;
+      let u = (lo - p) / d;
+      let w = (hi - p) / d;
+      if (u > w) [u, w] = [w, u];
+      t0 = Math.max(t0, u);
+      t1 = Math.min(t1, w);
+      return t0 <= t1;
+    };
+    if (slab(a.x, dx, o.min.x, o.max.x) && slab(a.y, dy, o.min.y, o.max.y) && slab(a.z, dz, o.min.z, o.max.z)) return true;
+  }
+  return false;
 }
 
 const corners = Array.from({ length: 8 }, () => new THREE.Vector3());
 const v = new THREE.Vector3();
+const eye = new THREE.Vector3();
 
 function trackables(t: number): Trackable[] {
   const out: Trackable[] = [];
@@ -45,7 +96,7 @@ function trackables(t: number): Trackable[] {
   const uav = assetVisual.uav;
   out.push({ id: 'uav', label: 'UAV', kind: 'aircraft', base: 0.91, center: new THREE.Vector3(uav.x, uav.y, uav.z), size: new THREE.Vector3(3.6, 1.2, 3.6) });
   for (const u of SITE.units) {
-    out.push({ id: `dome-${u.id}`, label: 'Structure', kind: 'structure', base: 0.99, center: new THREE.Vector3(u.x, 34, u.z), size: new THREE.Vector3(55, 68, 55) });
+    out.push({ id: `dome-${u.id}`, label: 'Structure', kind: 'structure', base: 0.99, center: new THREE.Vector3(u.x, 34, u.z), size: new THREE.Vector3(55, 68, 55), probe: new THREE.Vector3(u.x, 60, u.z) });
   }
   for (const e of engine.liveEffects(t)) {
     if (e.kind !== 'thermal') continue;
@@ -68,12 +119,15 @@ function trackables(t: number): Trackable[] {
 export function detect(camera: THREE.PerspectiveCamera, width: number, height: number, t: number, exclude?: string): Detection[] {
   const out: Detection[] = [];
   camera.updateMatrixWorld();
+  camera.getWorldPosition(eye);
   const jitter = (id: string) => Math.sin(t / 900 + id.length * 1.7) * 0.006;
   for (const tr of trackables(t)) {
     if (tr.id === exclude) continue;
-    // in front of the camera?
+    // in front of the camera, within the class's detection range and in line of sight?
     v.copy(tr.center).applyMatrix4(camera.matrixWorldInverse);
     if (v.z > -1) continue;
+    if (eye.distanceTo(tr.center) > MAX_RANGE[tr.kind]) continue;
+    if (occluded(eye, tr.probe ?? tr.center, tr.id)) continue;
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;

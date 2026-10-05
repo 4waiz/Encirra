@@ -3,7 +3,7 @@ import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useSim } from '../../store/sim';
 import { useSeriesTail } from '../../components/charts/useSeries';
-import { Chip, Metric, MicroBars, ProgressBar, Sparkline } from '../../components/ui/primitives';
+import { Chip, CountBars, Metric, MicroBars, ProgressBar, Sparkline } from '../../components/ui/primitives';
 import { CATEGORY_HEX } from '../../components/ui/tone';
 import type { Tone } from '../../types';
 
@@ -45,7 +45,7 @@ function Chemical() {
   const m = useSim((s) => s.metrics);
   const voc = useSeriesTail('voc', 120, 5);
   const online = useSeriesTail('gasOnline', 10, 6).map((v) => v / m.gasTotal);
-  const alerts = useSeriesTail('chemAlerts', 60, 10);
+  const alerts = useSeriesTail('chemAlerts', 90, 10);
   const status: { tone: Tone; label: string } = m.chemAlerts > 0 ? { tone: 'watch', label: 'Review' } : { tone: 'ok', label: 'Nominal' };
   return (
     <Section title="Chemical" icon={FlaskConical} color={CATEGORY_HEX.chem} status={status}>
@@ -57,7 +57,7 @@ function Chemical() {
         <Metric value={m.gasOnline} className={big} />
         <span className={unit}>/ {m.gasTotal}</span>
       </Block>
-      <Block label="Under review" chart={<Sparkline data={alerts} color="#a9b3be" height={18} min={0} max={4} fill={false} />}>
+      <Block label="Under review" chart={<CountBars values={alerts} color={CATEGORY_HEX.chem} title="Gas sensors under review, per minute · last 15 min" />}>
         <Metric value={m.chemAlerts} className={big} />
       </Block>
     </Section>
@@ -67,7 +67,7 @@ function Chemical() {
 function Biological() {
   const m = useSim((s) => s.metrics);
   const aer = useSeriesTail('aerosol', 120, 5);
-  const samples = useSeriesTail('samples', 60, 10);
+  const samples = useSeriesTail('samples', 90, 10);
   const status: { tone: Tone; label: string } = m.bioAlerts > 0 ? { tone: 'watch', label: 'Screening' } : { tone: 'ok', label: 'Nominal' };
   return (
     <Section title="Biological" icon={Biohazard} color={CATEGORY_HEX.bio} status={status} footnote="Screening only · lab confirmation required">
@@ -75,7 +75,7 @@ function Biological() {
         <Metric value={m.aerosol} className={big} />
         <span className={unit}>/ 100</span>
       </Block>
-      <Block label="Samples to lab" chart={<Sparkline data={samples} color="#a9b3be" height={18} min={0} max={6} fill={false} />}>
+      <Block label="Samples to lab" chart={<CountBars values={samples} color={CATEGORY_HEX.bio} scaleMax={6} title="Samples awaiting lab confirmation, per minute · last 15 min" />}>
         <Metric value={m.samplesPending} className={big} />
       </Block>
       <Block label="Detectors" chart={<MicroBars values={[1, 1, 1, 1, 1, 1, 1, 1, 1, m.bioOnline / m.bioTotal]} color={CATEGORY_HEX.bio} bars={10} height={16} />}>
@@ -90,7 +90,7 @@ function Radiological() {
   const m = useSim((s) => s.metrics);
   const gamma = useSeriesTail('gamma', 120, 5);
   const dos = useSeriesTail('dosimeters', 10, 6).map((v) => v / m.dosimetersTotal);
-  const alerts = useSeriesTail('radAlerts', 60, 10);
+  const alerts = useSeriesTail('radAlerts', 90, 10);
   const status: { tone: Tone; label: string } =
     m.radAlerts > 1 || m.gamma >= 0.32 ? { tone: 'warn', label: 'Elevated' } : m.radAlerts > 0 ? { tone: 'watch', label: 'Review' } : { tone: 'ok', label: 'Nominal' };
   return (
@@ -103,7 +103,7 @@ function Radiological() {
         <Metric value={m.dosimetersOnline} className={big} />
         <span className={unit}>/ {m.dosimetersTotal}</span>
       </Block>
-      <Block label="Under review" chart={<Sparkline data={alerts} color="#a9b3be" height={18} min={0} max={4} fill={false} />}>
+      <Block label="Under review" chart={<CountBars values={alerts} color={CATEGORY_HEX.rad} title="Radiation monitors under review, per minute · last 15 min" />}>
         <Metric value={m.radAlerts} className={big} />
       </Block>
     </Section>
@@ -114,6 +114,8 @@ function Readiness() {
   const m = useSim((s) => s.metrics);
   const ready = useSeriesTail('readiness', 120, 5);
   const comms = useSeriesTail('commsUp', 10, 6).map((v) => v / m.commsTotal);
+  // with an incident open the checklist figure is the response checklist, otherwise routine checks
+  const responding = useSim((s) => s.incidents.some((i) => i.status !== 'resolved'));
   const status: { tone: Tone; label: string } = m.commsUp < m.commsTotal ? { tone: 'watch', label: 'Degraded' } : { tone: 'ok', label: 'Ready' };
   return (
     <Section title="Nuclear readiness" icon={Atom} color={CATEGORY_HEX.nuc} status={status}>
@@ -125,7 +127,7 @@ function Readiness() {
         <Metric value={m.commsUp} className={big} />
         <span className={unit}>/ {m.commsTotal}</span>
       </Block>
-      <Block label="Checklist" chart={<div className="pt-[7px]"><ProgressBar value={m.checklistPct / 100} color={CATEGORY_HEX.nuc} /></div>}>
+      <Block label={responding ? 'Response tasks' : 'Routine checks'} chart={<div className="pt-[7px]"><ProgressBar value={m.checklistPct / 100} color={CATEGORY_HEX.nuc} /></div>}>
         <Metric value={m.checklistPct} className={big} />
         <span className={unit}>%</span>
       </Block>

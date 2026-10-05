@@ -20,6 +20,7 @@ import {
   Truck,
   Building,
   Flame,
+  Activity,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useSim } from '../../store/sim';
@@ -30,7 +31,7 @@ import { FEED_META, resetFeedOffset } from '../../three/feedCameras';
 import { requestSnapshot } from '../../three/RenderLoop';
 import { focusOn } from '../../three/CameraRig';
 import { heatToCelsius } from '../../three/thermal';
-import { Panel, Segmented, Toggle, IconButton, cx, StatusDot, Kbd } from '../../components/ui/primitives';
+import { Panel, Segmented, Toggle, IconButton, cx, StatusDot, Kbd, useNow } from '../../components/ui/primitives';
 import type { Detection } from '../../three/detections';
 import { fmtClock } from '../../utils/format';
 
@@ -212,6 +213,35 @@ function SourceList({ main }: { main: FeedSource }) {
         );
       })}
     </div>
+  );
+}
+
+/** Stream parameters of the selected source (synthetic; bitrate and latency drift with the link). */
+function StreamInfo({ source }: { source: FeedSource }) {
+  const now = useNow(1000);
+  const stale = useSim((s) => !!s.feeds[source]?.stale);
+  const linkMs = useSim((s) => s.metrics.latencyMs);
+  const meta = FEED_META[source];
+  const wobble = Math.sin(now / 2300 + source.length) * 0.06 + Math.sin(now / 900 + source.charCodeAt(4)) * 0.03;
+  const kbps = stale ? 0 : meta.kbps * (1 + wobble);
+  const latency = source === 'CAM-01' || source === 'CAM-02' ? 70 + Math.round(wobble * 120) : source === 'UAV-01' ? linkMs + 60 : linkMs;
+  const rows: [string, string][] = [
+    ['Resolution', meta.res],
+    ['Frame rate', `${stale ? 0 : meta.fps} fps`],
+    ['Codec', `${meta.codec} · 2 s GOP`],
+    ['Bitrate', stale ? '—' : `${(kbps / 1000).toFixed(1)} Mb/s`],
+    ['Glass-to-glass', stale ? 'stalled' : `${latency} ms`],
+    ['Link', meta.link],
+  ];
+  return (
+    <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-[5px] px-3 py-2.5 text-[11.5px]">
+      {rows.map(([k, v]) => (
+        <div key={k} className="contents">
+          <dt className="text-ink-3">{k}</dt>
+          <dd className={cx('num truncate text-right', k === 'Glass-to-glass' && stale ? 'text-amber' : 'text-ink-1')}>{v}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
@@ -416,6 +446,9 @@ export function FeedsScreen() {
                 );
               })}
           </div>
+        </Panel>
+        <Panel title="Stream" icon={Activity} className="shrink-0 [@media(max-height:820px)]:hidden" subtitle={main}>
+          <StreamInfo source={main} />
         </Panel>
         <Panel title="Playback" icon={Rewind} className="shrink-0">
           <div className="flex gap-1.5 p-2.5">

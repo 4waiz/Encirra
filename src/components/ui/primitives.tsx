@@ -217,6 +217,48 @@ export const MicroBars = memo(function MicroBars({ values, color, bars = 5, heig
   );
 });
 
+// ------------------------------------------------------------------------------------------ Count bars
+
+/**
+ * A small count over time as bucketed bars (each bar = the highest count in its bucket); empty buckets
+ * keep a faint baseline tick so the time axis stays legible when the count is zero.
+ */
+export const CountBars = memo(function CountBars({
+  values,
+  color,
+  buckets = 15,
+  height = 16,
+  scaleMax = 4,
+  title,
+}: {
+  values: number[];
+  color: string;
+  buckets?: number;
+  height?: number;
+  scaleMax?: number;
+  title?: string;
+}) {
+  const n = values.length;
+  const out: number[] = [];
+  for (let b = 0; b < buckets; b++) {
+    let m = 0;
+    for (let i = Math.floor((b * n) / buckets); i < Math.floor(((b + 1) * n) / buckets); i++) if (values[i] > m) m = values[i];
+    out.push(m);
+  }
+  const hi = Math.max(scaleMax, ...out);
+  return (
+    <span className="flex w-full items-end gap-[2px]" style={{ height }} title={title} role={title ? 'img' : undefined} aria-label={title} aria-hidden={title ? undefined : true}>
+      {out.map((v, i) => (
+        <span
+          key={i}
+          className="min-w-0 flex-1 rounded-[1px] transition-[height] duration-500"
+          style={{ height: v > 0 ? Math.max(5, Math.round((v / hi) * height)) : 2, background: v > 0 ? color : 'rgb(148 163 184 / 0.22)' }}
+        />
+      ))}
+    </span>
+  );
+});
+
 // ------------------------------------------------------------------------------------------ Controls
 
 export function IconButton({
