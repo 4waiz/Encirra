@@ -6,7 +6,7 @@ import { frameBus } from '../../three/frameBus';
 import { pickAt } from '../../three/picking';
 import { focusOn } from '../../three/CameraRig';
 import { useUI } from '../../store/ui';
-import { useSceneStatus } from '../../three/Scene';
+import { useSceneStatus } from '../../three/sceneStatus';
 import { TwinMarkers } from './TwinMarkers';
 import { cx } from '../ui/primitives';
 

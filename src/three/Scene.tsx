@@ -1,6 +1,5 @@
 import { Suspense, useEffect, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { create } from 'zustand';
 import { SceneEnvironment } from './Environment';
 import { Terrain } from './Terrain';
 import { Ocean } from './Ocean';
@@ -14,13 +13,7 @@ import { RenderLoop } from './RenderLoop';
 import { createShoreMask } from './textures/shoreMask';
 import { preloadModels } from './models';
 import { useUI } from '../store/ui';
-
-export const useSceneStatus = create<{ ready: boolean; error: string | null; setReady: () => void; setError: (e: string) => void }>((set) => ({
-  ready: false,
-  error: null,
-  setReady: () => set({ ready: true }),
-  setError: (error) => set({ error }),
-}));
+import { useSceneStatus } from './sceneStatus';
 
 preloadModels();
 
