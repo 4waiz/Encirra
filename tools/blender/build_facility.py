@@ -57,6 +57,21 @@ MAT_DEFS = {
     "concrete_light": ("#D0CBC1", 0.9, 0.0),
     "concrete_warm": ("#C6BCAA", 0.92, 0.0),
     "concrete_dark": ("#8E8A83", 0.92, 0.0),
+    "concrete_sand": ("#D9C8A6", 0.88, 0.0),
+    "concrete_stone": ("#C4B08C", 0.9, 0.0),
+    "cladding_blue": ("#8AA2B8", 0.55, 0.35),
+    "cladding_teal": ("#7EA5A2", 0.55, 0.3),
+    "cladding_sage": ("#9DAE92", 0.58, 0.3),
+    "roof_white": ("#E2E3DF", 0.6, 0.15),
+    "roof_green": ("#5E7A66", 0.58, 0.35),
+    "accent_navy": ("#2D4F78", 0.55, 0.2),
+    "accent_teal": ("#2B8784", 0.55, 0.2),
+    "glass_blue": ("#2C4A61", 0.1, 0.7),
+    "crane_yellow": ("#E2A52B", 0.5, 0.35),
+    "tank_green": ("#7C9984", 0.55, 0.25),
+    "stripe_red": ("#B53C2E", 0.55, 0.2),
+    "car_red": ("#9C2A24", 0.32, 0.5),
+    "car_sand": ("#C8B48F", 0.32, 0.45),
     "cladding": ("#C3C7CB", 0.6, 0.3),
     "roof_metal": ("#CBCFD3", 0.5, 0.45),
     "roof_dark": ("#7F868D", 0.66, 0.3),
@@ -82,6 +97,8 @@ MAT_DEFS = {
     "container_rust": ("#8A4632", 0.68, 0.4),
     "container_white": ("#D8D6D0", 0.68, 0.4),
     "container_gray": ("#7B8187", 0.68, 0.4),
+    "container_green": ("#3F6650", 0.68, 0.4),
+    "container_red": ("#9A3A2C", 0.68, 0.4),
     "nav_light_red": ("#C2322A", 0.4, 0.0, False, "#FF3B30", 4.0),
     "nav_light_green": ("#2E9E57", 0.4, 0.0, False, "#30D158", 4.0),
     "ugv_graphite": ("#2A2F35", 0.45, 0.55),
@@ -403,7 +420,7 @@ def palm(g, x, z):
 
 
 def car(g, x, z, flip):
-    mat = RNG.choices(("car_white", "car_silver", "car_dark", "car_blue"), weights=(5, 4, 3, 1))[0]
+    mat = RNG.choices(("car_white", "car_silver", "car_dark", "car_blue", "car_red", "car_sand"), weights=(6, 4, 3, 1, 1, 2))[0]
     s = -1.0 if flip else 1.0
     box(g, "tyre", x, 0.38, z, 1.66, 0.5, 3.7)
     box(g, mat, x, 0.78, z, 1.8, 0.62, 4.3, bevel=0.22)
@@ -421,8 +438,8 @@ def build_unit(g):
     box(g, "roof_dark", 0, 24.12, 0, 93, 0.25, 89)
     box(g, "roof_dark", -37, 36.12, 0, 19.5, 0.25, 73.5)
     box(g, "roof_dark", 37, 30.12, 12, 19.5, 0.25, 49.5)
-    box(g, "accent_blue", 0, 21.0, 0, 96.3, 1.1, 92.3)
-    box(g, "accent_blue", -37, 33.0, 0, 22.3, 1.1, 76.3)
+    box(g, "accent_navy", 0, 21.0, 0, 96.3, 1.1, 92.3)
+    box(g, "accent_navy", -37, 33.0, 0, 22.3, 1.1, 76.3)
     # vertical facade reveals on the aux building
     for k in range(9):
         zz = -42 + k * 10.5
@@ -446,17 +463,17 @@ def build_unit(g):
 
     # link building and turbine hall (towards the sea, -z)
     box(g, "concrete_white", 0, 8, -52, 40, 16, 12, bevel=0.3)
-    box(g, "cladding", 0, 15.5, -102, 70, 31, 88, bevel=0.3)
+    box(g, "cladding_blue", 0, 15.5, -102, 70, 31, 88, bevel=0.3)
     gable(g, "roof_metal", 0, -102, 70, 88, 31, 3.0, along="z", overhang=0.5)
     box(g, "roof_dark", 0, 34.4, -102, 5.5, 1.3, 68)
-    box(g, "accent_blue", 0, 25.0, -102, 70.3, 1.5, 88.3)
+    box(g, "accent_navy", 0, 25.0, -102, 70.3, 1.5, 88.3)
     for k in range(10):
         zz = -146 + 4.4 + k * 8.8
-        box(g, "cladding", 35.25, 15.5, zz, 0.5, 31, 0.9)
-        box(g, "cladding", -35.25, 15.5, zz, 0.5, 31, 0.9)
+        box(g, "cladding_blue", 35.25, 15.5, zz, 0.5, 31, 0.9)
+        box(g, "cladding_blue", -35.25, 15.5, zz, 0.5, 31, 0.9)
     for k in range(8):
         xx = -35 + 4.375 + k * 8.75
-        box(g, "cladding", xx, 15.5, -146.25, 0.9, 31, 0.5)
+        box(g, "cladding_blue", xx, 15.5, -146.25, 0.9, 31, 0.5)
     box(g, "steel_dark", -35.3, 7, -80, 0.4, 14, 12)
     box(g, "steel_dark", -35.3, 5, -126, 0.4, 10, 8)
 
@@ -479,13 +496,18 @@ def build_unit(g):
     hvac_scatter(g, -46, -28, -34, 34, 36.25, 4)
 
 
+def pick(b, options):
+    """Stable choice per building (by id), so the campus palette never reshuffles between builds."""
+    return options[sum(ord(c) for c in b["id"]) % len(options)]
+
+
 def office(g, b):
     x, z, w, d, h = b["x"], b["z"], b["w"], b["d"], b["h"]
-    box(g, "concrete_white", x, h / 2, z, w, h, d, bevel=0.3)
+    box(g, pick(b, ("concrete_white", "concrete_sand", "concrete_white", "concrete_stone")), x, h / 2, z, w, h, d, bevel=0.3)
     floors = max(1, int(h // 3.6))
     for f in range(floors):
-        box(g, "glass", x, f * 3.6 + 1.95, z, w + 0.3, 1.55, d + 0.3)
-    box(g, "roof_dark", x, h + 0.12, z, w - 1.6, 0.25, d - 1.6)
+        box(g, "glass_blue", x, f * 3.6 + 1.95, z, w + 0.3, 1.55, d + 0.3)
+    box(g, pick(b, ("roof_dark", "roof_white", "roof_white")), x, h + 0.12, z, w - 1.6, 0.25, d - 1.6)
     if w > 40:
         box(g, "concrete_light", x - w * 0.18, h + 1.6, z, w * 0.22, 3.2, d * 0.45, bevel=0.15)
     hvac_scatter(g, x - w * 0.42, x + w * 0.42, z - d * 0.38, z + d * 0.38, h + 0.25, max(2, int(w * d / 520)))
@@ -493,10 +515,10 @@ def office(g, b):
 
 def industrial(g, b):
     x, z, w, d, h = b["x"], b["z"], b["w"], b["d"], b["h"]
-    wall = "concrete_light" if (int(abs(x) + abs(z)) // 7) % 2 == 0 else "cladding"
+    wall = pick(b, ("concrete_light", "cladding_teal", "cladding_blue", "concrete_sand", "cladding"))
     box(g, wall, x, h / 2, z, w, h, d, bevel=0.3)
-    box(g, "accent_blue", x, h - 1.5, z, w + 0.25, 0.9, d + 0.25)
-    box(g, "roof_metal", x, h + 0.12, z, w - 1.2, 0.25, d - 1.2)
+    box(g, pick(b, ("accent_navy", "accent_teal", "accent_blue")), x, h - 1.5, z, w + 0.25, 0.9, d + 0.25)
+    box(g, pick(b, ("roof_metal", "roof_white", "roof_metal")), x, h + 0.12, z, w - 1.2, 0.25, d - 1.2)
     step = 8.0
     nx = max(1, int(w / step))
     for k in range(nx + 1):
@@ -511,9 +533,10 @@ def industrial(g, b):
 
 def warehouse(g, b):
     x, z, w, d, h = b["x"], b["z"], b["w"], b["d"], b["h"]
-    box(g, "cladding", x, h / 2, z, w, h, d, bevel=0.25)
+    clad = pick(b, ("cladding_sage", "cladding_blue", "cladding"))
+    box(g, clad, x, h / 2, z, w, h, d, bevel=0.25)
     along = "x" if w >= d else "z"
-    gable(g, "roof_metal", x, z, w, d, h, 2.4, along=along, overhang=0.6)
+    gable(g, pick(b, ("roof_green", "roof_metal", "roof_metal")), x, z, w, d, h, 2.4, along=along, overhang=0.6)
     if along == "x":
         n = max(2, int(w / 26))
         for k in range(n):
@@ -521,7 +544,7 @@ def warehouse(g, b):
             box(g, "steel_dark", xx, 3.2, z + d / 2 + 0.2, 6.0, 6.4, 0.3)
         for k in range(int(w / 6)):
             xx = x - w / 2 + 3 + k * 6
-            box(g, "cladding", xx, h / 2, z - d / 2 - 0.15, 0.5, h, 0.3)
+            box(g, clad, xx, h / 2, z - d / 2 - 0.15, 0.5, h, 0.3)
     else:
         n = max(2, int(d / 26))
         for k in range(n):
@@ -531,12 +554,12 @@ def warehouse(g, b):
 
 def garage(g, b):
     x, z, w, d, h = b["x"], b["z"], b["w"], b["d"], b["h"]
-    box(g, "concrete_white", x, h / 2, z, w, h, d, bevel=0.2)
+    box(g, "concrete_sand", x, h / 2, z, w, h, d, bevel=0.2)
     box(g, "roof_dark", x, h + 0.1, z, w - 1, 0.2, d - 1)
     for zz in (z - 4.5, z + 4.5):
         box(g, "steel_dark", x - w / 2 - 0.15, 2.4, zz, 0.3, 4.8, 6.5)
     box(g, "concrete_light", x - w / 2 - 3.5, h - 0.6, z, 7, 0.35, d - 2)
-    box(g, "accent_blue", x, h - 1.0, z, w + 0.2, 0.6, d + 0.2)
+    box(g, "accent_teal", x, h - 1.0, z, w + 0.2, 0.6, d + 0.2)
 
 
 def generator(g, b):
@@ -544,24 +567,28 @@ def generator(g, b):
     x, z, w, d, h = b["x"], b["z"], b["w"], b["d"], b["h"]
     for k in range(4):
         xx = x - w * 0.36 + k * (w * 0.24)
-        cyl(g, "steel", (xx, h, z - d * 0.25), (xx, h + 9, z - d * 0.25), 0.75, segs=12)
+        cyl(g, "steel", (xx, h, z - d * 0.25), (xx, h + 7.2, z - d * 0.25), 0.75, segs=12)
+        cyl(g, "stripe_red", (xx, h + 7.2, z - d * 0.25), (xx, h + 9, z - d * 0.25), 0.77, segs=12)
 
 
 def coastal(g, b):
     x, z, w, d, h = b["x"], b["z"], b["w"], b["d"], b["h"]
-    box(g, "concrete_white", x, h / 2, z, w, h, d, bevel=0.3)
+    box(g, pick(b, ("concrete_white", "concrete_sand")), x, h / 2, z, w, h, d, bevel=0.3)
     box(g, "roof_dark", x, h + 0.12, z, w - 1.4, 0.25, d - 1.4)
     for k in range(int(w / 7)):
         xx = x - w / 2 + 3.5 + k * 7
         box(g, "steel_dark", xx, h * 0.55, z - d / 2 - 0.12, 3.2, 1.6, 0.25)
-    box(g, "accent_blue", x, h - 1.2, z, w + 0.25, 0.7, d + 0.25)
+    box(g, "accent_navy", x, h - 1.2, z, w + 0.25, 0.7, d + 0.25)
     hvac_scatter(g, x - w * 0.4, x + w * 0.4, z - d * 0.3, z + d * 0.3, h + 0.25, 4)
 
 
 def tank(g, t):
     x, z, r, h = t["x"], t["z"], t["r"], t["h"]
     lathe(g, "concrete_dark", x, z, [(r + 0.9, 0.0), (r + 0.9, 0.45), (r, 0.45)], segs=40, cap_top=False)
-    lathe(g, "tank_white", x, z, [(r, 0.45), (r, h), (r * 0.97, h + 0.3), (0.0, h + r * 0.14)], segs=40, cap_top=False)
+    body = "tank_green" if t["id"].startswith("DT") else "tank_white"
+    lathe(g, body, x, z, [(r, 0.45), (r, h), (r * 0.97, h + 0.3), (0.0, h + r * 0.14)], segs=40, cap_top=False)
+    if t["id"].startswith("FW"):
+        lathe(g, "stripe_red", x, z, [(r + 0.04, h * 0.62), (r + 0.04, h * 0.74)], segs=40, cap_top=False)
     lathe(g, "steel", x, z, [(r + 0.05, h - 0.9), (r + 0.18, h - 0.9), (r + 0.18, h - 0.75), (r + 0.05, h - 0.75)],
           segs=40, cap_top=False)
 
@@ -619,7 +646,7 @@ def build_marine(g):
         x = it["x"]
         box_mm(g, "concrete_white", x - 30, x + 30, -7.0, 10.0, z - 12, z + 8, bevel=0.3)
         box_mm(g, "roof_dark", x - 28.6, x + 28.6, 10.0, 10.25, z - 10.6, z + 6.6)
-        box_mm(g, "accent_blue", x - 30.15, x + 30.15, 7.6, 8.4, z - 12.15, z + 8.15)
+        box_mm(g, "accent_navy", x - 30.15, x + 30.15, 7.6, 8.4, z - 12.15, z + 8.15)
         for bx in (-22.5, -7.5, 7.5, 22.5):
             box(g, "steel_dark", x + bx, -2.4, z - 12.2, 11.0, 7.0, 0.5)
         box_mm(g, "concrete_light", x - 24, x + 24, 1.4, 2.6, z - 46, z - 12)
@@ -630,11 +657,11 @@ def build_marine(g):
         hvac_scatter(g, x - 24, x + 24, z - 8, z + 4, 10.25, 3)
         if it.get("crane"):
             for lx in (-21.0, 21.0):
-                beam(g, "crane_black", (x + lx, 2.6, z - 34), (x + lx, 16.0, z - 29), 0.9)
-                beam(g, "crane_black", (x + lx, 2.6, z - 24), (x + lx, 16.0, z - 29), 0.9)
-                beam(g, "crane_black", (x + lx, 3.4, z - 35), (x + lx, 3.4, z - 23), 0.7)
-            box(g, "crane_black", x, 16.7, z - 29, 46.0, 1.6, 2.2)
-            box(g, "crane_black", x + 5, 15.3, z - 29, 4.0, 2.2, 3.2)
+                beam(g, "crane_yellow", (x + lx, 2.6, z - 34), (x + lx, 16.0, z - 29), 0.9)
+                beam(g, "crane_yellow", (x + lx, 2.6, z - 24), (x + lx, 16.0, z - 29), 0.9)
+                beam(g, "crane_yellow", (x + lx, 3.4, z - 35), (x + lx, 3.4, z - 23), 0.7)
+            box(g, "crane_yellow", x, 16.7, z - 29, 46.0, 1.6, 2.2)
+            box(g, "crane_yellow", x + 5, 15.3, z - 29, 4.0, 2.2, 3.2)
             beam(g, "steel", (x + 5, 14.2, z - 29), (x + 5, 7.0, z - 29), 0.08)
 
 
@@ -759,19 +786,37 @@ def build_props(g):
                 if RNG.random() > lot["fill"]:
                     continue
                 car(g, lot["minX"] + (k + 0.5) * lot["stall"], rz, ri % 2 == 1)
-    # containers in the laydown yard
+    # containers in the laydown yard: back-to-back double rows with reach-stacker aisles between them;
+    # each bay is stacked to one height, stepping down toward the block ends like a working yard
     ld = LAYOUT["laydown"]
-    zz = ld["minZ"] + 3
-    while zz < ld["maxZ"] - 2:
-        xx = ld["minX"] + 4
-        while xx < ld["maxX"] - 3:
-            if RNG.random() < 0.78:
-                stack = RNG.choice((1, 1, 2, 2, 3))
-                for s in range(stack):
-                    mat = RNG.choice(("container_blue", "container_rust", "container_white", "container_gray"))
-                    box(g, mat, xx, 1.3 + s * 2.6, zz, 6.06, 2.58, 2.44, bevel=0.04)
-            xx += 6.7
-        zz += 3.3 if (int(zz) % 2 == 0) else 4.6
+    BAY, ROW, HI = 6.06, 2.44, 2.59
+    PITCH = BAY + 0.32
+    colours = ("container_rust", "container_blue", "container_white", "container_gray", "container_green", "container_red")
+    weights = (5, 4, 3, 3, 2, 2)
+    nbays = int((ld["maxX"] - ld["minX"] - 8) // PITCH)
+    x_start = (ld["minX"] + ld["maxX"]) / 2 - (nbays * PITCH - 0.32) / 2 + BAY / 2
+    zz = ld["minZ"] + 4 + ROW / 2
+    while zz + ROW * 1.5 + 0.3 < ld["maxZ"] - 3:
+        k = 0
+        while k < nbays:
+            edge = min(k, nbays - 1 - k)
+            if RNG.random() < 0.1:  # an open bay (containers out on the road)
+                k += 1
+                continue
+            tall = RNG.choices((1, 2, 3, 4), weights=(1, 5, 6, 1))[0]
+            tall = max(1, min(tall, edge + 1))
+            # a 40 ft box occasionally spans two bays
+            span = 2 if (k + 1 < nbays and RNG.random() < 0.28) else 1
+            length = BAY if span == 1 else 2 * BAY + 0.32
+            cx = x_start + k * PITCH + (0 if span == 1 else PITCH / 2)
+            for row in (0, 1):
+                rz = zz + row * (ROW + 0.3)
+                levels = max(1, tall - (1 if (row == 1 and RNG.random() < 0.25) else 0))
+                for lv in range(levels):
+                    mat = RNG.choices(colours, weights=weights)[0]
+                    box(g, mat, cx, HI / 2 + lv * HI, rz, length, HI - 0.02, ROW, bevel=0.04)
+            k += span
+        zz += 2 * ROW + 0.3 + 9.0
     # meteorological mast
     mm = LAYOUT["metMast"]
     x, z, h = mm["x"], mm["z"], mm["h"]

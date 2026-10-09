@@ -23,7 +23,8 @@ export function LiveChip({ stale }: { stale: boolean }) {
   ) : (
     <span className="inline-flex items-center gap-1 font-cond text-[10px] font-semibold uppercase tracking-[0.1em] text-green">
       <span className="h-[6px] w-[6px] rounded-full bg-green shadow-[0_0_6px_#3dd68c]" aria-hidden />
-      Live
+      {/* a narrow tile keeps the green dot and gives the camera name the room */}
+      <span className="@max-[200px]:sr-only">Live</span>
     </span>
   );
 }
@@ -40,7 +41,7 @@ export function FeedTile({ source, viewId }: { source: FeedSource; viewId: strin
     ui.setScreen('feeds');
   };
   return (
-    <div className="group relative flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[6px] border border-line transition-colors hover:border-line-bright">
+    <div className="group @container relative flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[6px] border border-line transition-colors hover:border-line-bright">
       <div className="flex h-[25px] shrink-0 items-center gap-1.5 bg-surface-2 px-2">
         <span className="mono shrink-0 whitespace-nowrap text-[11px] font-medium text-ink-1">{source}</span>
         <span className="shrink-0 text-ink-4" aria-hidden>

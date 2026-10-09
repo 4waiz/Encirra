@@ -7,6 +7,8 @@ import { advanceSceneClock, sceneClock } from './sceneClock';
 import { setThermalMode, thermalUniforms, createPaletteTexture } from './thermal';
 import {
   createFullscreenTriangle,
+  createAOMaterial,
+  createAOBlurMaterial,
   createGradeMaterial,
   createVisibleFeedMaterial,
   createThermalFeedMaterial,
@@ -21,7 +23,7 @@ import { SKY_COLORS } from './Environment';
 
 export const perfStats = { fps: 60, frameMs: 16.7, drawCalls: 0, triangles: 0, renderScale: 1, mainMs: 0, feedsMs: 0, feedTargets: 0, textures: 0, geometries: 0 };
 /** Development switches for profiling (exposed on window.__ENCIRRA_RENDER__). */
-export const renderDebug = { main: true, feeds: true, overlays: true };
+export const renderDebug = { main: true, feeds: true, overlays: true, ao: true, aoView: false };
 (window as unknown as { __ENCIRRA_RENDER__: unknown }).__ENCIRRA_RENDER__ = { perfStats, renderDebug };
 
 // ---- snapshot requests (Live Feeds → "Snapshot")
@@ -67,6 +69,10 @@ export function RenderLoop() {
       ironbow,
       whitehot,
       grade: createGradeMaterial(),
+      ao: createAOMaterial(),
+      aoBlur: createAOBlurMaterial(),
+      aoA: null as THREE.WebGLRenderTarget | null,
+      aoB: null as THREE.WebGLRenderTarget | null,
       visible: createVisibleFeedMaterial(),
       thermal: createThermalFeedMaterial(ironbow),
       fusion: createFusionFeedMaterial(ironbow),
@@ -93,12 +99,15 @@ export function RenderLoop() {
     gl.shadowMap.autoUpdate = false;
     camera.layers.enable(LAYER.OVERLAY);
     return () => {
+      res.main?.depthTexture?.dispose();
       res.main?.dispose();
+      res.aoA?.dispose();
+      res.aoB?.dispose();
       for (const t of res.feeds.values()) {
         t.color?.dispose();
         t.heat?.dispose();
       }
-      [res.grade, res.visible, res.thermal, res.fusion].forEach((m) => m.dispose());
+      [res.grade, res.ao, res.aoBlur, res.visible, res.thermal, res.fusion].forEach((m) => m.dispose());
       res.ironbow.dispose();
       res.whitehot.dispose();
     };
@@ -120,6 +129,66 @@ export function RenderLoop() {
     if (Math.abs(rt.width - w) > 1 || Math.abs(rt.height - h) > 1) rt.setSize(w, h);
     return rt;
   };
+
+  /** Main render target: like ensureRT, plus a depth texture the AO pass reads. */
+  const ensureMainRT = (rt: THREE.WebGLRenderTarget | null, w: number, h: number, samples: number) => {
+    w = Math.max(16, Math.round(w));
+    h = Math.max(16, Math.round(h));
+    if (rt && rt.samples !== samples) {
+      rt.depthTexture?.dispose();
+      rt.dispose();
+      rt = null;
+    }
+    if (!rt) {
+      return new THREE.WebGLRenderTarget(w, h, {
+        type: res.type,
+        samples,
+        colorSpace: THREE.LinearSRGBColorSpace,
+        depthBuffer: true,
+        depthTexture: new THREE.DepthTexture(w, h),
+        minFilter: THREE.LinearFilter,
+        magFilter: THREE.LinearFilter,
+      });
+    }
+    if (Math.abs(rt.width - w) > 1 || Math.abs(rt.height - h) > 1) rt.setSize(w, h);
+    return rt;
+  };
+
+  const halfRT = (rt: THREE.WebGLRenderTarget | null, w: number, h: number) => {
+    w = Math.max(8, Math.round(w / 2));
+    h = Math.max(8, Math.round(h / 2));
+    if (!rt) return new THREE.WebGLRenderTarget(w, h, { depthBuffer: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter });
+    if (rt.width !== w || rt.height !== h) rt.setSize(w, h);
+    return rt;
+  };
+
+  const quadPass = (mat: THREE.ShaderMaterial, target: THREE.WebGLRenderTarget) => {
+    res.quad.material = mat;
+    gl.setRenderTarget(target);
+    gl.setScissorTest(false);
+    gl.render(res.quadScene, res.quadCam);
+  };
+
+  function renderAO(main: THREE.WebGLRenderTarget, cam: THREE.PerspectiveCamera) {
+    res.aoA = halfRT(res.aoA, main.width, main.height);
+    res.aoB = halfRT(res.aoB, main.width, main.height);
+    const depth = main.depthTexture;
+    const ao = res.ao.uniforms;
+    ao.tDepth.value = depth;
+    ao.uProjInv.value.copy(cam.projectionMatrixInverse);
+    ao.uTexel.value.set(1 / main.width, 1 / main.height);
+    ao.uProjScale.value = (main.height / 2) * cam.projectionMatrix.elements[5];
+    quadPass(res.ao, res.aoA);
+    const blur = res.aoBlur.uniforms;
+    blur.tDepth.value = depth;
+    blur.uProjInv.value.copy(cam.projectionMatrixInverse);
+    blur.tAO.value = res.aoA.texture;
+    blur.uDir.value.set(1 / res.aoA.width, 0);
+    quadPass(res.aoBlur, res.aoB);
+    blur.tAO.value = res.aoB.texture;
+    blur.uDir.value.set(0, 1 / res.aoA.height);
+    quadPass(res.aoBlur, res.aoA);
+  }
 
   useFrame((state, delta) => {
     const t0 = performance.now();
@@ -186,7 +255,7 @@ export function RenderLoop() {
           camera.aspect = aspect;
           camera.updateProjectionMatrix();
         }
-        res.main = ensureRT(res.main, r.width * dpr * scale, r.height * dpr * scale, quality === 'high' && scale > 0.75 ? 4 : 2);
+        res.main = ensureMainRT(res.main, r.width * dpr * scale, r.height * dpr * scale, quality === 'high' && scale > 0.75 ? 4 : 2);
         setThermalMode(false);
         gl.setRenderTarget(res.main);
         gl.setClearColor(SKY_COLORS.horizon, 1);
@@ -194,6 +263,12 @@ export function RenderLoop() {
         if (renderDebug.overlays) camera.layers.enable(LAYER.OVERLAY);
         else camera.layers.disable(LAYER.OVERLAY);
         gl.render(scene, camera);
+        // ambient occlusion (high quality): half-resolution obscurance + depth-aware blur
+        const useAO = quality === 'high' && renderDebug.ao;
+        if (useAO) renderAO(res.main, camera);
+        res.grade.uniforms.uAO.value = useAO ? 0.85 : 0;
+        res.grade.uniforms.uAODebug.value = useAO && renderDebug.aoView ? 1 : 0;
+        res.grade.uniforms.tAO.value = useAO && res.aoA ? res.aoA.texture : null;
         res.grade.uniforms.tColor.value = res.main.texture;
         res.grade.uniforms.uRes.value.set(res.main.width, res.main.height);
         res.grade.uniforms.uTime.value = state.clock.elapsedTime;

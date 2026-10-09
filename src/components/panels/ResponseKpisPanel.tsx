@@ -36,11 +36,11 @@ export function ResponseKpisPanel({ className }: { className?: string }) {
           icon={Timer}
           label="Acknowledgement"
           color={TONE_HEX[ackTone]}
-          sub={k.ackRunning ? <span className="text-amber">Awaiting ack · target &lt; 5 min</span> : 'Target < 5 min'}
+          sub={k.ackRunning ? <span className="text-amber">Pending · target 5 min</span> : 'Target < 5 min'}
         >
           <span className={cx('mono text-[22px] font-semibold leading-[24px]', k.ackRunning ? 'text-amber' : 'text-ink-1')}>{k.ackSeconds === null ? '--:--' : fmtDuration(k.ackSeconds)}</span>
         </Instrument>
-        <Instrument icon={Users} label="Personnel accounted" color={TONE_HEX[k.personnelPct >= 99.9 ? 'ok' : 'watch']} sub={`${k.personnelPresent} / ${k.personnelTotal} on site`} chart={<div className="flex justify-end"><MicroBars values={personnel} color={TONE_HEX.ok} bars={5} height={16} /></div>}>
+        <Instrument icon={Users} label="Personnel" color={TONE_HEX[k.personnelPct >= 99.9 ? 'ok' : 'watch']} sub={`${k.personnelPresent} / ${k.personnelTotal} accounted for`} chart={<div className="flex justify-end"><MicroBars values={personnel} color={TONE_HEX.ok} bars={5} height={16} /></div>}>
           <Metric value={k.personnelPct} decimals={k.personnelPct >= 99.95 ? 0 : 1} className="text-[22px] font-semibold leading-[24px] text-ink-1" />
           <span className="text-[11px] text-ink-3">%</span>
         </Instrument>

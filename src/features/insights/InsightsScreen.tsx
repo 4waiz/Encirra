@@ -128,17 +128,18 @@ function CorrelationGraph({ obs }: { obs: Observation }) {
   }, []);
   const nodes = obs.evidence.slice(-5);
   const { w: W, h: H } = size;
-  const nodeW = Math.round(Math.min(196, Math.max(132, W * 0.4)));
+  // source names get the room first; the observation box narrows on small panels
+  const nodeW = Math.round(Math.min(196, Math.max(160, W * 0.4)));
   const nodeH = 28;
   const r = 26;
-  const obsW = 104;
+  const obsW = W < 400 ? 92 : 104;
   const ox = W - obsW - 4;
   const fx = nodeW + 6 + (ox - nodeW - 6) * 0.5;
   const fy = (H - 14) / 2;
   const top = 8 + nodeH / 2;
   const span = Math.max(0, H - 22 - nodeH);
   const ny = (i: number) => (nodes.length === 1 ? fy : top + (i * span) / (nodes.length - 1));
-  const maxChars = Math.floor((nodeW - 52) / 6.6);
+  const maxChars = Math.floor((nodeW - 50) / 6.7);
   return (
     <div ref={ref} className="relative h-full w-full">
       {W > 0 && H > 0 && (

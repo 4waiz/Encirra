@@ -181,6 +181,10 @@
     text-transform: uppercase;
     color: var(--color-ink-1);
     white-space: nowrap;
+    /* a narrow panel shortens its title before it lets the header actions overflow */
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .micro {
     font-family: var(--font-cond);

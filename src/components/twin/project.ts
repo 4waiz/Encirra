@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 const v = new THREE.Vector3();
+const w = new THREE.Vector3();
 const camPos = new THREE.Vector3();
 
 export interface Projected {
@@ -18,7 +19,7 @@ export function project(camera: THREE.Camera, rect: { width: number; height: num
   o.x = ((v.x + 1) / 2) * rect.width;
   o.y = ((1 - v.y) / 2) * rect.height;
   o.visible = v.z > -1 && v.z < 1 && v.x > -1.08 && v.x < 1.08 && v.y > -1.12 && v.y < 1.12;
-  o.distance = camPos.distanceTo(new THREE.Vector3(x, y, z));
+  o.distance = camPos.distanceTo(w.set(x, y, z));
   return o;
 }
 

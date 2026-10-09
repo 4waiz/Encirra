@@ -16,15 +16,15 @@ export function Ocean({ shoreTex }: { shoreTex: THREE.Texture }) {
       uWave: { value: wave },
       uShore: { value: shoreTex },
       uShoreRect: { value: new THREE.Vector4(SHORE_RECT.minX, SHORE_RECT.minZ, SHORE_RECT.maxX - SHORE_RECT.minX, SHORE_RECT.maxZ - SHORE_RECT.minZ) },
-      uDeep: { value: new THREE.Color('#0b3a49') },
-      uShallow: { value: new THREE.Color('#2b8c92') },
+      uDeep: { value: new THREE.Color('#0c3c55') },
+      uShallow: { value: new THREE.Color('#2fa39f') },
       uFoam: { value: new THREE.Color('#dce9e6') },
     }),
     [wave, shoreTex],
   );
 
   const material = useMemo(() => {
-    const m = new THREE.MeshStandardMaterial({ color: '#0b3a49', roughness: 0.07, metalness: 0, envMapIntensity: 1.05, name: 'water' });
+    const m = new THREE.MeshStandardMaterial({ color: '#0c3c55', roughness: 0.16, metalness: 0, envMapIntensity: 0.82, name: 'water' });
     m.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, uniforms);
       shader.vertexShader = shader.vertexShader
@@ -68,9 +68,10 @@ export function Ocean({ shoreTex }: { shoreTex: THREE.Texture }) {
             vec3 n1 = texture2D(uWave, wq * 0.0105 + vec2(uTime * 0.0058, uTime * 0.0041)).xyz * 2.0 - 1.0;
             vec3 n2 = texture2D(uWave, wq * 0.031 + vec2(-uTime * 0.0102, uTime * 0.0069)).xyz * 2.0 - 1.0;
             vec3 n3 = texture2D(uWave, wq * 0.0031 + vec2(uTime * 0.0019, -uTime * 0.0012)).xyz * 2.0 - 1.0;
-            vec3 nn = n1 + n2 * 0.65 + n3 * 0.9;
+            // fine chop dominates; long swells only tilt gently, so the sky doesn't mirror in patches
+            vec3 nn = n1 * 0.6 + n2 * 0.85 + n3 * 0.22;
             float df = smoothstep(250.0, 4800.0, length(vWWorld - cameraPosition));
-            float strength = mix(0.5, 0.1, df);
+            float strength = mix(0.27, 0.035, df);
             vec3 nW = normalize(vec3(nn.x * strength, 1.0, nn.y * strength));
             normal = normalize((viewMatrix * vec4(nW, 0.0)).xyz);
           }`,

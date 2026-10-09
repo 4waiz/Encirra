@@ -127,7 +127,7 @@ function Readiness() {
         <Metric value={m.commsUp} className={big} />
         <span className={unit}>/ {m.commsTotal}</span>
       </Block>
-      <Block label={responding ? 'Response tasks' : 'Routine checks'} chart={<div className="pt-[7px]"><ProgressBar value={m.checklistPct / 100} color={CATEGORY_HEX.nuc} /></div>}>
+      <Block label={responding ? 'Checklist' : 'Checks'} chart={<div className="pt-[7px]"><ProgressBar value={m.checklistPct / 100} color={CATEGORY_HEX.nuc} /></div>}>
         <Metric value={m.checklistPct} className={big} />
         <span className={unit}>%</span>
       </Block>

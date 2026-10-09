@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { SceneEnvironment } from './Environment';
 import { Terrain } from './Terrain';
 import { Ocean } from './Ocean';
+import { Vegetation } from './Vegetation';
 import { Facility } from './Facility';
 import { AssetLayer } from './AssetLayer';
 import { IncidentLayer } from './IncidentLayer';
@@ -52,6 +53,7 @@ export default function SceneCanvas() {
         <SceneEnvironment />
         <Terrain shoreTex={shoreTex} />
         <Ocean shoreTex={shoreTex} />
+        <Vegetation />
         <Facility />
         <AssetLayer />
         <IncidentLayer />

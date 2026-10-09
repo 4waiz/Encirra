@@ -8,11 +8,12 @@ import { registerThermal, thermalGround } from './thermal';
 import { useUI } from '../store/ui';
 
 import { createNoiseTexture } from './textures/noise';
+import { DUNE_START, terrainHeight } from './terrainHeight';
 
-/** Coastline polygon extended far inland so the horizon is land, not water. */
+/** Coastline polygon: the flat coastal plain from the shore to where the dune field begins. */
 function landPolygon(): [number, number][] {
   const c = SITE.coastline.slice(0, SITE.coastline.length - 2);
-  return [[-14000, -110], ...c, [14000, -140], [14000, 14000], [-14000, 14000]];
+  return [[-14000, -110], ...c, [14000, -140], [14000, DUNE_START], [-14000, DUNE_START]];
 }
 
 function buildLand(): THREE.BufferGeometry {
@@ -81,10 +82,97 @@ function buildLand(): THREE.BufferGeometry {
   return merged;
 }
 
+/** Grid coordinates: fine near the campus, widening geometrically toward the fogged horizon. */
+function axis(start: number, end: number, step0: number, coreEnd: number, growth: number) {
+  const out = [start];
+  let v = start;
+  let step = step0;
+  while (v < end) {
+    if (v >= coreEnd) step *= growth;
+    v = Math.min(end, v + step);
+    out.push(v);
+  }
+  return out;
+}
+
+/**
+ * Inland dune field: a heightfield whose first row meets the coastal plain at y = 0, split into tiles
+ * so each camera (main view and every feed) only draws the tiles inside its frustum.
+ */
+function buildDunes(): THREE.BufferGeometry[] {
+  const half = axis(0, 14000, 20, 2500, 1.03);
+  const xs = [...half.slice(1).reverse().map((v) => -v), ...half];
+  const zs = axis(DUNE_START, 12000, 14, DUNE_START, 1.012);
+  const nx = xs.length;
+  const nz = zs.length;
+  // one shared vertex grid so normals are continuous across tile seams
+  const pos = new Float32Array(nx * nz * 3);
+  let k = 0;
+  for (let j = 0; j < nz; j++) {
+    for (let i = 0; i < nx; i++) {
+      pos[k++] = xs[i];
+      pos[k++] = terrainHeight(xs[i], zs[j]);
+      pos[k++] = zs[j];
+    }
+  }
+  const all = new THREE.BufferGeometry();
+  all.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const fullIdx: number[] = [];
+  for (let j = 0; j < nz - 1; j++) {
+    for (let i = 0; i < nx - 1; i++) {
+      const a = j * nx + i;
+      fullIdx.push(a, a + nx, a + 1, a + 1, a + nx, a + nx + 1);
+    }
+  }
+  all.setIndex(fullIdx);
+  all.computeVertexNormals();
+  const nrm = all.getAttribute('normal').array as Float32Array;
+  all.dispose();
+
+  const TILE_X = Math.ceil((nx - 1) / 8);
+  const TILE_Z = Math.ceil((nz - 1) / 4);
+  const tiles: THREE.BufferGeometry[] = [];
+  for (let tj = 0; tj < nz - 1; tj += TILE_Z) {
+    for (let ti = 0; ti < nx - 1; ti += TILE_X) {
+      const i1 = Math.min(nx - 1, ti + TILE_X);
+      const j1 = Math.min(nz - 1, tj + TILE_Z);
+      const w = i1 - ti + 1;
+      const h = j1 - tj + 1;
+      const tp = new Float32Array(w * h * 3);
+      const tn = new Float32Array(w * h * 3);
+      let o = 0;
+      for (let j = tj; j <= j1; j++) {
+        for (let i = ti; i <= i1; i++) {
+          const src = (j * nx + i) * 3;
+          tp.set(pos.subarray(src, src + 3), o);
+          tn.set(nrm.subarray(src, src + 3), o);
+          o += 3;
+        }
+      }
+      const idx: number[] = [];
+      for (let j = 0; j < h - 1; j++) {
+        for (let i = 0; i < w - 1; i++) {
+          const a = j * w + i;
+          idx.push(a, a + w, a + 1, a + 1, a + w, a + w + 1);
+        }
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(tp, 3));
+      g.setAttribute('normal', new THREE.BufferAttribute(tn, 3));
+      g.setIndex(idx);
+      g.computeBoundingSphere();
+      g.computeBoundingBox();
+      tiles.push(g);
+    }
+  }
+  return tiles;
+}
+
 export function Terrain({ shoreTex }: { shoreTex: THREE.Texture }) {
   const gl = useThree((s) => s.gl);
   const quality = useUI((s) => s.settings.quality);
   const geometry = useMemo(buildLand, []);
+  const duneTiles = useMemo(buildDunes, []);
   const noiseTex = useMemo(() => createNoiseTexture(256), []);
   const siteTex = useMemo(() => createSiteTexture(quality, gl.capabilities.getMaxAnisotropy()), [quality, gl]);
   const siteRect = useMemo(
@@ -131,8 +219,39 @@ export function Terrain({ shoreTex }: { shoreTex: THREE.Texture }) {
           vec3 shore = texture2D(uShore, clamp(shuv, 0.001, 0.999)).rgb;
           float wet = smoothstep(0.42, 0.66, shore.r) * (1.0 - smoothstep(0.8, 0.97, shore.r));
           sand = mix(sand, sand * vec3(0.72, 0.74, 0.78), wet * 0.85);
-          float road = (1.0 - smoothstep(5.0, 6.2, abs(gp.x + 588.0))) * step(300.0, gp.y);
-          sand = mix(sand, vec3(0.06, 0.065, 0.075), road * (1.0 - smoothstep(2600.0, 7000.0, gp.y)));
+          // dunes: warmer, redder sand on crests; wind ripples up close
+          float dh = clamp(vGWorld.y / 24.0, 0.0, 1.0);
+          sand = mix(sand, sand * vec3(1.08, 0.92, 0.77), dh * 0.6);
+          float ripC = dot(gp, vec2(0.62, 0.785)) * 2.4;
+          float ripFade = 1.0 - smoothstep(0.35, 1.2, fwidth(ripC));
+          sand *= 1.0 + 0.035 * sin(ripC + n2 * 9.0) * ripFade * smoothstep(0.2, 2.0, vGWorld.y);
+          // coastal sabkha: pale salt crust and darker damp patches on the plain beside the campus
+          float plain = (1.0 - smoothstep(520.0, 700.0, gp.y)) * smoothstep(690.0, 900.0, abs(gp.x));
+          float cn = texture2D(uNoise, gp * 0.00061 + 0.21).r + 0.22 * (texture2D(uNoise, gp * 0.0047 + 0.5).g - 0.5);
+          float crust = smoothstep(0.56, 0.6, cn);
+          float rim = smoothstep(0.5, 0.56, cn) * (1.0 - crust);
+          sand = mix(sand, mix(sand, vec3(0.84, 0.82, 0.77), 0.45) * (0.96 + 0.06 * n3), plain * crust * 0.72);
+          sand = mix(sand, sand * vec3(0.86, 0.85, 0.82), plain * rim * 0.6);
+          float damp = smoothstep(0.6, 0.8, texture2D(uNoise, gp * 0.0019 + 0.63).g);
+          sand = mix(sand, sand * vec3(0.8, 0.79, 0.76), plain * damp * 0.45);
+          // north–south access road with a dashed centre line
+          float rx = abs(gp.x + 588.0);
+          float road = (1.0 - smoothstep(5.0, 6.2, rx)) * step(300.0, gp.y);
+          vec3 asphalt = vec3(0.065, 0.068, 0.075) * (0.94 + 0.12 * n3);
+          sand = mix(sand, asphalt, road * (1.0 - smoothstep(4000.0, 9000.0, gp.y)));
+          float fwx = fwidth(gp.x);
+          float rcl = (1.0 - smoothstep(0.09, 0.09 + fwx, rx)) * min(1.0, 0.18 / max(fwx, 1e-4)) * step(0.5, fract(gp.y / 10.0));
+          sand = mix(sand, vec3(0.82, 0.8, 0.74), road * rcl * 0.8);
+          // inland east–west highway: dual carriageway, median, edge and lane lines
+          float hd = abs(gp.y - 2600.0);
+          float hw = 1.0 - smoothstep(11.0, 12.2, hd);
+          float fwz = fwidth(gp.y);
+          sand = mix(sand, asphalt, hw);
+          sand = mix(sand, vec3(0.42, 0.4, 0.37), hw * (1.0 - smoothstep(0.7, 0.7 + fwz, hd)) * min(1.0, 1.4 / max(fwz, 1e-4)));
+          float lineCov = min(1.0, 0.22 / max(fwz, 1e-4));
+          float edge = (1.0 - smoothstep(0.12, 0.12 + fwz, abs(hd - 10.3))) * lineCov;
+          float lane = (1.0 - smoothstep(0.1, 0.1 + fwz, abs(hd - 5.4))) * lineCov * step(0.55, fract(gp.x / 12.0));
+          sand = mix(sand, vec3(0.86, 0.84, 0.78), hw * max(edge, lane) * 0.85);
           float track = (1.0 - smoothstep(1.4, 2.6, abs(abs(gp.x) - 72.0))) * step(260.0, gp.y);
           sand = mix(sand, sand * 0.86, track * 0.7 * (1.0 - smoothstep(1800.0, 4000.0, gp.y)));
           vec2 suv = vec2((gp.x - uSiteRect.x) / uSiteRect.z, 1.0 - (gp.y - uSiteRect.y) / uSiteRect.w);
@@ -143,7 +262,7 @@ export function Terrain({ shoreTex }: { shoreTex: THREE.Texture }) {
           `,
         );
     };
-    m.customProgramCacheKey = () => 'encirra-ground-v2';
+    m.customProgramCacheKey = () => 'encirra-ground-v4';
     return m;
   }, [siteTex, siteRect, shoreTex, noiseTex]);
 
@@ -154,9 +273,33 @@ export function Terrain({ shoreTex }: { shoreTex: THREE.Texture }) {
     return m;
   }, [geometry, material]);
 
-  useEffect(() => registerThermal(mesh, thermalGround(siteTex, siteRect)), [mesh, siteTex, siteRect]);
+  const dunes = useMemo(() => {
+    const group = new THREE.Group();
+    group.name = 'dunes';
+    for (const g of duneTiles) {
+      const m = new THREE.Mesh(g, material);
+      m.receiveShadow = true;
+      group.add(m);
+    }
+    return group;
+  }, [duneTiles, material]);
+
+  useEffect(() => {
+    const heat = thermalGround(siteTex, siteRect);
+    const offs = [registerThermal(mesh, heat), ...dunes.children.map((c) => registerThermal(c as THREE.Mesh, heat))];
+    return () => {
+      offs.forEach((f) => f());
+      heat.dispose();
+    };
+  }, [mesh, dunes, siteTex, siteRect]);
+  useEffect(() => () => duneTiles.forEach((g) => g.dispose()), [duneTiles]);
   useEffect(() => () => siteTex.dispose(), [siteTex]);
   useEffect(() => () => material.dispose(), [material]);
 
-  return <primitive object={mesh} />;
+  return (
+    <>
+      <primitive object={mesh} />
+      <primitive object={dunes} />
+    </>
+  );
 }

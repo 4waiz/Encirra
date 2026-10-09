@@ -129,7 +129,8 @@ const AssetMarker = memo(function AssetMarker({ id, setRef }: { id: AssetId; set
           <span className="h-[5px] w-[5px] rounded-full" style={{ background: TONE_HEX[tone] }} aria-hidden />
           <span className="text-[10.5px] text-ink-3">{asset?.status}</span>
         </button>
-        <span className="absolute bottom-0 left-1/2 h-[7px] w-px -translate-x-1/2 bg-blue/70" aria-hidden />
+        {/* stem; grows into a leader line when de-cluttering lifts the tag off its asset */}
+        <span className="absolute left-1/2 w-px -translate-x-1/2 bg-blue/70" style={{ height: 'calc(7px + var(--lead, 0px))', bottom: 'calc(-1 * var(--lead, 0px))' }} aria-hidden />
       </div>
     </div>
   );
@@ -175,6 +176,8 @@ function IncidentPin({ id, setRef }: { id: string; setRef: (el: HTMLElement | nu
           <TriangleAlert size={13} strokeWidth={2.4} className="-rotate-45 text-bg-0" aria-hidden />
         </span>
         <span className="mt-2 whitespace-nowrap rounded-[4px] bg-bg-0/80 px-1.5 py-[1px] mono text-[10px] text-ink-1">{inc.id}</span>
+        {/* leader line back to the incident location when de-cluttering lifts the pin */}
+        <span className="absolute left-1/2 top-full w-px -translate-x-1/2 opacity-70" style={{ height: 'var(--lead, 0px)', background: c }} aria-hidden />
       </button>
     </div>
   );
@@ -199,8 +202,9 @@ export function TwinMarkers({ compact }: { compact?: boolean }) {
     const overlap = (a: Projected, ab: { w: number; h: number }, b: Projected, bb: { w: number; h: number }) =>
       Math.abs(a.x - b.x) * 2 < ab.w + bb.w && a.y - ab.h < b.y && b.y - bb.h < a.y;
     const pool = new Map<string, Projected>();
+    const leads = new Map<string, string>();
     return frameBus.onMain((f) => {
-      const items: { key: string; el: HTMLElement; p: Projected; s: number }[] = [];
+      const items: { key: string; el: HTMLElement; p: Projected; s: number; y0: number }[] = [];
       for (const [key, el] of refs.current) {
         if (!el) continue;
         const a = anchors.current.get(key);
@@ -242,15 +246,19 @@ export function TwinMarkers({ compact }: { compact?: boolean }) {
           }
           continue;
         }
-        items.push({ key, el, p, s: isUnit || isZone ? 1 : Math.max(0.74, Math.min(1, 1250 / p.distance)) });
+        items.push({ key, el, p, s: isUnit || isZone ? 1 : Math.max(0.74, Math.min(1, 1250 / p.distance)), y0: p.y });
       }
-      // de-clutter: selected sensor (marker + ID tag) > incidents > assets > unit labels
+      // de-clutter: tagged sensors (selected or flagged: marker + ID tag) > incidents > assets > unit labels
       const placed: { p: Projected; b: { w: number; h: number } }[] = [];
       const sel = useUI.getState().selection;
-      if (sel?.kind === 'sensor') {
-        const it = items.find((i) => i.key === `sensor:${sel.id}`);
+      const sensors = useSim.getState().sensors;
+      for (const it of items) {
+        if (!it.key.startsWith('sensor:') || !it.p.visible) continue;
+        const id = it.key.slice(7);
+        const st = sensors[id]?.status;
+        const tagged = (sel?.kind === 'sensor' && sel.id === id) || st === 'elevated' || st === 'alert';
         // footprint: 22 px marker + stem above the anchor, ID tag to its right (centred box ≈ ±76 px)
-        if (it?.p.visible) placed.push({ p: it.p, b: { w: 152, h: 36 } });
+        if (tagged) placed.push({ p: it.p, b: { w: 152, h: 36 } });
       }
       for (const prefix of ['incident:', 'asset:', 'unit:']) {
         for (const it of items) {
@@ -269,7 +277,17 @@ export function TwinMarkers({ compact }: { compact?: boolean }) {
           if (it.p.visible) placed.push({ p: it.p, b });
         }
       }
-      for (const it of items) placeEl(it.el, it.p, it.s);
+      for (const it of items) {
+        placeEl(it.el, it.p, it.s);
+        if (!it.key.startsWith('incident:') && !it.key.startsWith('asset:')) continue;
+        // lifted tags keep a leader line to where they belong (in the tag's own, scaled pixels)
+        const lift = it.p.visible ? (it.y0 - it.p.y) / it.s : 0;
+        const lead = lift >= 1 ? `${lift.toFixed(1)}px` : '0px';
+        if (leads.get(it.key) !== lead) {
+          leads.set(it.key, lead);
+          it.el.style.setProperty('--lead', lead);
+        }
+      }
     });
   }, []);
 

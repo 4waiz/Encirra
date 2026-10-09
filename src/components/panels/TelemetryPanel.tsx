@@ -1,13 +1,15 @@
 import { Activity, Pause, Play } from 'lucide-react';
 import { useUI } from '../../store/ui';
-import { Panel, Segmented, IconButton } from '../ui/primitives';
+import { Panel, Segmented, IconButton, cx } from '../ui/primitives';
 import { TelemetryChart, LANES } from '../charts/TelemetryChart';
 
 export function SeriesToggles() {
   const series = useUI((s) => s.telemetry.series);
   const setTelemetry = useUI((s) => s.setTelemetry);
   return (
-    <div className="flex items-center gap-1" role="group" aria-label="Series visibility">
+    // sized by the panel, not the window: letters only when narrow, hidden when there is no room at all
+    // (each chart lane stays labelled), so the range and pause controls never get pushed out
+    <div className="hidden items-center gap-1 @min-[420px]:flex" role="group" aria-label="Series visibility">
       {LANES.map((l) => {
         const on = series[l.key];
         return (
@@ -16,15 +18,15 @@ export function SeriesToggles() {
             type="button"
             aria-pressed={on}
             onClick={() => setTelemetry({ series: { ...series, [l.key]: !on } })}
-            className="inline-flex h-[22px] items-center gap-1.5 rounded-[4px] border border-line-strong px-1.5 text-[10.5px] text-ink-2 transition-colors hover:text-ink-1"
+            className="inline-flex h-[22px] items-center gap-1 rounded-[4px] border border-line-strong px-1 text-[10.5px] text-ink-2 transition-colors hover:text-ink-1 @min-[560px]:gap-1.5 @min-[560px]:px-1.5"
             style={{ opacity: on ? 1 : 0.5 }}
             title={`${on ? 'Hide' : 'Show'} ${l.label}`}
           >
             <span className="flex h-[11px] w-[11px] items-center justify-center rounded-[2px]" style={{ background: on ? l.color : 'transparent', boxShadow: `inset 0 0 0 1.5px ${l.color}` }}>
               {on && <svg viewBox="0 0 10 10" className="h-[8px] w-[8px]" aria-hidden><path d="M2 5.2 L4.2 7.2 L8 3" stroke="#0b0f14" strokeWidth="1.7" fill="none" /></svg>}
             </span>
-            <span className="max-[1500px]:hidden">{l.key === 'chem' ? 'Chem' : l.key === 'bio' ? 'Bio' : 'Rad'}</span>
-            <span className="hidden max-[1500px]:inline">{l.short}</span>
+            <span className="hidden @min-[560px]:inline">{l.key === 'chem' ? 'Chem' : l.key === 'bio' ? 'Bio' : 'Rad'}</span>
+            <span className="@min-[560px]:hidden">{l.short}</span>
           </button>
         );
       })}
@@ -39,16 +41,17 @@ export function TelemetryPanel({ className }: { className?: string }) {
     <Panel
       title={
         <>
-          Live CBRN telemetry <span className="ml-1 font-sans text-[11px] font-normal normal-case tracking-normal text-ink-3">(last {tel.range} min)</span>
+          <span className="hidden @min-[560px]:inline">Live </span>CBRN telemetry
+          <span className="ml-1 hidden font-sans text-[11px] font-normal normal-case tracking-normal text-ink-3 @min-[700px]:inline">(last {tel.range} min)</span>
         </>
       }
       icon={Activity}
       iconColor="#3cc8dc"
-      className={className}
+      className={cx('@container', className)}
       actions={
         <>
           <SeriesToggles />
-          <span className="mx-0.5 h-4 w-px bg-line" aria-hidden />
+          <span className="mx-0.5 hidden h-4 w-px bg-line @min-[560px]:block" aria-hidden />
           <Segmented
             label="Time range"
             value={String(tel.range) as '5' | '15' | '30'}

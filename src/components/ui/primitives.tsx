@@ -42,7 +42,7 @@ export function Panel({
         {Icon && <Icon size={14} strokeWidth={1.9} style={{ color: iconColor ?? 'var(--color-ink-2)' }} aria-hidden />}
         <h2 className="panel-title">{title}</h2>
         {subtitle && <span className="truncate text-label text-ink-3">{subtitle}</span>}
-        <div className="ml-auto flex items-center gap-1.5">{actions}</div>
+        <div className="ml-auto flex shrink-0 items-center gap-1.5">{actions}</div>
       </header>
       <div className={cx('relative min-h-0 flex-1', bodyClassName)}>{children}</div>
     </section>

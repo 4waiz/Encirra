@@ -87,11 +87,17 @@ export function ConfidenceChart({ obs }: { obs: Observation }) {
           <text x={padL + 5} y={y(0.85) + 11} fontSize="9" fill="#a9b3be" stroke="#121922" strokeWidth="3" paintOrder="stroke" className="font-cond">
             human validation threshold
           </text>
-          {timeTicks.map((t) => (
-            <text key={t} x={x(t)} y={H - 5} fontSize="9.5" textAnchor="middle" fill="#75818e" className="mono">
-              {t1 - t0 > 600_000 ? fmtClockShort(t) : fmtClock(t)}
-            </text>
-          ))}
+          {timeTicks.map((t) => {
+            const label = t1 - t0 > 600_000 ? fmtClockShort(t) : fmtClock(t);
+            // keep every tick label inside the plot (mono 9.5 px ≈ 5.8 px per character)
+            const half = label.length * 2.9;
+            if (x(t) - half < padL - 4 || x(t) + half > W - 2) return null;
+            return (
+              <text key={t} x={x(t)} y={H - 5} fontSize="9.5" textAnchor="middle" fill="#75818e" className="mono">
+                {label}
+              </text>
+            );
+          })}
           {area && <path d={area} fill="url(#conf-fill)" />}
           <path d={path} fill="none" stroke={ACCENT} strokeWidth="2" strokeLinejoin="round" />
           {obs.evidence.map((e) => (

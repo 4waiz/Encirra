@@ -6,17 +6,17 @@ import { SeededRandom } from '../../utils/random';
 export const SITE_TEX_RECT = { minX: -640, maxX: 640, minZ: -330, maxZ: 330 };
 
 const C = {
-  paving: '#cbc4b5',
-  pavingLight: '#d6d0c3',
-  pad: '#d2ccbf',
-  promenade: '#dcd6ca',
+  paving: '#bcb4a4',
+  pavingLight: '#c8c1b2',
+  pad: '#c4bdae',
+  promenade: '#cec7b8',
   asphalt: '#3f4349',
   asphaltLot: '#474b51',
   edgeLine: 'rgba(214,208,196,0.55)',
   centerLine: 'rgba(236,230,214,0.62)',
-  grass: '#789a50',
-  grassStripe: '#81a359',
-  grassEdge: '#5e7d3e',
+  grass: '#6d8c4a',
+  grassStripe: '#769552',
+  grassEdge: '#56733b',
   curb: '#d9d3c7',
   gravel: '#a7a297',
   laydown: '#bdb6a7',
@@ -67,6 +67,44 @@ export function createSiteTexture(quality: 'high' | 'balanced', maxAnisotropy = 
     ctx.fillStyle = g;
     ctx.fillRect(x - r, z - r, r * 2, r * 2);
   }
+  // concrete slab joints (7.5 m bays) across the platform
+  ctx.strokeStyle = 'rgba(96,90,80,0.17)';
+  ctx.lineWidth = px;
+  ctx.beginPath();
+  for (let x = P.minX; x <= P.maxX; x += 7.5) {
+    ctx.moveTo(x, P.minZ);
+    ctx.lineTo(x, P.maxZ);
+  }
+  for (let z = P.minZ; z <= P.maxZ; z += 7.5) {
+    ctx.moveTo(P.minX, z);
+    ctx.lineTo(P.maxX, z);
+  }
+  ctx.stroke();
+  // wind-blown sand drifting onto the platform from the desert side
+  for (const [x0, z0, x1, z1] of [
+    [P.minX, P.maxZ - 34, P.maxX, P.maxZ],
+    [P.minX, P.minZ, P.minX + 26, P.maxZ],
+    [P.maxX - 26, P.minZ, P.maxX, P.maxZ],
+  ]) {
+    const horizontal = x1 - x0 > z1 - z0;
+    const g = horizontal ? ctx.createLinearGradient(0, z1, 0, z0) : ctx.createLinearGradient(x0 < 0 ? x0 : x1, 0, x0 < 0 ? x1 : x0, 0);
+    g.addColorStop(0, 'rgba(214,194,156,0.55)');
+    g.addColorStop(1, 'rgba(214,194,156,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(x0, z0, x1 - x0, z1 - z0);
+  }
+  for (let i = 0; i < 260; i++) {
+    const edge = rng.float();
+    const x = edge < 0.6 ? rng.range(P.minX, P.maxX) : edge < 0.8 ? P.minX + rng.range(0, 30) : P.maxX - rng.range(0, 30);
+    const z = edge < 0.6 ? P.maxZ - rng.range(0, 40) : rng.range(P.minZ + 20, P.maxZ);
+    const r = rng.range(4, 14);
+    const g = ctx.createRadialGradient(x, z, 0, x, z, r);
+    g.addColorStop(0, 'rgba(206,186,146,0.28)');
+    g.addColorStop(1, 'rgba(206,186,146,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(x - r, z - r, r * 2, r * 2);
+  }
+
   // coastal promenade along the seawall
   rect(P.minX, P.minZ, P.maxX, P.minZ + 11, C.promenade);
   ctx.strokeStyle = 'rgba(120,114,104,0.5)';
@@ -229,6 +267,50 @@ export function createSiteTexture(quality: 'high' | 'balanced', maxAnisotropy = 
     ctx.lineTo(x1, z1);
     ctx.stroke();
     ctx.setLineDash([]);
+  }
+
+  // tyre and oil staining along carriageways and in parking rows; drainage covers
+  for (const r of SITE.roads) {
+    const [[x0, z0], [x1, z1]] = r.points;
+    const len = Math.hypot(x1 - x0, z1 - z0);
+    const n = Math.floor(len / 9);
+    for (let k = 0; k < n; k++) {
+      if (rng.float() < 0.55) continue;
+      const t = rng.float();
+      const off = rng.range(-r.width * 0.32, r.width * 0.32);
+      const nx = -(z1 - z0) / len;
+      const nz = (x1 - x0) / len;
+      const x = x0 + (x1 - x0) * t + nx * off;
+      const z = z0 + (z1 - z0) * t + nz * off;
+      ctx.save();
+      ctx.translate(x, z);
+      ctx.rotate(Math.atan2(z1 - z0, x1 - x0));
+      ctx.fillStyle = `rgba(18,18,20,${rng.range(0.05, 0.12).toFixed(3)})`;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, rng.range(1.2, 4.5), rng.range(0.25, 0.7), 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+    for (let k = 0; k < Math.floor(len / 40); k++) {
+      const t = (k + 0.5) / Math.floor(len / 40);
+      const nx = -(z1 - z0) / len;
+      const nz = (x1 - x0) / len;
+      const side = (r.width / 2 + 1.6) * (k % 2 ? 1 : -1);
+      ctx.fillStyle = 'rgba(70,72,76,0.6)';
+      ctx.fillRect(x0 + (x1 - x0) * t + nx * side - 0.45, z0 + (z1 - z0) * t + nz * side - 0.45, 0.9, 0.9);
+    }
+  }
+  for (const lot of SITE.parking) {
+    for (const rz of lot.rows) {
+      for (let x = lot.minX + lot.stall / 2; x < lot.maxX; x += lot.stall) {
+        if (rng.float() < 0.45) continue;
+        const g = ctx.createRadialGradient(x, rz, 0, x, rz, 1.6);
+        g.addColorStop(0, `rgba(12,12,14,${rng.range(0.12, 0.26).toFixed(3)})`);
+        g.addColorStop(1, 'rgba(12,12,14,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(x - 1.6, rz - 1.6, 3.2, 3.2);
+      }
+    }
   }
 
   const texture = new THREE.CanvasTexture(canvas);

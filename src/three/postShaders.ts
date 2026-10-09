@@ -20,14 +20,132 @@ export function createFullscreenTriangle() {
   return g;
 }
 
-/** Main twin view: tone mapping + gentle vignette + very light grain to avoid banding. */
+// ------------------------------------------------------------------------------------------ ambient occlusion
+
+const VIEW_POS = /* glsl */ `
+  uniform sampler2D tDepth;
+  uniform mat4 uProjInv;
+  vec3 viewPos(vec2 uv) {
+    float d = textureLod(tDepth, uv, 0.0).r;
+    vec4 v = uProjInv * vec4(uv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0);
+    return v.xyz / v.w;
+  }
+`;
+
+/**
+ * Screen-space ambient obscurance at half resolution: view-space normal from neighbouring depths, a
+ * rotated spiral of samples inside a world-space radius, horizon-angle occlusion with distance falloff.
+ */
+export function createAOMaterial() {
+  return new THREE.ShaderMaterial({
+    name: 'ssao',
+    uniforms: {
+      tDepth: { value: null },
+      uProjInv: { value: new THREE.Matrix4() },
+      uTexel: { value: new THREE.Vector2(1, 1) },
+      uProjScale: { value: 1 },
+      uRadius: { value: 10 },
+      uIntensity: { value: 2.9 },
+    },
+    vertexShader: VERT,
+    fragmentShader: /* glsl */ `
+      ${VIEW_POS}
+      uniform vec2 uTexel;
+      uniform float uProjScale;
+      uniform float uRadius;
+      uniform float uIntensity;
+      varying vec2 vUv;
+      ${HASH}
+      #define SAMPLES 12
+      void main() {
+        float d = textureLod(tDepth, vUv, 0.0).r;
+        if (d >= 0.9999) { gl_FragColor = vec4(1.0); return; }
+        vec3 p = viewPos(vUv);
+        vec3 pr = viewPos(vUv + vec2(uTexel.x, 0.0));
+        vec3 pl = viewPos(vUv - vec2(uTexel.x, 0.0));
+        vec3 pu = viewPos(vUv + vec2(0.0, uTexel.y));
+        vec3 pd = viewPos(vUv - vec2(0.0, uTexel.y));
+        vec3 dx = abs(pr.z - p.z) < abs(p.z - pl.z) ? pr - p : p - pl;
+        vec3 dy = abs(pu.z - p.z) < abs(p.z - pd.z) ? pu - p : p - pd;
+        vec3 n = normalize(cross(dx, dy));
+        float rPix = min(uRadius * uProjScale / -p.z, 64.0);
+        float rot = pp_hash(gl_FragCoord.xy) * 6.2831853;
+        float occ = 0.0;
+        float r2 = uRadius * uRadius;
+        for (int i = 0; i < SAMPLES; i++) {
+          float a = (float(i) + 0.5) / float(SAMPLES);
+          float ang = a * 6.2831853 * 7.0 + rot;
+          vec2 o = vec2(cos(ang), sin(ang)) * (a * rPix + 1.0) * uTexel;
+          vec3 v = viewPos(vUv + o) - p;
+          float vv = dot(v, v);
+          float vn = dot(v, n);
+          occ += max(0.0, vn * inversesqrt(vv + 1e-4) - 0.035) * (1.0 - smoothstep(0.0, r2, vv));
+        }
+        float ao = clamp(1.0 - uIntensity * occ / float(SAMPLES), 0.0, 1.0);
+        ao = pow(ao, 1.35);
+        gl_FragColor = vec4(ao, ao, ao, 1.0);
+      }
+    `,
+    depthTest: false,
+    depthWrite: false,
+  });
+}
+
+/** Separable depth-aware blur for the AO buffer (run once horizontally, once vertically). */
+export function createAOBlurMaterial() {
+  return new THREE.ShaderMaterial({
+    name: 'ssao-blur',
+    uniforms: {
+      tAO: { value: null },
+      tDepth: { value: null },
+      uProjInv: { value: new THREE.Matrix4() },
+      uDir: { value: new THREE.Vector2(1, 0) },
+    },
+    vertexShader: VERT,
+    fragmentShader: /* glsl */ `
+      ${VIEW_POS}
+      uniform sampler2D tAO;
+      uniform vec2 uDir;
+      varying vec2 vUv;
+      void main() {
+        float z0 = viewPos(vUv).z;
+        float sum = 0.0;
+        float wsum = 0.0;
+        for (int i = -3; i <= 3; i++) {
+          vec2 uv = vUv + uDir * float(i);
+          float z = viewPos(uv).z;
+          float w = exp(-float(i * i) * 0.18) * exp(-abs(z - z0) / (0.02 * abs(z0) + 0.5));
+          sum += textureLod(tAO, uv, 0.0).r * w;
+          wsum += w;
+        }
+        float ao = sum / max(wsum, 1e-4);
+        gl_FragColor = vec4(ao, ao, ao, 1.0);
+      }
+    `,
+    depthTest: false,
+    depthWrite: false,
+  });
+}
+
+/** Main twin view: ambient occlusion, tone mapping, gentle vignette, very light grain against banding. */
 export function createGradeMaterial() {
   return new THREE.ShaderMaterial({
     name: 'grade',
-    uniforms: { tColor: { value: null }, uRes: { value: new THREE.Vector2(1, 1) }, uTime: { value: 0 }, uReplay: { value: 0 } },
+    uniforms: {
+      tColor: { value: null },
+      tAO: { value: null },
+      uAO: { value: 0 },
+      uAODebug: { value: 0 },
+      uRes: { value: new THREE.Vector2(1, 1) },
+      uTime: { value: 0 },
+      uReplay: { value: 0 },
+    },
     vertexShader: VERT,
     fragmentShader: /* glsl */ `
       uniform sampler2D tColor;
+      uniform sampler2D tAO;
+      uniform float uAO;
+      uniform float uAODebug;
       uniform vec2 uRes;
       uniform float uTime;
       uniform float uReplay;
@@ -35,6 +153,8 @@ export function createGradeMaterial() {
       ${HASH}
       void main() {
         vec3 c = texture2D(tColor, vUv).rgb;
+        if (uAO > 0.0) c *= mix(1.0, texture2D(tAO, vUv).r, uAO);
+        if (uAODebug > 0.5) { gl_FragColor = vec4(vec3(texture2D(tAO, vUv).r), 1.0); return; }
         if (uReplay > 0.5) {
           float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
           c = mix(c, vec3(l) * vec3(0.92, 0.97, 1.08), 0.35);

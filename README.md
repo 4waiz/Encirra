@@ -1,3 +1,5 @@
+<img src="src/assets/encirra-logo.png" width="72" height="72" alt="ENCIRRA logo" />
+
 # ENCIRRA
 
 **ENCIRRA | Barakah CBRN Command Center**: an integrated CBRN situational-awareness interface with an interactive 3D digital twin, synthetic camera and robot feeds, AI-assisted correlation and an incident-response workflow.
@@ -92,4 +94,4 @@ The script reads `src/data/site-layout.json` and writes Draco-compressed GLBs to
 
 ---
 
-Encirra for Barakah • Built by [Awaiz Ahmed](https://kanbanstudios.ae/team-kanban)
+Encirra for Barakah • Developed by [Awaiz Ahmed](https://kanbanstudios.ae/team-kanban)

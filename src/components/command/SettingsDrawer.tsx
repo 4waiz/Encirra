@@ -228,8 +228,8 @@ function AboutTab() {
       <div className="flex items-center gap-3">
         <LogoMark size={40} />
         <div>
-          <div className="font-cond text-[20px] font-semibold tracking-[0.22em] text-ink-1">ENCIRRA</div>
-          <div className="text-[11.5px] text-ink-3">Integrated CBRN Situational Awareness · version 1.0</div>
+          <div className="font-cond text-[20px] font-semibold leading-[24px] tracking-[0.22em] text-ink-1">ENCIRRA</div>
+          <div className="mt-0.5 text-[11.5px] leading-[16px] text-ink-3">Integrated CBRN Situational Awareness · version 1.0</div>
         </div>
       </div>
       <p className="text-[12.5px] leading-[19px] text-ink-2">
@@ -248,7 +248,7 @@ function AboutTab() {
         Built with React, three.js / React Three Fiber and Blender-generated assets.
       </div>
       <div className="border-t border-line pt-3 text-[12px] text-ink-2">
-        Encirra for Barakah • Built by{' '}
+        Encirra for Barakah • Developed by{' '}
         <a href="https://kanbanstudios.ae/team-kanban" target="_blank" rel="noreferrer" className="text-ink-1 underline decoration-ink-4 underline-offset-2 hover:decoration-cyan">
           Awaiz Ahmed
         </a>

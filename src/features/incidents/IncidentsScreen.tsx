@@ -213,7 +213,7 @@ function LinkedSources({ inc }: { inc: Incident }) {
   if (!inc.sensors.length && !obs) return null;
   const row = 'group flex w-full items-center gap-2 rounded-[5px] px-1.5 py-[5px] text-left hover:bg-surface-2';
   return (
-    <div className="shrink-0 border-t border-line px-2 pb-2 pt-2.5">
+    <div className="@container shrink-0 border-t border-line px-2 pb-2 pt-2.5">
       <div className="micro mb-1 px-1.5">Linked sources &amp; evidence</div>
       <ul>
         {inc.sensors.map((id) => {
@@ -237,7 +237,7 @@ function LinkedSources({ inc }: { inc: Incident }) {
               >
                 <Icon size={13} className="shrink-0" style={{ color: SENSOR_COLOR[def.kind] }} aria-hidden />
                 <span className="mono shrink-0 whitespace-nowrap text-[11.5px] text-ink-1">{id}</span>
-                <span className="min-w-0 flex-1 truncate text-[10.5px] text-ink-3">{def.name}</span>
+                <span className="min-w-0 flex-1 truncate text-[10.5px] text-ink-3 @max-[340px]:invisible">{def.name}</span>
                 <span className="num shrink-0 whitespace-nowrap text-[11.5px] text-ink-1">
                   {fmtNum(st?.value ?? null, def.kind === 'rad' ? 3 : def.kind === 'chem' ? 2 : 0)} <span className="text-ink-3">{def.unit}</span>
                 </span>
@@ -264,7 +264,7 @@ function LinkedSources({ inc }: { inc: Incident }) {
             >
               <BrainCircuit size={13} className="shrink-0 text-[#b4a8ff]" aria-hidden />
               <span className="mono shrink-0 whitespace-nowrap text-[11.5px] text-ink-1">{obs.id}</span>
-              <span className="min-w-0 flex-1 truncate text-[10.5px] text-ink-3">{obs.title}</span>
+              <span className="min-w-0 flex-1 truncate text-[10.5px] text-ink-3 @max-[340px]:invisible">{obs.title}</span>
               <span className="num shrink-0 text-[11.5px] text-ink-1">{Math.round(obs.confidence * 100)}%</span>
               <span className="w-[64px] shrink-0 text-right text-[10.5px] text-ink-2">AI fusion</span>
               <ArrowUpRight size={12} className="shrink-0 text-ink-4 group-hover:text-ink-2" aria-hidden />

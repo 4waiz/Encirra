@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { useGLTF } from '@react-three/drei';
+import { weatherMaterial } from './weathering';
 
 export const MODELS = {
   unit: 'reactor-unit',
@@ -29,6 +30,9 @@ export function preloadModels() {
 
 const ENV_BY_MATERIAL: Record<string, number> = {
   glass: 1.5,
+  glass_blue: 1.6,
+  crane_yellow: 0.85,
+  roof_white: 0.8,
   dome_white: 1.05,
   roof_metal: 1.0,
   steel: 1.1,
@@ -53,6 +57,7 @@ export function prepareModel(root: THREE.Object3D, { cast = true, receive = true
     for (const m of mats as THREE.MeshStandardMaterial[]) {
       if (!m || !m.isMeshStandardMaterial) continue;
       m.envMapIntensity = ENV_BY_MATERIAL[m.name] ?? 0.72;
+      weatherMaterial(m);
       if (m.name === 'rotor') {
         m.transparent = true;
         m.opacity = 0.45;

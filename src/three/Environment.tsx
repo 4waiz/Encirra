@@ -4,15 +4,15 @@ import { useThree } from '@react-three/fiber';
 import { registerThermal, thermalSky, thermalUniforms } from './thermal';
 import { useUI } from '../store/ui';
 
-// Afternoon coastal light: sun from the west-south-west, ~36° elevation, hazy horizon.
+// Late-afternoon coastal light: sun from the west-south-west, ~31° elevation, hazy horizon.
 const AZ = (240 * Math.PI) / 180;
-const EL = (36 * Math.PI) / 180;
+const EL = (31 * Math.PI) / 180;
 export const SUN_DIR = new THREE.Vector3(Math.sin(AZ) * Math.cos(EL), Math.sin(EL), -Math.cos(AZ) * Math.cos(EL)).normalize();
 thermalUniforms.uSunDir.value.copy(SUN_DIR);
 
 export const SKY_COLORS = {
-  zenith: new THREE.Color('#6b90b6'),
-  horizon: new THREE.Color('#c6d2d8'),
+  zenith: new THREE.Color('#4f84c0'),
+  horizon: new THREE.Color('#cbd6dc'),
   ground: new THREE.Color('#bcae92'),
 };
 
@@ -80,8 +80,8 @@ export function SceneEnvironment() {
     envScene.add(envSky);
     const rt = pmrem.fromScene(envScene, 0.015, 1, 1000);
     scene.environment = rt.texture;
-    scene.environmentIntensity = 0.9;
-    scene.fog = new THREE.Fog(SKY_COLORS.horizon.clone(), 2600, 9200);
+    scene.environmentIntensity = 0.72;
+    scene.fog = new THREE.Fog(SKY_COLORS.horizon.clone(), 3400, 11500);
     return () => {
       scene.environment = null;
       rt.dispose();
@@ -94,7 +94,7 @@ export function SceneEnvironment() {
   useEffect(() => registerThermal(sky, thermalSky()), [sky]);
 
   const sun = useMemo(() => {
-    const light = new THREE.DirectionalLight('#fff1dd', 2.7);
+    const light = new THREE.DirectionalLight('#ffeccd', 3.25);
     light.position.copy(SUN_DIR).multiplyScalar(2600).add(new THREE.Vector3(0, 0, -40));
     light.target.position.set(0, 0, -40);
     light.castShadow = true;
@@ -125,7 +125,7 @@ export function SceneEnvironment() {
       <primitive object={sky} />
       <primitive object={sun} />
       <primitive object={sun.target} />
-      <hemisphereLight args={['#d5e4f0', '#a99372', 0.95]} />
+      <hemisphereLight args={['#cfe1f2', '#9a8463', 0.58]} />
     </>
   );
 }

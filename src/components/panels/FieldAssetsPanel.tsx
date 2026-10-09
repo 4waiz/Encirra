@@ -47,21 +47,21 @@ export function FieldAssetsPanel({ limit = 4 }: { limit?: number }) {
               </span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-2">
-                  <span className="mono text-[12px] font-medium text-ink-1">{a.name}</span>
-                  <span className="flex items-center gap-1 text-[11px]" style={{ color: TONE_HEX[a.tone] }}>
+                  <span className="mono shrink-0 whitespace-nowrap text-[12px] font-medium text-ink-1">{a.name}</span>
+                  <span className="flex min-w-0 items-center gap-1 text-[11px]" style={{ color: TONE_HEX[a.tone] }}>
                     <StatusDot tone={a.tone} size={6} pulse={a.status === 'En route'} />
-                    {a.status}
+                    <span className="truncate">{a.status}</span>
                   </span>
                 </span>
                 <span className="mt-[1px] block truncate text-[10.5px] text-ink-3">{sub}</span>
               </span>
               {a.battery !== null && (
-                <span className="num flex items-center gap-1 text-[10.5px] text-ink-3" title="Battery">
+                <span className="num flex shrink-0 items-center gap-1 text-[10.5px] text-ink-3" title="Battery">
                   <BatteryMedium size={12} aria-hidden />
                   {Math.round(a.battery)}%
                 </span>
               )}
-              <ChevronRight size={14} className="text-ink-4 transition-colors group-hover:text-ink-2" aria-hidden />
+              <ChevronRight size={14} className="shrink-0 text-ink-4 transition-colors group-hover:text-ink-2 max-[1500px]:hidden" aria-hidden />
             </button>
           );
         })}

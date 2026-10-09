@@ -69,7 +69,7 @@ export function OverviewScreen() {
       <div
         className="grid min-h-0 flex-1 gap-2"
         style={{
-          gridTemplateColumns: 'clamp(250px, 17.5vw, 300px) minmax(0, 1fr) minmax(0, 1fr) clamp(340px, 27vw, 500px)',
+          gridTemplateColumns: 'clamp(268px, 17.5vw, 300px) minmax(0, 1fr) minmax(0, 1fr) clamp(340px, 27vw, 500px)',
           gridTemplateRows: 'minmax(0, 1fr) clamp(170px, 23vh, 236px)',
         }}
       >

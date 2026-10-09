@@ -33,7 +33,7 @@ export function Footer() {
         Render <Fps />
       </span>
       <span className="ml-auto">
-        Encirra for Barakah <span aria-hidden className="px-1 text-ink-4">•</span> Built by{' '}
+        Encirra for Barakah <span aria-hidden className="px-1 text-ink-4">•</span> Developed by{' '}
         <a
           href="https://kanbanstudios.ae/team-kanban"
           target="_blank"
