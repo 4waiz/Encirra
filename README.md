@@ -23,6 +23,10 @@ npm run preview        # http://localhost:4173
 
 Requirements: Node 20+ and a WebGL2-capable browser (Chrome / Edge recommended).
 
+### Demo film
+
+[`media/demo-video/out/encirra-demo.mp4`](media/demo-video/out/encirra-demo.mp4) is a one-minute walkthrough of the whole application, recorded from the production build on a controlled clock and composed as code. How it is made and how to re-record it: [media/demo-video/README.md](media/demo-video/README.md).
+
 ### Screenshot capture
 
 `npm run screenshots` drives the running app in the locally installed Microsoft Edge (via `playwright-core`, so no browser download is needed). It waits for the opening multi-source event to reach human validation, then writes five 1600×900 captures to `screenshots/phase-1/`:

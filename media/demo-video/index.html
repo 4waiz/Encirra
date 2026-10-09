@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ENCIRRA Demo · film</title>
+    <link rel="icon" href="data:," />
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #050608;
+        color: #e8eaed;
+        font: 13px/1.4 ui-monospace, 'IBM Plex Mono', monospace;
+        overflow: hidden;
+      }
+      main {
+        position: fixed;
+        inset: 0 0 56px 0;
+        display: grid;
+        place-items: center;
+      }
+      canvas {
+        width: min(100vw - 32px, (100vh - 88px) * 16 / 9);
+        aspect-ratio: 16 / 9;
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 20px 60px rgba(0, 0, 0, 0.6);
+      }
+      #ui {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 0 16px;
+        background: #0b0c10;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        transition: opacity 0.25s ease;
+      }
+      #ui.hidden {
+        opacity: 0;
+      }
+      #ui.hidden + main,
+      body:has(#ui.hidden) main {
+        inset: 0;
+      }
+      button {
+        all: unset;
+        cursor: pointer;
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 8px;
+        background: rgba(79, 251, 223, 0.12);
+        color: #4ffbdf;
+      }
+      input[type='range'] {
+        flex: 1;
+        accent-color: #4ffbdf;
+      }
+      #time {
+        min-width: 210px;
+        white-space: pre;
+        color: #fff;
+      }
+      #scene {
+        min-width: 210px;
+        color: rgba(255, 255, 255, 0.6);
+        white-space: pre;
+      }
+      #loop {
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        color: rgba(255, 255, 255, 0.6);
+      }
+      #loop[data-on='true'] {
+        border-color: #4ffbdf;
+        color: #4ffbdf;
+      }
+      .keys {
+        color: rgba(255, 255, 255, 0.4);
+        white-space: nowrap;
+      }
+      body.render #ui {
+        display: none;
+      }
+      body.render main {
+        inset: 0;
+      }
+      body.render canvas {
+        width: 1920px;
+        box-shadow: none;
+      }
+      @media (max-width: 1100px) {
+        .keys {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ui">
+      <button id="play" type="button" aria-label="Play or pause">▶</button>
+      <span id="time"></span>
+      <input id="scrub" type="range" min="0" value="0" aria-label="Timeline" />
+      <span id="scene"></span>
+      <span id="loop" role="button" aria-label="Loop scene">loop</span>
+      <span class="keys">space play · ←/→ 1 s (⇧ 5 s) · , . frame · [ ] scene · l loop · h hide</span>
+    </div>
+    <main><canvas id="c" width="1920" height="1080"></canvas></main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

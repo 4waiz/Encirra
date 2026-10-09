@@ -136,8 +136,9 @@ const AssetMarker = memo(function AssetMarker({ id, setRef }: { id: AssetId; set
 });
 
 function UnitLabel({ label, setRef }: { label: string; setRef: (el: HTMLElement | null) => void }) {
+  // above ordinary sensor icons (text stays readable), below flagged or selected sensors (z-10 / z-20)
   return (
-    <div ref={setRef} className="pointer-events-none absolute left-0 top-0 will-change-transform" style={{ visibility: 'hidden' }}>
+    <div ref={setRef} className="pointer-events-none absolute left-0 top-0 z-[5] will-change-transform" style={{ visibility: 'hidden' }}>
       <div className="-translate-x-1/2 -translate-y-full rounded-[4px] border border-line-strong bg-surface-1/85 px-2 py-[3px] font-cond text-[11.5px] font-semibold tracking-[0.06em] text-ink-1 shadow-[0_4px_12px_rgb(0_0_0/0.35)]">
         {label}
       </div>
