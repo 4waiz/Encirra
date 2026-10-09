@@ -31,6 +31,8 @@ export interface Clip {
   dsf: number;
   clicks: number[];
   keys: { frame: number; label: string }[];
+  /** frames on which a typed character appears */
+  typed?: number[];
   data: FrameData[];
 }
 

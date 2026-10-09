@@ -157,6 +157,7 @@ class Shot {
     this.frames = [];
     this.clicks = [];
     this.keys = [];
+    this.typed = [];
     this.cursor = null;
     this.camera = null; // (seconds) => {pos, target}
     this.t = 0; // shot time in seconds
@@ -236,6 +237,7 @@ class Shot {
 
   async type(text, cps = 14) {
     for (const ch of text) {
+      this.typed.push(this.frames.length);
       await this.page.keyboard.type(ch);
       await this.hold(1 / cps);
     }
@@ -246,7 +248,7 @@ class Shot {
   }
 
   manifest() {
-    return { fps: this.fps, frames: this.frames.length, view: VIEW, dsf: DSF, clicks: this.clicks, keys: this.keys, data: this.frames };
+    return { fps: this.fps, frames: this.frames.length, view: VIEW, dsf: DSF, clicks: this.clicks, keys: this.keys, typed: this.typed, data: this.frames };
   }
 }
 

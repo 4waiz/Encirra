@@ -1,0 +1,1 @@
+Introducing ENCIRRA: a conceptual CBRN situational-awareness command center with a live 3D digital twin, robot thermal feeds, explainable AI correlation and a full incident workflow, all on synthetic data. Built with React, three.js and Blender. encirra.bridgeae.com

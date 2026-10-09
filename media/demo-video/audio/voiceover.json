@@ -1,0 +1,19 @@
+{
+  "voice": "af_heart",
+  "note": "Kokoro (via `hyperframes tts`). `at` is film time: a number, or a cue-sheet path plus an offset (seconds), e.g. `twin.clicks.1+0.9` = 0.9 s after the second click in the twin segment. Lines complement the picture rather than read the captions.",
+  "lines": [
+    { "id": "01-title", "at": "0.50", "text": "This is Encirra." },
+    { "id": "02-overview", "at": "overview.start+0.10", "text": "Every chemical, biological, radiological and nuclear reading, in one live view." },
+    { "id": "03-trend", "at": "overview.events.trendFlagged+0.15", "text": "In this synthetic run, a gamma monitor trends up." },
+    { "id": "04-incident", "at": "overview.events.incidentOpened-0.25", "text": "AI fusion confirms it across three sources and opens an incident." },
+    { "id": "05-twin", "at": "twin.clicks.0+0.45", "text": "The 3D twin flies straight to it." },
+    { "id": "06-sensors", "at": "twin.clicks.1+0.90", "text": "Every sensor reports live, and the wind layer shows where a release would drift." },
+    { "id": "07-feeds", "at": "feeds.start+0.30", "text": "Meanwhile, the ground robot reaches the equipment. In thermal, the hotspot stands out." },
+    { "id": "08-insights", "at": "insights.start+0.25", "text": "Insights show every source, and how much each counts." },
+    { "id": "09-human", "at": "insights.clicks.0-0.05", "text": "But a person always makes the call." },
+    { "id": "10-response", "at": "incidents.start+0.30", "text": "The operator acknowledges, works the checklist, and adds a note." },
+    { "id": "11-audit", "at": "incidents.keys.0+0.25", "text": "Every step lands in the audit trail." },
+    { "id": "12-replay", "at": "replay.start+0.75", "text": "And the whole incident can be replayed, right in the twin." },
+    { "id": "13-outro", "at": "outro+0.50", "text": "Encirra. Developed by Awaiz Ahmed." }
+  ]
+}

@@ -29,3 +29,4 @@ media/release-video/out/*
 media/demo-video/public/footage/
 media/demo-video/out/*
 !media/demo-video/out/encirra-demo.mp4
+!media/demo-video/out/poster.jpg

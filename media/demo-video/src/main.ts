@@ -7,8 +7,8 @@ import '@fontsource/ibm-plex-mono/500.css';
 import { Renderer } from './engine/renderer';
 import { clipTime, activeSegments } from './scenes';
 import { loadLogo } from './scenes/cards';
-import { frameIndex, load, loadManifest, type ClipName } from './footage';
-import { DURATION, FPS, SEGMENTS, autoSamples, buildTimeline, segmentAt } from './timeline';
+import { clip, firstWhen, frameIndex, load, loadManifest, type ClipName } from './footage';
+import { DURATION, FPS, OUTRO, SEGMENTS, TITLE, XF, autoSamples, buildTimeline, segmentAt } from './timeline';
 
 declare global {
   interface Window {
@@ -17,6 +17,7 @@ declare global {
       fps: number;
       duration: number;
       frame: (t: number, samples: number | 'auto', shutter: number, fps: number) => Promise<string>;
+      cues: () => unknown;
     };
   }
 }
@@ -68,10 +69,48 @@ async function boot() {
         renderer.frame(t, n, shutter, fps);
         return canvas.toDataURL('image/png').slice('data:image/png;base64,'.length);
       },
+      cues,
     };
     return;
   }
   preview(renderer);
+}
+
+/** Film-time cue sheet for the soundtrack: cuts, clicks, keys, typed characters, callouts, app events. */
+function cues() {
+  const inside = (s: (typeof SEGMENTS)[number], t: number) => t >= s.start - 1e-6 && t < s.end;
+  return {
+    duration: DURATION,
+    title: TITLE,
+    outro: OUTRO,
+    dissolve: XF,
+    segments: SEGMENTS.map((s) => {
+      const c = clip(s.id);
+      const film = (frame: number) => s.start + frame / c.fps - s.clipIn;
+      const ev = (test: Parameters<typeof firstWhen>[1]) => {
+        const at = firstWhen(s.id, test);
+        return at === null || !inside(s, s.start + at - s.clipIn) ? null : s.start + at - s.clipIn;
+      };
+      return {
+        id: s.id,
+        kicker: s.kicker,
+        title: s.title,
+        start: s.start,
+        end: s.end,
+        clicks: c.clicks.map(film).filter((t) => inside(s, t)),
+        keys: c.keys.map((k) => ({ t: film(k.frame), label: k.label })).filter((k) => inside(s, k.t)),
+        typed: (c.typed ?? []).map(film).filter((t) => inside(s, t)),
+        callouts: s.callouts.map((k) => ({ t: s.start + k.at, end: s.start + k.at + k.dur, tone: k.tone ?? 'cyan', label: k.label })),
+        events: {
+          trendFlagged: ev((f) => f.ev === 'Sensor trend flagged'),
+          incidentOpened: ev((f) => f.inc === 'new'),
+          validated: ev((f) => f.obs === 'validated'),
+          acknowledged: ev((f) => f.inc === 'acknowledged' || f.inc === 'investigating'),
+          replayOn: ev((f) => f.replay),
+        },
+      };
+    }),
+  };
 }
 
 // ------------------------------------------------------------------------------------------ preview

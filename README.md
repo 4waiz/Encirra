@@ -25,7 +25,7 @@ Requirements: Node 20+ and a WebGL2-capable browser (Chrome / Edge recommended).
 
 ### Demo film
 
-[`media/demo-video/out/encirra-demo.mp4`](media/demo-video/out/encirra-demo.mp4) is a one-minute walkthrough of the whole application, recorded from the production build on a controlled clock and composed as code. How it is made and how to re-record it: [media/demo-video/README.md](media/demo-video/README.md).
+[`media/demo-video/out/encirra-demo.mp4`](media/demo-video/out/encirra-demo.mp4) is a one-minute narrated walkthrough of the whole application, recorded from the production build on a controlled clock and composed as code, with a Kokoro voiceover, music and UI sound. How it is made and how to re-record it: [media/demo-video/README.md](media/demo-video/README.md).
 
 ### Screenshot capture
 
