@@ -2,14 +2,15 @@
   "name": "encirra",
   "private": true,
   "version": "1.0.0",
-  "description": "ENCIRRA — conceptual CBRN situational-awareness and digital-twin interface driven by a local synthetic scenario engine.",
+  "description": "ENCIRRA \u2014 conceptual CBRN situational-awareness and digital-twin interface driven by a local synthetic scenario engine.",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "screenshots": "node tools/screenshots/capture.mjs"
+    "screenshots": "node tools/screenshots/capture.mjs",
+    "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.5",
@@ -33,6 +34,7 @@
     "playwright-core": "^1.63.0",
     "tailwindcss": "^4.3.3",
     "typescript": "~5.9.3",
-    "vite": "^7.0.0"
+    "vite": "^7.0.0",
+    "wrangler": "^4.149.0"
   }
 }
