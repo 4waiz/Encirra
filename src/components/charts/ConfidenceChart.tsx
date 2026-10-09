@@ -47,6 +47,35 @@ export function ConfidenceChart({ obs }: { obs: Observation }) {
     for (let t = Math.ceil(t0 / step) * step; t <= t1; t += step) out.push(t);
     return out;
   }, [t0, t1]);
+  // threshold label: of the four spots beside the dashed line (left/right, above/below) use the one the
+  // confidence series keeps clearest of
+  const thr = y(0.85);
+  const thrLabel = (() => {
+    const labelW = 118; // "human validation threshold", 9 px condensed
+    const spots: { x: number; y: number; anchor: 'start' | 'end' }[] = [
+      { x: padL + 5, y: thr + 11, anchor: 'start' },
+      { x: padL + 5, y: thr - 5, anchor: 'start' },
+      { x: W - padR - 5, y: thr + 11, anchor: 'end' },
+      { x: W - padR - 5, y: thr - 5, anchor: 'end' },
+    ];
+    let best = spots[0];
+    let bestGap = -Infinity;
+    for (const s of spots) {
+      const l = s.anchor === 'start' ? s.x : s.x - labelW;
+      let gap = Infinity;
+      for (let i = 0; i < series.t.length; i++) {
+        const px = x(series.t[i]);
+        if (px < l - 4 || px > l + labelW + 4) continue;
+        const py = y(series.v[i]);
+        gap = Math.min(gap, py < s.y - 9 ? s.y - 9 - py : py > s.y + 2 ? py - s.y - 2 : -1);
+      }
+      if (gap > bestGap) {
+        bestGap = gap;
+        best = s;
+      }
+    }
+    return best;
+  })();
   const hv = hover !== null && series.t.length ? (() => {
     let best = 0;
     for (let i = 0; i < series.t.length; i++) if (Math.abs(series.t[i] - hover) < Math.abs(series.t[best] - hover)) best = i;
@@ -82,9 +111,8 @@ export function ConfidenceChart({ obs }: { obs: Observation }) {
               </text>
             </g>
           ))}
-          <line x1={padL} x2={W - padR} y1={y(0.85)} y2={y(0.85)} stroke="#f2b33d" strokeOpacity="0.55" strokeDasharray="3 3" />
-          {/* left end, under the line: confidence usually starts low, so the label stays clear of the series */}
-          <text x={padL + 5} y={y(0.85) + 11} fontSize="9" fill="#a9b3be" stroke="#121922" strokeWidth="3" paintOrder="stroke" className="font-cond">
+          <line x1={padL} x2={W - padR} y1={thr} y2={thr} stroke="#f2b33d" strokeOpacity="0.55" strokeDasharray="3 3" />
+          <text x={thrLabel.x} y={thrLabel.y} textAnchor={thrLabel.anchor} fontSize="9" fill="#a9b3be" stroke="#121922" strokeWidth="3" paintOrder="stroke" className="font-cond">
             human validation threshold
           </text>
           {timeTicks.map((t) => {

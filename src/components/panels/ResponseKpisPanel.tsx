@@ -9,16 +9,18 @@ import { fmtDuration } from '../../utils/format';
 
 function Instrument({ icon: Icon, label, color, children, sub, chart }: { icon: LucideIcon; label: string; color: string; children: ReactNode; sub: ReactNode; chart?: ReactNode }) {
   return (
-    <div className="flex min-w-0 flex-col rounded-[6px] border border-line bg-surface-2/60 px-2.5 py-2">
-      <div className="flex items-center gap-1.5">
-        <Icon size={13} strokeWidth={1.9} style={{ color }} aria-hidden />
-        <span className="micro truncate">{label}</span>
+    <div className="kpi-card min-w-0 rounded-[6px] border border-line bg-surface-2/60">
+      <div className="kpi-body flex h-full flex-col justify-center px-2.5 py-2">
+        <div className="flex items-center gap-1.5">
+          <Icon size={13} strokeWidth={1.9} style={{ color }} aria-hidden />
+          <span className="micro truncate">{label}</span>
+        </div>
+        <div className="mt-1 flex items-end justify-between gap-2">
+          <div className="flex items-baseline gap-1">{children}</div>
+          <div className="mb-[3px] min-w-0 flex-1">{chart}</div>
+        </div>
+        <div className="kpi-sub mt-0.5 truncate text-[10.5px] text-ink-3">{sub}</div>
       </div>
-      <div className="mt-1 flex items-end justify-between gap-2">
-        <div className="flex items-baseline gap-1">{children}</div>
-        <div className="mb-[3px] min-w-0 flex-1">{chart}</div>
-      </div>
-      <div className="mt-0.5 truncate text-[10.5px] text-ink-3">{sub}</div>
     </div>
   );
 }

@@ -331,7 +331,7 @@ export function Inspector({ className, width }: { className?: string; width?: nu
   const sel = useUI((s) => s.selection);
   const flagged = useSim(useShallow((s) => Object.values(s.sensors).filter((x) => x.status === 'elevated' || x.status === 'alert')));
   return (
-    <aside className={cx('panel flex flex-col shadow-[0_16px_40px_rgb(0_0_0/0.45)]', className)} style={width ? { width } : undefined} aria-label="Inspector">
+    <aside data-twin-obstacle className={cx('panel flex flex-col shadow-[0_16px_40px_rgb(0_0_0/0.45)]', className)} style={width ? { width } : undefined} aria-label="Inspector">
       <header className="panel-header">
         <MousePointer2 size={14} className="text-ink-2" aria-hidden />
         <h2 className="panel-title">Inspector</h2>

@@ -89,7 +89,7 @@ function Health() {
         <span className="font-cond text-[10px] uppercase tracking-[0.1em]" style={{ color: c }}>
           {health.level === 'nominal' ? 'System health' : health.level}
         </span>
-        <span className="mt-[3px] max-w-[150px] truncate text-[11.5px] text-ink-1 max-[1500px]:max-w-[112px] max-[1440px]:hidden min-[1800px]:max-w-[220px]">{health.label}</span>
+        <span className="mt-[3px] max-w-[150px] truncate text-[11.5px] text-ink-1 max-[1500px]:max-w-[130px] max-[1440px]:hidden min-[1800px]:max-w-[220px]">{health.label}</span>
       </span>
     </button>
   );

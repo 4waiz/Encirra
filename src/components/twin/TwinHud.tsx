@@ -183,7 +183,7 @@ export function TwinHud({
   return (
     <>
       <div className="pointer-events-none absolute top-2.5 z-10 flex flex-col gap-1" style={{ left: leftInset }}>
-        <div className="pointer-events-auto flex flex-col gap-1 rounded-[7px] border border-line-strong bg-surface-1/88 p-1 shadow-[0_6px_18px_rgb(0_0_0/0.35)]">
+        <div data-twin-obstacle className="pointer-events-auto flex flex-col gap-1 rounded-[7px] border border-line-strong bg-surface-1/88 p-1 shadow-[0_6px_18px_rgb(0_0_0/0.35)]">
           <IconButton icon={Plus} label="Zoom in" onClick={() => zoomBy(0.35)} size={26} />
           <IconButton icon={Minus} label="Zoom out" onClick={() => zoomBy(-0.5)} size={26} />
           <IconButton icon={RotateCcw} label="Reset view" onClick={resetView} size={26} />
@@ -209,11 +209,11 @@ export function TwinHud({
           )}
         </div>
       </div>
-      <div className="pointer-events-none absolute top-2.5 z-10 flex flex-col items-end gap-2" style={{ right: rightInset }}>
+      <div data-twin-obstacle className="pointer-events-none absolute top-2.5 z-10 flex flex-col items-end gap-2" style={{ right: rightInset }}>
         <Compass />
         <ReplayChip />
       </div>
-      <div className="pointer-events-none absolute z-10 flex items-end gap-2" style={{ left: leftInset, bottom: bottomInset }}>
+      <div data-twin-obstacle className="pointer-events-none absolute z-10 flex items-end gap-2" style={{ left: leftInset, bottom: bottomInset }}>
         <span className="rounded-[4px] border border-line bg-surface-1/80 px-2 py-[3px] font-cond text-[10px] uppercase tracking-[0.12em] text-ink-3">Generalized site layout</span>
         <span className="flex items-center gap-1 rounded-[4px] border border-line bg-surface-1/80 px-1.5 py-[2px] text-[10px] text-ink-3 max-[1500px]:hidden" title="Keyboard navigation: W A S D move, Q / E height, Shift faster">
           <Kbd>W</Kbd>
@@ -227,7 +227,7 @@ export function TwinHud({
         </span>
       </div>
       {showLegend && (
-        <div className="pointer-events-none absolute z-10" style={{ right: rightInset, bottom: bottomInset }}>
+        <div data-twin-obstacle className="pointer-events-none absolute z-10" style={{ right: rightInset, bottom: bottomInset }}>
           <Legend />
         </div>
       )}

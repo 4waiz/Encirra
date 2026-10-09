@@ -20,6 +20,8 @@ const only = (args.find((a) => a.startsWith('--views=')) ?? '').split('=')[1]?.s
 const browser = await chromium.launch({
   channel: 'msedge',
   headless: true,
+  // headless mode hides scrollbars by default; real browsers draw them inside list panels and they take width
+  ignoreDefaultArgs: ['--hide-scrollbars'],
   args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=d3d11', '--force-color-profile=srgb'],
 });
 const context = await browser.newContext({ viewport: { width: sizes[0][0], height: sizes[0][1] }, deviceScaleFactor: 1, colorScheme: 'dark' });
@@ -207,6 +209,62 @@ function audit() {
     if (!(cs.overflowY === 'auto' || cs.overflowY === 'scroll') || !shown(el)) continue;
     if (el.scrollHeight > el.clientHeight + 4 && el.clientHeight > 40) {
       issues.push({ type: 'scrolls', el: name(el), need: el.scrollHeight, have: el.clientHeight });
+    }
+  }
+  // 4 — controls, chips and cards sticking out of the framed box (card, panel, button group) around them
+  const framed = (cs) => {
+    if (alpha(cs.backgroundColor) > 0.05 || cs.backgroundImage !== 'none') return true;
+    return ['Top', 'Right', 'Bottom', 'Left'].some((s) => parseFloat(cs[`border${s}Width`]) > 0 && alpha(cs[`border${s}Color`]) > 0.05);
+  };
+  const flagged = new Set();
+  for (const el of document.querySelectorAll('body *')) {
+    if ((el.closest('svg') && el.tagName.toLowerCase() !== 'svg') || el.closest('[aria-label="Map markers"]')) continue;
+    const cs = getComputedStyle(el);
+    if (cs.position === 'absolute' || cs.position === 'fixed' || cs.display === 'contents' || !framed(cs)) continue;
+    const r = el.getBoundingClientRect();
+    if (r.width < 2 || r.height < 2 || !shown(el)) continue;
+    let scrollsY = false;
+    let anc = el.parentElement;
+    for (; anc && anc !== document.body; anc = anc.parentElement) {
+      const acs = getComputedStyle(anc);
+      if (acs.overflowX !== 'visible' && acs.overflowX !== 'clip' && anc.scrollWidth > anc.clientWidth + 1) break; // a horizontal scroller
+      if (acs.overflowY === 'auto' || acs.overflowY === 'scroll') scrollsY = true;
+      if (framed(acs) && acs.display !== 'contents') break;
+    }
+    if (!anc || anc === document.body || flagged.has(anc)) continue;
+    const acs = getComputedStyle(anc);
+    const a = anc.getBoundingClientRect();
+    const inner = {
+      l: a.left + parseFloat(acs.borderLeftWidth),
+      r: a.right - parseFloat(acs.borderRightWidth),
+      t: a.top + parseFloat(acs.borderTopWidth),
+      b: a.bottom - parseFloat(acs.borderBottomWidth),
+    };
+    const over = Math.max(inner.l - r.left, r.right - inner.r, scrollsY ? 0 : Math.max(inner.t - r.top, r.bottom - inner.b));
+    if (over > 1.5) {
+      flagged.add(anc);
+      const t = (el.innerText || '').trim().replace(/\s+/g, ' ').slice(0, 40);
+      issues.push({ type: 'box-overflow', el: `${name(el)} "${t}"`, in: name(anc), by: Math.round(over) });
+    }
+  }
+  // 5 — rows whose children are wider than the row itself (they spill into padding or past borders)
+  for (const el of document.querySelectorAll('body *')) {
+    if (el.closest('svg, [aria-label="Map markers"]')) continue;
+    const cs = getComputedStyle(el);
+    if (!['flex', 'inline-flex', 'grid', 'inline-grid', 'block'].includes(cs.display) || cs.overflowX !== 'visible') continue;
+    if (el.clientWidth < 2 || el.scrollWidth <= el.clientWidth + 1 || !shown(el)) continue;
+    // only count overflow from children laid out in the row, not absolutely positioned decorations
+    const base = el.getBoundingClientRect();
+    const right = base.left + el.clientLeft + el.clientWidth;
+    let spill = 0;
+    for (const c of el.children) {
+      const ccs = getComputedStyle(c);
+      if (ccs.position === 'absolute' || ccs.position === 'fixed' || !shown(c)) continue;
+      spill = Math.max(spill, c.getBoundingClientRect().right - right);
+    }
+    if (spill > 1.5) {
+      const t = (el.innerText || '').trim().replace(/\s+/g, ' ').slice(0, 50);
+      issues.push({ type: 'row-overflow', el: `${name(el)} "${t}"`, by: Math.round(spill) });
     }
   }
   if (document.documentElement.scrollWidth > vw + 1) issues.push({ type: 'page-hscroll', need: document.documentElement.scrollWidth, have: vw });

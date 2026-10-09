@@ -129,8 +129,7 @@ const AssetMarker = memo(function AssetMarker({ id, setRef }: { id: AssetId; set
           <span className="h-[5px] w-[5px] rounded-full" style={{ background: TONE_HEX[tone] }} aria-hidden />
           <span className="text-[10.5px] text-ink-3">{asset?.status}</span>
         </button>
-        {/* stem; grows into a leader line when de-cluttering lifts the tag off its asset */}
-        <span className="absolute left-1/2 w-px -translate-x-1/2 bg-blue/70" style={{ height: 'calc(7px + var(--lead, 0px))', bottom: 'calc(-1 * var(--lead, 0px))' }} aria-hidden />
+        <span className="absolute bottom-0 left-1/2 h-[7px] w-px -translate-x-1/2 bg-blue/70" aria-hidden />
       </div>
     </div>
   );
@@ -176,12 +175,13 @@ function IncidentPin({ id, setRef }: { id: string; setRef: (el: HTMLElement | nu
           <TriangleAlert size={13} strokeWidth={2.4} className="-rotate-45 text-bg-0" aria-hidden />
         </span>
         <span className="mt-2 whitespace-nowrap rounded-[4px] bg-bg-0/80 px-1.5 py-[1px] mono text-[10px] text-ink-1">{inc.id}</span>
-        {/* leader line back to the incident location when de-cluttering lifts the pin */}
-        <span className="absolute left-1/2 top-full w-px -translate-x-1/2 opacity-70" style={{ height: 'var(--lead, 0px)', background: c }} aria-hidden />
       </button>
     </div>
   );
 }
+
+type Box = { w: number; h: number };
+type Rect = { l: number; t: number; r: number; b: number };
 
 export function TwinMarkers({ compact }: { compact?: boolean }) {
   const layers = useUI((s) => s.layers);
@@ -190,6 +190,8 @@ export function TwinMarkers({ compact }: { compact?: boolean }) {
   const incidents = useSim((s) => s.incidents.filter((i) => i.status !== 'resolved').map((i) => i.id).join(','));
   const refs = useRef(new Map<string, HTMLElement | null>());
   const anchors = useRef(new Map<string, () => [number, number, number]>());
+  const rootRef = useRef<HTMLDivElement>(null);
+  const leaderRef = useRef<SVGGElement>(null);
   const setRef = (key: string, anchor: () => [number, number, number]) => (el: HTMLElement | null) => {
     refs.current.set(key, el);
     anchors.current.set(key, anchor);
@@ -197,14 +199,55 @@ export function TwinMarkers({ compact }: { compact?: boolean }) {
 
   useEffect(() => {
     // approximate label footprints (px) above their anchor, used for de-cluttering
-    const box = (key: string) =>
+    const box = (key: string): Box | null =>
       key.startsWith('incident:') ? { w: 92, h: 50 } : key.startsWith('asset:') ? { w: 150, h: 30 } : key.startsWith('unit:') ? { w: 62, h: 24 } : null;
-    const overlap = (a: Projected, ab: { w: number; h: number }, b: Projected, bb: { w: number; h: number }) =>
-      Math.abs(a.x - b.x) * 2 < ab.w + bb.w && a.y - ab.h < b.y && b.y - bb.h < a.y;
+    const rectOf = (x: number, y: number, b: Box): Rect => ({ l: x - b.w / 2, t: y - b.h, r: x + b.w / 2, b: y });
+    const hits = (a: Rect, o: Rect) => a.l < o.r + 2 && a.r > o.l - 2 && a.t < o.b + 2 && a.b > o.t - 2;
     const pool = new Map<string, Projected>();
-    const leads = new Map<string, string>();
+    const offsets = new Map<string, [number, number]>();
+    const lines = new Map<string, SVGLineElement>();
+    // HUD cards and docked panels drawn over the twin; labels never hide underneath them
+    let hud: Rect[] = [];
+    let hudAt = -Infinity;
+    const readHud = () => {
+      const root = rootRef.current;
+      if (!root) return;
+      const base = root.getBoundingClientRect();
+      hud = [];
+      for (const el of document.querySelectorAll<HTMLElement>('[data-twin-obstacle]')) {
+        const r = el.getBoundingClientRect();
+        if (r.width >= 2 && r.height >= 2) hud.push({ l: r.left - base.left, t: r.top - base.top, r: r.right - base.left, b: r.bottom - base.top });
+      }
+    };
+    const leader = (key: string, from: [number, number] | null, to: [number, number] = [0, 0], color = '') => {
+      let ln = lines.get(key);
+      if (!from) {
+        if (ln && ln.style.display !== 'none') ln.style.display = 'none';
+        return;
+      }
+      if (!ln) {
+        const g = leaderRef.current;
+        if (!g) return;
+        ln = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        ln.setAttribute('stroke-width', '1');
+        g.appendChild(ln);
+        lines.set(key, ln);
+      }
+      ln.style.display = '';
+      ln.setAttribute('stroke', color);
+      ln.setAttribute('x1', from[0].toFixed(1));
+      ln.setAttribute('y1', from[1].toFixed(1));
+      ln.setAttribute('x2', to[0].toFixed(1));
+      ln.setAttribute('y2', to[1].toFixed(1));
+    };
     return frameBus.onMain((f) => {
-      const items: { key: string; el: HTMLElement; p: Projected; s: number; y0: number }[] = [];
+      const now = performance.now();
+      if (now - hudAt > 400) {
+        hudAt = now;
+        readHud();
+      }
+      const W = f.rect.width;
+      const items: { key: string; el: HTMLElement; p: Projected; s: number; x0: number; y0: number }[] = [];
       for (const [key, el] of refs.current) {
         if (!el) continue;
         const a = anchors.current.get(key);
@@ -246,47 +289,86 @@ export function TwinMarkers({ compact }: { compact?: boolean }) {
           }
           continue;
         }
-        items.push({ key, el, p, s: isUnit || isZone ? 1 : Math.max(0.74, Math.min(1, 1250 / p.distance)), y0: p.y });
+        items.push({ key, el, p, s: isUnit || isZone ? 1 : Math.max(0.74, Math.min(1, 1250 / p.distance)), x0: p.x, y0: p.y });
       }
-      // de-clutter: tagged sensors (selected or flagged: marker + ID tag) > incidents > assets > unit labels
-      const placed: { p: Projected; b: { w: number; h: number } }[] = [];
+
+      // De-clutter, greedy by priority: tagged sensors (selected or flagged: marker + ID tag) > incidents >
+      // assets > unit labels. A label that would collide with a placed label, a HUD card or the viewport
+      // edge moves to the nearest free spot (stacked above, beside or below what it hits) and keeps a
+      // leader line to its anchor; with no free spot it is dropped (incident pins never are).
+      const placed: Rect[] = [];
       const sel = useUI.getState().selection;
-      const sensors = useSim.getState().sensors;
+      const sim = useSim.getState();
       for (const it of items) {
         if (!it.key.startsWith('sensor:') || !it.p.visible) continue;
         const id = it.key.slice(7);
-        const st = sensors[id]?.status;
+        const st = sim.sensors[id]?.status;
         const tagged = (sel?.kind === 'sensor' && sel.id === id) || st === 'elevated' || st === 'alert';
         // footprint: 22 px marker + stem above the anchor, ID tag to its right (centred box ≈ ±76 px)
-        if (tagged) placed.push({ p: it.p, b: { w: 152, h: 36 } });
+        if (tagged) placed.push(rectOf(it.p.x, it.p.y, { w: 152, h: 36 }));
       }
       for (const prefix of ['incident:', 'asset:', 'unit:']) {
         for (const it of items) {
           if (!it.key.startsWith(prefix) || !it.p.visible) continue;
           const b = box(it.key);
           if (!b) continue;
-          if (prefix === 'unit:') {
-            if (placed.some((o) => overlap(it.p, b, o.p, o.b))) it.p.visible = false;
-          } else {
-            for (let tries = 0; tries < 3; tries++) {
-              const hit = placed.find((o) => overlap(it.p, b, o.p, o.b));
-              if (!hit) break;
-              it.p.y = hit.p.y - hit.b.h - 2;
+          const { x0, y0 } = it;
+          const free = (x: number, y: number) => {
+            const r = rectOf(x, y, b);
+            return r.l >= 2 && r.r <= W - 2 && r.t >= 2 && !placed.some((o) => hits(r, o)) && !hud.some((o) => hits(r, o));
+          };
+          if (!free(x0, y0)) {
+            if (prefix === 'unit:') it.p.visible = false;
+            else {
+              let best: [number, number] | null = null;
+              let cost = Infinity;
+              const consider = (x: number, y: number, weight: number) => {
+                const c = Math.hypot(x - x0, y - y0) * weight;
+                if (c < cost && free(x, y)) {
+                  cost = c;
+                  best = [x, y];
+                }
+              };
+              // last frame's spot first, so labels do not hop between equally good places
+              const prev = offsets.get(it.key);
+              if (prev) consider(x0 + prev[0], y0 + prev[1], 0.6);
+              for (const o of [...placed, ...hud]) {
+                consider(x0, o.t - 2, 1);
+                consider(o.r + b.w / 2 + 4, y0, 1.25);
+                consider(o.l - b.w / 2 - 4, y0, 1.25);
+                consider(x0, o.b + b.h + 2, 1.6);
+              }
+              consider(x0, b.h + 2, 1.4); // pinned under the top edge
+              const spot = best as [number, number] | null;
+              if (spot) {
+                it.p.x = spot[0];
+                it.p.y = spot[1];
+              } else if (prefix === 'asset:') it.p.visible = false;
             }
           }
-          if (it.p.visible) placed.push({ p: it.p, b });
+          if (it.p.visible) placed.push(rectOf(it.p.x, it.p.y, b));
         }
       }
+
       for (const it of items) {
         placeEl(it.el, it.p, it.s);
-        if (!it.key.startsWith('incident:') && !it.key.startsWith('asset:')) continue;
-        // lifted tags keep a leader line to where they belong (in the tag's own, scaled pixels)
-        const lift = it.p.visible ? (it.y0 - it.p.y) / it.s : 0;
-        const lead = lift >= 1 ? `${lift.toFixed(1)}px` : '0px';
-        if (leads.get(it.key) !== lead) {
-          leads.set(it.key, lead);
-          it.el.style.setProperty('--lead', lead);
+        const kind = it.key.startsWith('incident:') ? 'incident' : it.key.startsWith('asset:') ? 'asset' : null;
+        if (!kind) continue;
+        const dx = it.p.x - it.x0;
+        const dy = it.p.y - it.y0;
+        const moved = it.p.visible && Math.hypot(dx, dy) > 3;
+        if (moved) offsets.set(it.key, [dx, dy]);
+        else offsets.delete(it.key);
+        if (!moved) {
+          leader(it.key, null);
+          continue;
         }
+        let color = 'rgb(76 148 255 / 0.75)';
+        if (kind === 'incident') {
+          const inc = sim.incidents.find((i) => i.id === it.key.slice(9));
+          color = inc ? TONE_HEX[SEVERITY_TONE[inc.severity]] : '#f2b33d';
+        }
+        leader(it.key, [it.p.x, it.p.y], [it.x0, it.y0], color);
       }
     });
   }, []);
@@ -296,7 +378,11 @@ export function TwinMarkers({ compact }: { compact?: boolean }) {
   const showAssets = layers.assets;
 
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-label="Map markers">
+    <div ref={rootRef} className="pointer-events-none absolute inset-0 overflow-hidden" aria-label="Map markers">
+      {/* leader lines from moved labels back to their anchors, under every marker */}
+      <svg className="absolute inset-0 h-full w-full" aria-hidden>
+        <g ref={leaderRef} strokeOpacity={0.8} />
+      </svg>
       {SITE.units.map((u) => (
         <UnitLabel key={u.id} label={u.label} setRef={setRef(`unit:${u.id}`, () => [u.x, 76, u.z])} />
       ))}

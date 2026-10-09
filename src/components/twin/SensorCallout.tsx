@@ -29,6 +29,7 @@ export function SensorCallout({ id, setRef }: { id: string; setRef: (el: HTMLEle
       </svg>
       <div
         data-callout-card
+        data-twin-obstacle
         className="pointer-events-auto absolute right-[10px] top-[78px] w-[248px] rounded-[7px] border border-line-strong bg-surface-1/96 p-2.5 shadow-[0_12px_32px_rgb(0_0_0/0.5)]"
         role="dialog"
         aria-label={`${id} telemetry`}

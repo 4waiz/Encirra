@@ -522,32 +522,35 @@ export function IncidentsScreen() {
   const selectedId = useUI((s) => s.selectedIncidentId);
   const selected = useMemo(() => incidents.find((i) => i.id === selectedId) ?? incidents.find((i) => i.status !== 'resolved') ?? incidents[0], [incidents, selectedId]);
   return (
-    <div className="absolute inset-0 grid gap-2 p-2" style={{ gridTemplateColumns: 'clamp(260px, 19vw, 320px) minmax(0, 1fr) clamp(320px, 24vw, 400px)' }}>
-      <IncidentList selected={selected} />
-      {selected ? (
-        <IncidentDetail inc={selected} />
-      ) : (
-        <section className="panel">
-          <EmptyState icon={ShieldCheck} title="No incidents" detail="Nothing requires a response. Incidents opened by the fusion engine or by operators appear here." />
-        </section>
-      )}
-      <div className="flex min-h-0 flex-col gap-2">
-        <ResponseKpisPanel className="h-[212px] shrink-0" />
-        <Panel title="Asset dispatch" icon={Bot} iconColor="#4c94ff" className="min-h-0 flex-1">
-          <Dispatch inc={selected} />
-        </Panel>
-        {selected && (
-          <Panel title="Incident location" icon={Box} iconColor="#4c94ff" className="min-h-0 flex-1" transparentBody>
-            <FeedViewport viewId="incident-pip" source="PIP" mode="visible" size="thumb" pip={{ x: selected.location.x, z: selected.location.z }} detections={false} className="absolute inset-0">
-              <span className="pointer-events-none absolute bottom-1.5 left-2 font-cond text-[10px] uppercase tracking-[0.12em] text-ink-1" style={{ textShadow: '0 1px 2px #000' }}>
-                Twin view · {selected.location.label}
-              </span>
-            </FeedViewport>
-          </Panel>
+    // short windows: the screen scrolls instead of crushing its panels
+    <div className="absolute inset-0 overflow-y-auto">
+      <div className="grid h-full min-h-[640px] gap-2 p-2" style={{ gridTemplateColumns: 'clamp(260px, 19vw, 320px) minmax(0, 1fr) clamp(320px, 24vw, 400px)' }}>
+        <IncidentList selected={selected} />
+        {selected ? (
+          <IncidentDetail inc={selected} />
+        ) : (
+          <section className="panel">
+            <EmptyState icon={ShieldCheck} title="No incidents" detail="Nothing requires a response. Incidents opened by the fusion engine or by operators appear here." />
+          </section>
         )}
-        <Panel title="Communications" icon={Radio} className="shrink-0">
-          <Comms />
-        </Panel>
+        <div className="flex min-h-0 flex-col gap-2">
+          <ResponseKpisPanel className="h-[212px] shrink-0" />
+          <Panel title="Asset dispatch" icon={Bot} iconColor="#4c94ff" className="min-h-0 flex-1">
+            <Dispatch inc={selected} />
+          </Panel>
+          {selected && (
+            <Panel title="Incident location" icon={Box} iconColor="#4c94ff" className="min-h-0 flex-1" transparentBody>
+              <FeedViewport viewId="incident-pip" source="PIP" mode="visible" size="thumb" pip={{ x: selected.location.x, z: selected.location.z }} detections={false} className="absolute inset-0">
+                <span className="pointer-events-none absolute bottom-1.5 left-2 font-cond text-[10px] uppercase tracking-[0.12em] text-ink-1" style={{ textShadow: '0 1px 2px #000' }}>
+                  Twin view · {selected.location.label}
+                </span>
+              </FeedViewport>
+            </Panel>
+          )}
+          <Panel title="Communications" icon={Radio} className="shrink-0">
+            <Comms />
+          </Panel>
+        </div>
       </div>
     </div>
   );

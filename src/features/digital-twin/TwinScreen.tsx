@@ -60,18 +60,19 @@ function IncidentStatus() {
             <div className="mt-0.5 text-[10.5px] text-ink-3">
               {INCIDENT_CATEGORY_LABEL[i.category]} · {i.status === 'new' ? 'Awaiting acknowledgement' : i.status === 'acknowledged' ? 'Acknowledged' : 'Investigating'}
             </div>
-            <div className="mt-2 flex gap-1.5">
+            {/* the primary action gets its own full-width row: three buttons never fit this card's width */}
+            <div className="mt-2 grid grid-cols-2 gap-1.5">
               {i.status === 'new' && (
-                <button type="button" className="ctl h-[24px] flex-1 border-amber/50 text-amber" onClick={() => engine.acknowledge(i.id)}>
+                <button type="button" className="ctl col-span-2 h-[24px] border-amber/50 text-amber" onClick={() => engine.acknowledge(i.id)}>
                   Acknowledge
                 </button>
               )}
-              <button type="button" className="ctl h-[24px] flex-1" onClick={() => focusOn({ kind: 'location', x: i.location.x, z: i.location.z, radius: 120 })}>
+              <button type="button" className="ctl h-[24px]" onClick={() => focusOn({ kind: 'location', x: i.location.x, z: i.location.z, radius: 120 })}>
                 <Crosshair size={12} /> Focus
               </button>
               <button
                 type="button"
-                className="ctl h-[24px] flex-1"
+                className="ctl h-[24px]"
                 onClick={() => {
                   useUI.getState().selectIncident(i.id);
                   useUI.getState().setScreen('incidents');
@@ -114,7 +115,7 @@ function LeftPanel({ className, width }: { className?: string; width: number }) 
   const layers = useUI((s) => s.layers);
   const setLayer = useUI((s) => s.setLayer);
   return (
-    <aside className={cx('panel overflow-y-auto shadow-[0_16px_40px_rgb(0_0_0/0.45)]', className)} style={{ width }} aria-label="Twin controls">
+    <aside data-twin-obstacle className={cx('panel overflow-y-auto shadow-[0_16px_40px_rgb(0_0_0/0.45)]', className)} style={{ width }} aria-label="Twin controls">
       <Section icon={Layers} title="Layers">
         <div className="flex flex-col gap-1">
           {LAYER_DEFS.map((l) => {
@@ -164,7 +165,7 @@ export function TwinScreen() {
         {leftOpen ? (
           <LeftPanel width={leftW} className="absolute bottom-3 left-3 top-3 z-20" />
         ) : null}
-        <div className="absolute left-3 top-3 z-30" style={{ left: leftOpen ? leftW - 18 : 12 }}>
+        <div data-twin-obstacle className="absolute left-3 top-3 z-30" style={{ left: leftOpen ? leftW - 18 : 12 }}>
           <button
             type="button"
             className="ctl ctl-icon h-[24px] w-[24px] bg-surface-1/90"
@@ -179,6 +180,7 @@ export function TwinScreen() {
         {immersive && (
           <button
             type="button"
+            data-twin-obstacle
             className="ctl absolute bottom-3 left-1/2 z-30 -translate-x-1/2 bg-surface-1/90"
             onClick={() => {
               useUI.getState().setTwinImmersive(false);

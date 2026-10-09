@@ -40,7 +40,12 @@ function DetectionOverlay({ viewId, exclude, compact, onDetections }: { viewId: 
     return frameBus.onFeed(viewId, (f) => {
       const dets = detect(f.camera, f.rect.width, f.rect.height, f.t, exclude).sort((a, b) => PRIORITY[a.kind] - PRIORITY[b.kind]);
       cb.current?.(dets);
+      const W = f.rect.width;
+      const H = f.rect.height;
       labels.length = 0;
+      // reserved corners: the mode badge bottom-left and, on thumbnails, the expand button bottom-right
+      labels.push(compact ? { x: 0, y: H - 24, w: 104, h: 24 } : { x: 0, y: H - 34, w: 150, h: 34 });
+      if (compact) labels.push({ x: W - 28, y: H - 28, w: 28, h: 28 });
       // keep labels below the timestamp row (thumbnails) or the caption block (main feed)
       const minTop = compact ? 22 : 44;
       while (pool.length < dets.length) {
@@ -70,20 +75,25 @@ function DetectionOverlay({ viewId, exclude, compact, onDetections }: { viewId: 
         const text = `${d.label} ${Math.round(d.confidence * 100)}%${d.extra ? ` · ${d.extra}` : ''}`;
         const lh = compact ? 13 : 15;
         const lw = text.length * (compact ? 5.8 : 6.4) + 8;
-        // keep labels clear of the feed caption, inside the frame and clear of each other
+        // keep labels clear of the feed caption, the corner badges, inside the frame and clear of each
+        // other: above the box by default, tucked inside its top edge when that spot is taken, else hidden
         const inside = d.y - lh - 1 < minTop;
-        const insideOffset = Math.max(1, minTop - d.y + 1);
-        const ly = inside ? d.y + insideOffset : d.y - lh - 1;
-        const shift = Math.max(0, d.x + lw - (f.rect.width - 2));
+        const shift = Math.max(0, d.x + lw - (W - 2));
         const lx = d.x - shift;
-        const clash = labels.some((o) => lx < o.x + o.w && lx + lw > o.x && ly < o.y + o.h && ly + lh > o.y);
-        label.style.display = clash ? 'none' : 'block';
-        if (!clash) labels.push({ x: lx, y: ly, w: lw, h: lh });
+        const free = (top: number) => !labels.some((o) => lx < o.x + o.w && lx + lw > o.x && top < o.y + o.h && top + lh > o.y);
+        let ly = inside ? d.y + Math.max(1, minTop - d.y + 1) : d.y - lh - 1;
+        let ok = free(ly);
+        if (!ok && !inside && free(d.y + 1)) {
+          ly = d.y + 1;
+          ok = true;
+        }
+        label.style.display = ok ? 'block' : 'none';
+        if (ok) labels.push({ x: lx, y: ly, w: lw, h: lh });
         label.style.background = c;
         label.style.fontSize = compact ? '9.5px' : '10.5px';
         label.style.lineHeight = `${lh}px`;
         label.style.left = `${-1 - shift}px`;
-        label.style.top = inside ? `${insideOffset}px` : `${-lh - 1}px`;
+        label.style.top = `${ly - d.y}px`;
         label.textContent = text;
       });
     });

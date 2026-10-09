@@ -75,7 +75,7 @@ function Biological() {
         <Metric value={m.aerosol} className={big} />
         <span className={unit}>/ 100</span>
       </Block>
-      <Block label="Samples to lab" chart={<CountBars values={samples} color={CATEGORY_HEX.bio} scaleMax={6} title="Samples awaiting lab confirmation, per minute · last 15 min" />}>
+      <Block label="Lab samples" chart={<CountBars values={samples} color={CATEGORY_HEX.bio} scaleMax={6} title="Samples awaiting lab confirmation, per minute · last 15 min" />}>
         <Metric value={m.samplesPending} className={big} />
       </Block>
       <Block label="Detectors" chart={<MicroBars values={[1, 1, 1, 1, 1, 1, 1, 1, 1, m.bioOnline / m.bioTotal]} color={CATEGORY_HEX.bio} bars={10} height={16} />}>

@@ -64,10 +64,10 @@ function FeedsPanel() {
 
 export function OverviewScreen() {
   return (
-    <div className="absolute inset-0 flex flex-col gap-2 p-2">
+    <div className="absolute inset-0 flex flex-col gap-2 overflow-y-auto p-2">
       <KpiRow />
       <div
-        className="grid min-h-0 flex-1 gap-2"
+        className="grid min-h-[480px] flex-1 gap-2"
         style={{
           gridTemplateColumns: 'clamp(268px, 17.5vw, 300px) minmax(0, 1fr) minmax(0, 1fr) clamp(340px, 27vw, 500px)',
           gridTemplateRows: 'minmax(0, 1fr) clamp(170px, 23vh, 236px)',

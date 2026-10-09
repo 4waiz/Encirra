@@ -126,26 +126,35 @@ function CorrelationGraph({ obs }: { obs: Observation }) {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  const nodes = obs.evidence.slice(-5);
   const { w: W, h: H } = size;
-  // source names get the room first; the observation box narrows on small panels
-  const nodeW = Math.round(Math.min(196, Math.max(160, W * 0.4)));
-  const nodeH = 28;
-  const r = 26;
-  const obsW = W < 400 ? 92 : 104;
+  const recent = obs.evidence.slice(-5);
+  const fitCount = Math.max(1, Math.floor((H - 22) / 22));
+  const nodes = recent.length > fitCount ? [...recent].sort((a, b) => b.weight - a.weight).slice(0, fitCount) : recent;
+  const hidden = recent.length - nodes.length;
+  // source names get the room first; on narrow panels the observation box, then the source column,
+  // then the fusion node shrink so the three never touch
+  const obsW = W < 400 ? 86 : 104;
+  const rMax = W < 400 ? 22 : 26;
+  const gapFor = (rad: number) => 2 * rad + 34;
+  let nodeW = Math.round(Math.min(196, Math.max(160, W * 0.4)));
+  if (W - obsW - 10 - nodeW < gapFor(rMax)) nodeW = Math.max(132, W - obsW - 10 - gapFor(rMax));
+  const r = Math.max(15, Math.min(rMax, (W - obsW - 10 - nodeW - 34) / 2));
+  const nodeH = Math.max(18, Math.min(28, Math.floor((H - 22) / Math.max(1, nodes.length)) - 4));
   const ox = W - obsW - 4;
   const fx = nodeW + 6 + (ox - nodeW - 6) * 0.5;
   const fy = (H - 14) / 2;
   const top = 8 + nodeH / 2;
   const span = Math.max(0, H - 22 - nodeH);
   const ny = (i: number) => (nodes.length === 1 ? fy : top + (i * span) / (nodes.length - 1));
-  const maxChars = Math.floor((nodeW - 50) / 6.7);
+  // mono advance is 0.6 em; the name ends a few px before the right-aligned weight
+  const nameSize = nodeH < 24 ? 10 : nodeW < 170 ? 10.5 : 11;
+  const maxChars = Math.floor((nodeW - 43) / (nameSize * 0.6));
   return (
     <div ref={ref} className="relative h-full w-full">
       {W > 0 && H > 0 && (
         <svg width={W} height={H} role="img" aria-label={`Cross-source correlation: ${nodes.map((e) => `${e.source} ${Math.round(e.weight * 100)}%`).join(', ')}`}>
           <defs>
-            <marker id="corr-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <marker id="corr-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse">
               <path d="M0,0 L10,5 L0,10 z" fill="#b4a8ff" />
             </marker>
           </defs>
@@ -157,7 +166,7 @@ function CorrelationGraph({ obs }: { obs: Observation }) {
               <g key={e.id}>
                 <path d={`M${x0},${y} C${mx},${y} ${mx},${fy} ${fx - r},${fy}`} fill="none" stroke="#b4a8ff" strokeOpacity={0.25 + e.weight * 0.6} strokeWidth={1 + e.weight * 5} />
                 <rect x="6" y={y - nodeH / 2} width={nodeW} height={nodeH} rx="5" fill="#151d27" stroke="rgb(148 163 184 / 0.24)" />
-                <text x="15" y={y + 4} fontSize="11" fill="#ece7df" className="mono">
+                <text x="15" y={y + 4} fontSize={nameSize} fill="#ece7df" className="mono">
                   {e.source.length > maxChars ? `${e.source.slice(0, maxChars - 1)}…` : e.source}
                 </text>
                 <text x={nodeW - 3} y={y + 4} fontSize="10.5" fill="#a9b3be" className="num" textAnchor="end">
@@ -167,10 +176,10 @@ function CorrelationGraph({ obs }: { obs: Observation }) {
             );
           })}
           <circle cx={fx} cy={fy} r={r} fill="rgb(180 168 255 / 0.12)" stroke="#b4a8ff" strokeWidth="1.5" />
-          <text x={fx} y={fy - 2} fontSize="10" fill="#ece7df" textAnchor="middle" className="font-cond" fontWeight="600">
+          <text x={fx} y={fy - 2} fontSize={r < 20 ? 8.5 : 10} fill="#ece7df" textAnchor="middle" className="font-cond" fontWeight="600">
             FUSION
           </text>
-          <text x={fx} y={fy + 11} fontSize="10" fill="#a9b3be" textAnchor="middle" className="num">
+          <text x={fx} y={fy + (r < 20 ? 9 : 11)} fontSize={r < 20 ? 8.5 : 10} fill="#a9b3be" textAnchor="middle" className="num">
             {Math.round(obs.confidence * 100)}%
           </text>
           <path d={`M${fx + r},${fy} L${ox - 4},${fy}`} stroke="#b4a8ff" strokeWidth={2 + obs.confidence * 3} strokeOpacity="0.8" markerEnd="url(#corr-arrow)" />
@@ -182,7 +191,7 @@ function CorrelationGraph({ obs }: { obs: Observation }) {
             {obs.id}
           </text>
           <text x="6" y={H - 2} fontSize="9.5" fill="#75818e" className="font-cond">
-            Line width = evidence weight
+            Line width = evidence weight{hidden > 0 ? ` · +${hidden} more in Evidence` : ''}
           </text>
         </svg>
       )}
@@ -442,40 +451,42 @@ export function InsightsScreen() {
   }, [selected]);
 
   return (
-    <div className="absolute inset-0 grid gap-2 p-2" style={{ gridTemplateColumns: 'clamp(250px, 18vw, 300px) minmax(0, 1fr) clamp(320px, 24vw, 400px)' }}>
-      <ObservationList list={list} selected={selected} />
-      {selected ? (
-        <Detail obs={selected} />
-      ) : (
-        <section className="panel">
-          <EmptyState icon={ShieldCheck} title="No active observations" detail="The fusion model is monitoring all sources. Observations appear here when correlated readings exceed the review threshold." />
-        </section>
-      )}
-      <div className="flex min-h-0 flex-col gap-2">
-        <Panel title="Corresponding telemetry" icon={Activity} iconColor="#3cc8dc" className="min-h-0 flex-[1.05]">
-          <div className="absolute inset-0 px-2 pb-1 pt-2">
-            <TelemetryChart lanes={lanes} compact />
-          </div>
-        </Panel>
-        {selected && (
-          <Panel title="Spatial context" icon={Box} iconColor="#4c94ff" className="min-h-0 flex-1" transparentBody>
-            <FeedViewport viewId="insights-pip" source="PIP" mode="visible" size="thumb" pip={{ x: selected.location.x, z: selected.location.z }} detections={false} className="absolute inset-0">
-              <span className="pointer-events-none absolute bottom-1.5 left-2 font-cond text-[10px] uppercase tracking-[0.12em] text-ink-1" style={{ textShadow: '0 1px 2px #000' }}>
-                Twin view · {selected.location.label}
-              </span>
-            </FeedViewport>
-          </Panel>
+    <div className="absolute inset-0 overflow-y-auto">
+      <div className="grid h-full min-h-[640px] gap-2 p-2" style={{ gridTemplateColumns: 'clamp(250px, 18vw, 300px) minmax(0, 1fr) clamp(320px, 24vw, 400px)' }}>
+        <ObservationList list={list} selected={selected} />
+        {selected ? (
+          <Detail obs={selected} />
+        ) : (
+          <section className="panel">
+            <EmptyState icon={ShieldCheck} title="No active observations" detail="The fusion model is monitoring all sources. Observations appear here when correlated readings exceed the review threshold." />
+          </section>
         )}
-        {selected && (
-          <Panel title="Historical anomaly pattern" icon={CalendarClock} className="min-h-0 flex-[0.8]">
-            <HistoricalPattern obs={selected} />
+        <div className="flex min-h-0 flex-col gap-2">
+          <Panel title="Corresponding telemetry" icon={Activity} iconColor="#3cc8dc" className="min-h-0 flex-[1.05]">
+            <div className="absolute inset-0 px-2 pb-1 pt-2">
+              <TelemetryChart lanes={lanes} compact />
+            </div>
           </Panel>
-        )}
-        {selected && (
-          <Panel title="Source integrity" icon={ShieldCheck} className="min-h-0 flex-[0.85]">
-            <SourceIntegrity obs={selected} />
-          </Panel>
-        )}
+          {selected && (
+            <Panel title="Spatial context" icon={Box} iconColor="#4c94ff" className="min-h-0 flex-1" transparentBody>
+              <FeedViewport viewId="insights-pip" source="PIP" mode="visible" size="thumb" pip={{ x: selected.location.x, z: selected.location.z }} detections={false} className="absolute inset-0">
+                <span className="pointer-events-none absolute bottom-1.5 left-2 font-cond text-[10px] uppercase tracking-[0.12em] text-ink-1" style={{ textShadow: '0 1px 2px #000' }}>
+                  Twin view · {selected.location.label}
+                </span>
+              </FeedViewport>
+            </Panel>
+          )}
+          {selected && (
+            <Panel title="Historical anomaly pattern" icon={CalendarClock} className="min-h-0 flex-[0.8]">
+              <HistoricalPattern obs={selected} />
+            </Panel>
+          )}
+          {selected && (
+            <Panel title="Source integrity" icon={ShieldCheck} className="min-h-0 flex-[0.85]">
+              <SourceIntegrity obs={selected} />
+            </Panel>
+          )}
+        </div>
       </div>
     </div>
   );

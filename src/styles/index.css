@@ -128,10 +128,14 @@
   ::selection {
     background: rgb(60 200 220 / 0.3);
   }
-  /* precision-instrument scrollbars */
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: rgb(148 163 184 / 0.22) transparent;
+  /* precision-instrument scrollbars. Chromium ignores the ::-webkit-scrollbar rules whenever
+     scrollbar-width is set (and then draws a wider native bar with arrow buttons that eats into list
+     rows), so the standard properties only apply where the pseudo-elements are unsupported (Firefox). */
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: rgb(148 163 184 / 0.22) transparent;
+    }
   }
   *::-webkit-scrollbar {
     width: 6px;
@@ -172,6 +176,21 @@
     flex: none;
     padding: 0 10px 0 12px;
     border-bottom: 1px solid var(--color-line);
+  }
+  /* response KPI cards size themselves to the grid cell; short cards drop the caption line whole */
+  .kpi-card {
+    container-type: size;
+  }
+  @container (max-height: 72px) {
+    .kpi-sub {
+      display: none;
+    }
+  }
+  @container (max-height: 56px) {
+    .kpi-body {
+      padding-top: 4px;
+      padding-bottom: 4px;
+    }
   }
   .panel-title {
     font-family: var(--font-cond);

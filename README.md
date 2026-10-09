@@ -41,6 +41,8 @@ node tools/screenshots/capture.mjs screenshots/phase-2 --suffix=-final --url=htt
 
 `tools/screenshots/functional-check.mjs [outDir] [--url=…]` runs the scripted functional QA pass (navigation and hash routing, command palette, scenario transitions, incident lifecycle with notes, replay, picking, inspector + focus, layers, WASD in the twin and in Live Feeds, feeds and snapshot, wind, auto-framing, persisted state across reload, 1366×768 / 1920×1080 overflow) and reports failed requests, console errors and warnings. `perf-probe.mjs` reports frame rate and render statistics. Findings and fixes from the QA pass are in [QA_NOTES.md](QA_NOTES.md).
 
+`ui-audit.mjs [outDir] [--sizes=1280x720,1920x1080] [--views=overview,twin]` captures every screen, the settings tabs and the command palette at several window sizes (with real scrollbars) and reports overlapping or clipped text, controls and rows spilling out of their containers, and content pushed off-screen. `look.mjs [outDir]` renders the 3D twin from fixed camera poses with the UI hidden, for judging materials, lighting and terrain.
+
 ## Using it
 
 | | |

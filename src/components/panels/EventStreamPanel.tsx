@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { ListChecks, Radiation, FlaskConical, Biohazard, Bot, Cpu, BrainCircuit, ChevronRight, ChevronDown, Crosshair, Siren, Inbox } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useSim } from '../../store/sim';
@@ -18,12 +18,21 @@ export const EVENT_ICON: Record<EventCategory, LucideIcon> = {
   ai: BrainCircuit,
 };
 
-const FILTERS: { value: EventFilter; label: string; title: string; color?: string }[] = [
+const FILTERS: { value: EventFilter; label: ReactNode; title: string; color?: string }[] = [
   { value: 'all', label: 'All', title: 'All events' },
   { value: 'chem', label: 'C', title: 'Chemical', color: CATEGORY_HEX.chem },
   { value: 'bio', label: 'B', title: 'Biological', color: CATEGORY_HEX.bio },
   { value: 'rad', label: 'R', title: 'Radiological', color: CATEGORY_HEX.rad },
-  { value: 'assets', label: 'Assets', title: 'Field assets' },
+  {
+    value: 'assets',
+    label: (
+      <>
+        <Bot size={12} strokeWidth={2.1} className="@min-[380px]:hidden" aria-hidden />
+        <span className="sr-only @min-[380px]:not-sr-only">Assets</span>
+      </>
+    ),
+    title: 'Field assets',
+  },
 ];
 
 export function matchesFilter(e: SimEvent, f: EventFilter) {
@@ -113,9 +122,13 @@ export function EventStreamPanel({ className }: { className?: string }) {
   const list = useMemo(() => events.filter((e) => matchesFilter(e, filter)).slice(0, 60), [events, filter]);
   return (
     <Panel
-      title="AI Event Stream"
+      title={
+        <>
+          <span className="hidden @min-[350px]:inline">AI </span>Event stream
+        </>
+      }
       icon={ListChecks}
-      className={className}
+      className={cx('@container', className)}
       actions={<Segmented options={FILTERS} value={filter} onChange={setFilter} label="Filter events" />}
     >
       {list.length ? (
