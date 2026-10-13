@@ -44,7 +44,8 @@ float encAAB(float x, float a, float b, float w){ return clamp(smoothstep(a - w,
 
 /** Instanced building material: windows in metric object space from the instance scale. */
 function createTowerMaterial(kind: 'tower' | 'low') {
-  const m = kind === 'low' ? new MeshLambertMaterial({ color: '#ffffff' }) : new MeshStandardMaterial({ color: '#ffffff', roughness: 0.8, metalness: 0, envMapIntensity: 1.0 });
+  // low IBL on towers: at dusk their glass should read as dark blue-grey, not mirror the bright horizon
+  const m = kind === 'low' ? new MeshLambertMaterial({ color: '#ffffff' }) : new MeshStandardMaterial({ color: '#ffffff', roughness: 0.8, metalness: 0, envMapIntensity: 0.35 });
   m.customProgramCacheKey = () => `encirra-tower-${kind}-v3`;
   if (kind === 'low') m.defines = { ENC_LOW: '' };
   m.onBeforeCompile = (shader) => {
@@ -124,23 +125,23 @@ vec3 wallA;
 vec3 glassC = glassy ? vec3(0.02, 0.035, 0.05) : vec3(0.025, 0.027, 0.03);
 vec3 roofC;
 #ifdef ENC_LOW
-  if (type < 0.5) wallA = mix(vec3(0.05, 0.08, 0.11), vec3(0.1, 0.14, 0.17), sv);
-  else if (type < 1.5) wallA = mix(vec3(0.5, 0.49, 0.47), vec3(0.62, 0.61, 0.59), sv);
-  else if (type < 2.5) wallA = mix(vec3(0.42, 0.34, 0.25), vec3(0.52, 0.44, 0.33), sv);
-  else if (type < 3.5) wallA = mix(vec3(0.24, 0.25, 0.27), vec3(0.34, 0.35, 0.37), sv);
-  else wallA = mix(vec3(0.58, 0.56, 0.52), vec3(0.66, 0.63, 0.58), sv);
+  if (type < 0.5) wallA = mix(vec3(0.035, 0.05, 0.07), vec3(0.07, 0.1, 0.13), sv);
+  else if (type < 1.5) wallA = mix(vec3(0.27, 0.27, 0.27), vec3(0.34, 0.34, 0.33), sv);
+  else if (type < 2.5) wallA = mix(vec3(0.24, 0.2, 0.15), vec3(0.31, 0.26, 0.2), sv);
+  else if (type < 3.5) wallA = mix(vec3(0.13, 0.135, 0.15), vec3(0.19, 0.195, 0.21), sv);
+  else wallA = mix(vec3(0.33, 0.32, 0.3), vec3(0.4, 0.38, 0.35), sv);
   // roofs: light membrane, dark tar or concrete, with a lighter parapet edge
   float rs = fract(seed * 0.53);
-  roofC = rs < 0.4 ? vec3(0.36, 0.36, 0.36) : rs < 0.75 ? vec3(0.12, 0.12, 0.13) : vec3(0.24, 0.23, 0.22);
+  roofC = rs < 0.4 ? vec3(0.22, 0.22, 0.22) : rs < 0.75 ? vec3(0.07, 0.07, 0.08) : vec3(0.14, 0.135, 0.13);
   vec2 rl = abs(vLoc.xz);
   float edge = min(vScl.x * 0.5 - rl.x, vScl.z * 0.5 - rl.y);
-  roofC = mix(roofC, vec3(0.42, 0.41, 0.39), 1.0 - smoothstep(0.4, 0.8, edge));
+  roofC = mix(roofC, vec3(0.26, 0.255, 0.245), 1.0 - smoothstep(0.4, 0.8, edge));
   // rooftop plant / AC units as darker blocks
   vec2 rb = floor(vLoc.xz / 4.0);
   roofC *= mix(1.0, 0.55, step(0.86, encH13(vec3(rb, seed + 31.0))) * step(1.5, edge));
 #else
-  wallA = glassy ? mix(vec3(0.05, 0.07, 0.09), vec3(0.12, 0.15, 0.18), fract(seed * 0.37)) : (tone < 0.75 ? mix(vec3(0.3, 0.3, 0.31), vec3(0.42, 0.42, 0.42), sv) : mix(vec3(0.28, 0.24, 0.2), vec3(0.38, 0.33, 0.27), sv));
-  roofC = vec3(0.3, 0.3, 0.31);
+  wallA = glassy ? mix(vec3(0.03, 0.045, 0.065), vec3(0.07, 0.095, 0.12), fract(seed * 0.37)) : (tone < 0.75 ? mix(vec3(0.16, 0.17, 0.19), vec3(0.24, 0.245, 0.26), sv) : mix(vec3(0.2, 0.18, 0.16), vec3(0.28, 0.25, 0.21), sv));
+  roofC = vec3(0.16, 0.16, 0.17);
 #endif
 diffuseColor.rgb = roof ? roofC : mix(wallA, glassC, m);
 vec3 tEm = warm * (0.6 + 1.1 * mix(encH13(vec3(ci, seed + 9.0)), 0.5, farF)) * lit * m;
@@ -158,7 +159,7 @@ float tMetal = roof ? 0.0 : mix(glassy ? 0.25 : 0.0, 0.3, m);`,
         '#include <lights_fragment_end>',
         `#include <lights_fragment_end>
 #ifdef ENC_LOW
-reflectedLight.directDiffuse *= 0.5;
+reflectedLight.directDiffuse *= 0.42;
 #else
 reflectedLight.directDiffuse *= 0.5;
 reflectedLight.directSpecular *= 0.5;
@@ -185,7 +186,7 @@ function buildInstances(specs: InstSpec[], geo: BoxGeometry | CylinderGeometry, 
     attr[i * 4] = s.seed;
     attr[i * 4 + 1] = low ? type : tone;
     attr[i * 4 + 2] = low ? (type === 4 ? 3.6 : 3.3) : tone < 0.55 ? 4.0 : 3.5;
-    attr[i * 4 + 3] = low ? (type === 4 ? 0.62 : 0.5) : 0.24 + ((s.seed * 3.7) % 0.22);
+    attr[i * 4 + 3] = low ? (type === 4 ? 0.62 : 0.5) : 0.36 + ((s.seed * 3.7) % 0.24);
   });
   mesh.geometry = geo.clone();
   mesh.geometry.setAttribute('aTower', new InstancedBufferAttribute(attr, 4));

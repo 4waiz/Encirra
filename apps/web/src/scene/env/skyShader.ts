@@ -125,7 +125,7 @@ export function installHazeFog() {
   float encWy = cameraPosition.y + vFogWorld.y;
   fogFactor = clamp(fogFactor * mix(1.25, 0.8, smoothstep(-50.0, 150.0, encWy)), 0.0, 1.0);
   // low evening mist over the lower city so the raised district reads clearly above it
-  float encMist = (1.0 - smoothstep(-62.0, -30.0, encWy)) * smoothstep(60.0, 420.0, vFogDepth) * 0.26;
+  float encMist = (1.0 - smoothstep(-70.0, -30.0, encWy)) * smoothstep(150.0, 900.0, vFogDepth) * 0.5;
   vec3 encFogCol = encHaze(normalize(vFogWorld)) * fogColor;
   // the mist is a dimmer, cooler blue-grey dusk haze than the bright horizon glow
   vec3 encMistCol = encFogCol * vec3(0.34, 0.38, 0.48);

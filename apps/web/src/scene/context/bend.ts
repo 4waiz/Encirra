@@ -9,7 +9,8 @@
  */
 import type { Material, WebGLProgramParametersWithUniforms } from 'three';
 
-export const BEND = { r0: 290, R: 2300 };
+// the bay and the near lower city (r < r0) stay flat; beyond it the ground falls away
+export const BEND = { r0: 800, R: 1500 };
 
 export const BEND_GLSL = /* glsl */ `
 float encBendDrop(vec2 xz) {

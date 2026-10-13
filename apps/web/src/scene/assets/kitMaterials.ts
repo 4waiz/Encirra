@@ -96,7 +96,8 @@ export function createKitMaterial(name: string, src: Material | null, manifest: 
   const darken = opts.darkenOutage !== false;
   if (opts.skyline) {
     mat.defines = { ENC_SKYLINE: '' };
-    if (kind === 'standard') mat.color.multiply(new Color(0.34, 0.37, 0.43));
+    if (kind === 'standard') mat.color.multiply(new Color(0.3, 0.33, 0.39));
+    mat.envMapIntensity = 0.35;
   }
   mat.customProgramCacheKey = () => `encirra-kit-${kind}-${name === 'water' ? 'w' : ''}${darken ? 'd' : ''}${mat.map ? 'm' : ''}${mat.normalMap ? 'n' : ''}${opts.skyline ? 's' : ''}`;
   mat.onBeforeCompile = (shader) => {

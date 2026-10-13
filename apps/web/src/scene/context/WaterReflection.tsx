@@ -8,7 +8,7 @@
  */
 import { useEffect, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { Color, HalfFloatType, LinearFilter, Vector2, WebGLRenderTarget } from 'three';
+import { Color, type DirectionalLight, HalfFloatType, LinearFilter, Vector2, WebGLRenderTarget } from 'three';
 import { REFLECTION_LAYER } from './Skyline';
 import { fx, useSceneQuality } from '../runtime';
 
@@ -31,8 +31,17 @@ export function WaterReflection() {
 
   useEffect(() => () => target.dispose(), []);
 
+  // shadow-casting lights: the pass waits until their shadow maps exist (the shared materials
+  // sample them; drawing before the first shadow render binds a non-depth texture to a shadow sampler)
+  const shadowLights = useMemo<DirectionalLight[]>(() => [], []);
   useFrame(() => {
-    const on = tier !== 'low' && fx.skyline > 0.01;
+    if (shadowLights.length === 0) {
+      scene.traverse((o) => {
+        if ((o as DirectionalLight).isDirectionalLight && o.castShadow) shadowLights.push(o as DirectionalLight);
+      });
+    }
+    const shadowsReady = shadowLights.every((l) => !l.castShadow || l.shadow.map != null);
+    const on = tier !== 'low' && fx.skyline > 0.01 && shadowsReady && fx.frames > 2;
     reflectionUniforms.uReflOn.value = on ? 1 : 0;
     if (!on) return;
     gl.getDrawingBufferSize(buf);
