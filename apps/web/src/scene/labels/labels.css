@@ -9,8 +9,7 @@
   pointer-events: none;
   user-select: none;
   white-space: nowrap;
-  transition: opacity 0.3s ease;
-  animation: enc-lbl-in 0.35s ease-out both;
+  transition: opacity 0.25s ease;
 }
 @keyframes enc-lbl-in {
   from {
@@ -23,6 +22,7 @@
   }
 }
 .enc-lbl-pill {
+  animation: enc-lbl-in 0.35s ease-out;
   transform: translateX(var(--shiftx, 0px));
   display: flex;
   align-items: center;
@@ -79,4 +79,16 @@
 }
 .enc-lbl-info .enc-lbl-pill {
   border-color: rgba(255, 255, 255, 0.25);
+}
+/* callout placed under its anchor (when there is no room above inside the UI safe band) */
+.enc-lbl.enc-lbl-below {
+  flex-direction: column-reverse;
+  transform: translate(-50%, 0);
+}
+.enc-lbl.enc-lbl-below .enc-lbl-leader {
+  background: linear-gradient(to top, color-mix(in srgb, var(--tone) 90%, transparent), color-mix(in srgb, var(--tone) 30%, transparent));
+}
+.enc-lbl.enc-lbl-below .enc-lbl-dot {
+  margin-top: 0;
+  margin-bottom: -1px;
 }

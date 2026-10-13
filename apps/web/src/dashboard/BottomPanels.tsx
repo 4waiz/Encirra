@@ -11,7 +11,7 @@ import { PowerChart, WaterCharts, focusTank } from '@/charts/TimeCharts';
 import { LegendKey, SERIES } from '@/charts/common';
 import { MAP_COLORS, MAP_LEGEND, OverviewMap } from '@/maps/OverviewMap';
 
-const PANEL = '@container flex h-full flex-col p-[clamp(10px,0.8vw,15px)] pb-[clamp(6px,0.6vw,10px)]';
+const PANEL = '@container flex h-full flex-col p-[clamp(10px,0.8vw,15px)] pb-[clamp(9px,0.78vw,15px)] short:pb-[7px]';
 
 function PanelHeader({ icon, title, right }: { icon: React.ReactNode; title: string; right?: React.ReactNode }) {
   return (
@@ -182,7 +182,7 @@ export function FacilitiesPanel() {
   const requestCamera = useTwin((s) => s.requestCamera);
   const rows = useMemo(() => (ctx ? facilityRows(ctx.topology, ctx.frame) : []), [ctx?.topology, ctx?.frame]);
   return (
-    <Card className={clsx(PANEL, 'pb-[clamp(8px,0.6vw,12px)]')} data-testid="facilities-panel">
+    <Card className={PANEL} data-testid="facilities-panel">
       <PanelHeader icon={<Building2 size={18} className="text-info" />} title="Critical Facilities" right={<SourceChip source={dataSource} />} />
       <div className="enc-scroll mt-[clamp(4px,0.8vh,8px)] min-h-0 flex-1 overflow-y-auto rounded-md border border-line/70">
         <table className="w-full border-collapse text-left t-micro">
@@ -269,7 +269,7 @@ export function CityOverviewPanel() {
   const setHovered = useTwin((s) => s.setHovered);
   const requestCamera = useTwin((s) => s.requestCamera);
   return (
-    <Card className={clsx(PANEL, 'pb-[clamp(8px,0.6vw,12px)]')} data-testid="overview-panel">
+    <Card className={PANEL} data-testid="overview-panel">
       <PanelHeader
         icon={<Building2 size={18} className="text-navy" />}
         title="City Overview"

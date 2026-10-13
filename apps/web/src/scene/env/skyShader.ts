@@ -18,23 +18,30 @@ export const SKY_GLSL = /* glsl */ `
 #ifndef ENC_SKY
 #define ENC_SKY
 const vec3 ENC_SUN_DIR = ${SUN};
+vec3 encSkyGrad(vec3 d, float withSun, float squash);
 vec3 encSkyBase(vec3 d, float withSun) {
+  return encSkyGrad(d, withSun, 1.0);
+}
+vec3 encSkyGrad(vec3 d, float withSun, float squash) {
   float h = d.y;
-  float t = clamp(h, 0.0, 1.0);
-  vec3 cHor = ${v3('#FFD0A0')} * 1.6;
-  vec3 cLow = ${v3('#F6AA78')} * 1.35;
-  vec3 cMid = ${v3('#E3A27F')} * 1.0;
-  vec3 cUp  = ${v3('#8E9DB9')} * 0.88;
-  vec3 cTop = ${v3('#4F6E99')} * 0.8;
-  vec3 col = mix(cHor, cLow, smoothstep(0.0, 0.05, t));
-  col = mix(col, cMid, smoothstep(0.03, 0.16, t));
-  col = mix(col, cUp, smoothstep(0.12, 0.38, t));
-  col = mix(col, cTop, smoothstep(0.32, 0.9, t));
+  // squash > 1 compresses the gradient towards the horizon (used by the visible dome, whose
+  // in-frame sky band is only a few degrees tall above the curved horizon)
+  float t = clamp(h * squash, 0.0, 1.0);
+  vec3 cHor = ${v3('#FFD49A')} * 1.75;
+  vec3 cLow = ${v3('#FBB46E')} * 1.4;
+  vec3 cMid = ${v3('#E9A478')} * 1.02;
+  vec3 cUp  = ${v3('#9AA6BE')} * 0.9;
+  vec3 cTop = ${v3('#4D6C9B')} * 0.8;
+  vec3 col = mix(cHor, cLow, smoothstep(0.0, 0.045, t));
+  col = mix(col, cMid, smoothstep(0.03, 0.14, t));
+  col = mix(col, cUp, smoothstep(0.12, 0.34, t));
+  col = mix(col, cTop, smoothstep(0.3, 0.85, t));
   vec3 dh = normalize(vec3(d.x, 0.0, d.z) + vec3(1e-5, 0.0, 0.0));
   vec3 sh = normalize(vec3(ENC_SUN_DIR.x, 0.0, ENC_SUN_DIR.z));
   float az = dot(dh, sh) * 0.5 + 0.5;
-  float lowW = 1.0 - smoothstep(0.0, 0.55, t);
-  col *= mix(${v3('#D8D4E6')} * 1.02, ${v3('#FFE9D2')} * 1.12, az * lowW + (1.0 - lowW) * 0.5);
+  float lowW = 1.0 - smoothstep(0.0, 0.5, t);
+  // golden all around the horizon, brightest towards the sun; only a light cool cast away from it
+  col *= mix(${v3('#F2DCC6')} * 1.0, ${v3('#FFE6C4')} * 1.14, az * lowW + (1.0 - lowW) * 0.5);
   float sdot = max(dot(d, ENC_SUN_DIR), 0.0);
   vec3 sunCol = ${v3('#FFC894')};
   col += sunCol * (pow(sdot, 5.0) * 0.38 + pow(sdot, 32.0) * 0.75 + pow(sdot, 300.0) * 2.4) * withSun;
@@ -112,7 +119,13 @@ export function installHazeFog() {
   #endif
   float encWy = cameraPosition.y + vFogWorld.y;
   fogFactor = clamp(fogFactor * mix(1.25, 0.8, smoothstep(-50.0, 150.0, encWy)), 0.0, 1.0);
+  // low evening mist over the lower city so the raised district reads clearly above it
+  float encMist = (1.0 - smoothstep(-62.0, -30.0, encWy)) * smoothstep(60.0, 420.0, vFogDepth) * 0.3;
   vec3 encFogCol = encHaze(normalize(vFogWorld)) * fogColor;
+  // the mist is a dimmer, cooler dusk haze than the bright horizon glow
+  vec3 encMistCol = encFogCol * vec3(0.42, 0.4, 0.44);
+  encFogCol = mix(encFogCol, encMistCol, encMist / max(1.0 - (1.0 - fogFactor) * (1.0 - encMist), 1e-3) * (1.0 - fogFactor));
+  fogFactor = 1.0 - (1.0 - fogFactor) * (1.0 - encMist);
   gl_FragColor.rgb = mix( gl_FragColor.rgb, encFogCol, fogFactor );
 #endif`;
 }

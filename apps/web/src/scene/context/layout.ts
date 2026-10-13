@@ -24,11 +24,11 @@ export function fromCtx(x: number, z: number): [number, number] {
 
 // ── water bodies in the context frame (same formulas in GLSL: WATER_GLSL)
 export function creekCenter(z: number) {
-  return -700 + 90 * Math.sin(z / 380) + 40 * Math.sin(z / 150 + 1.3);
+  return -500 + 70 * Math.sin(z / 380) + 30 * Math.sin(z / 150 + 1.3);
 }
-export const CREEK_HALF = 95;
+export const CREEK_HALF = 85;
 export function bayEdge(z: number) {
-  return 760 + 150 * Math.sin(z / 460 + 0.6) + 50 * Math.sin(z / 190);
+  return 520 + 110 * Math.sin(z / 460 + 0.6) + 40 * Math.sin(z / 190);
 }
 function isWaterCtx(x: number, z: number, margin: number) {
   if (Math.abs(x - creekCenter(z)) < CREEK_HALF + margin) return true;
@@ -43,8 +43,8 @@ export function isWater(x: number, z: number, margin = 0) {
 }
 
 export const WATER_GLSL = /* glsl */ `
-float encCreekC(float z) { return -700.0 + 90.0 * sin(z / 380.0) + 40.0 * sin(z / 150.0 + 1.3); }
-float encBayE(float z) { return 760.0 + 150.0 * sin(z / 460.0 + 0.6) + 50.0 * sin(z / 190.0); }
+float encCreekC(float z) { return -500.0 + 70.0 * sin(z / 380.0) + 30.0 * sin(z / 150.0 + 1.3); }
+float encBayE(float z) { return 520.0 + 110.0 * sin(z / 460.0 + 0.6) + 40.0 * sin(z / 190.0); }
 vec2 encToCtx(vec2 w) { return vec2(w.x * ${CR.toFixed(6)} - w.y * ${SR.toFixed(6)}, w.x * ${SR.toFixed(6)} + w.y * ${CR.toFixed(6)}); }
 // signed distance-ish (world input): < 0 inside water
 float encWaterSd(vec2 pw) {
@@ -58,7 +58,7 @@ float encWaterSd(vec2 pw) {
 
 /** Keep-out zone around the district platform (clear sight-lines to the cut-away faces). */
 export function nearDistrict(x: number, z: number, m = 0) {
-  return x > -330 - m && x < 280 + m * 0.4 && z > -200 - m * 0.4 && z < 250 + m;
+  return x > -275 - m && x < 275 + m * 0.4 && z > -185 - m * 0.4 && z < 185 + m;
 }
 
 export interface TowerSpec {
@@ -133,17 +133,18 @@ export function lowerCity(): LowSpec[] {
       const cd = span / nz;
       for (let i = 0; i < nx; i++) {
         for (let k = 0; k < nz; k++) {
-          if (rnd() < 0.12) continue; // courtyard / plaza
+          if (rnd() < 0.07) continue; // courtyard / plaza
           const x = bx0 + cw * (i + 0.5) + (rnd() - 0.5) * 4;
           const z = bz0 + cd * (k + 0.5) + (rnd() - 0.5) * 4;
           const r = Math.hypot(x, z);
           if (r > R) continue;
-          if (isWater(x, z, 20) || nearDistrict(x, z, 30)) continue;
-          const w = cw * (0.62 + rnd() * 0.3);
-          const d = cd * (0.62 + rnd() * 0.3);
+          if (isWater(x, z, 20) || nearDistrict(x, z, 4)) continue;
+          const w = cw * (0.74 + rnd() * 0.22);
+          const d = cd * (0.74 + rnd() * 0.22);
           const near = r < 700;
-          const cap = near ? 16 : r < 1200 ? 34 : 56;
-          const h = 6 + Math.pow(rnd(), 2.0) * cap;
+          const cap = near ? 15 : r < 1200 ? 34 : 56;
+          // mostly 2–5 storeys with occasional taller blocks
+          const h = rnd() < 0.12 ? 18 + rnd() * cap * 1.4 : 6 + Math.pow(rnd(), 1.6) * cap * 0.7;
           out.push({ x, z, w, d, h, rot: 0, seed: rnd() * 1000 });
         }
       }

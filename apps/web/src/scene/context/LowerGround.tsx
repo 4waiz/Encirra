@@ -94,12 +94,12 @@ float street = max(sx, sz);
 float swx = encGridLine(gp.x, ${LOW_GRID.toFixed(1)}, ${(LOW_STREET / 2 + 3.5).toFixed(1)}, gaa);
 float swz = encGridLine(gp.y, ${LOW_GRID.toFixed(1)}, ${(LOW_STREET / 2 + 3.5).toFixed(1)}, gaa);
 float walk = max(swx, swz) * (1.0 - street);
-vec3 block = mix(vec3(0.13, 0.115, 0.095), vec3(0.2, 0.17, 0.13), gn) * (0.85 + 0.25 * gn2);
+vec3 block = mix(vec3(0.07, 0.062, 0.052), vec3(0.11, 0.095, 0.075), gn) * (0.85 + 0.25 * gn2);
 // parks and planted courtyards
 float park = smoothstep(0.58, 0.66, encNoise(gp * 0.0045 + 3.0));
 block = mix(block, mix(vec3(0.03, 0.06, 0.02), vec3(0.06, 0.1, 0.03), gn2), park * 0.9);
 vec3 asphalt = vec3(0.022, 0.023, 0.026) * (0.85 + 0.3 * gn2);
-vec3 gcol = mix(block, vec3(0.24, 0.22, 0.19), walk);
+vec3 gcol = mix(block, vec3(0.15, 0.14, 0.12), walk);
 gcol = mix(gcol, asphalt, street);
 // quay edge along the water
 float quay = (1.0 - smoothstep(0.0, 12.0, wsd)) * (1.0 - isW);
@@ -107,10 +107,16 @@ gcol = mix(gcol, vec3(0.34, 0.32, 0.28), quay * 0.85);
 diffuseColor.rgb = mix(gcol, vec3(0.01, 0.025, 0.035), isW);
 // street lighting: warm light pools along the carriageways + soft network glow at distance
 float lfade = 1.0 - smoothstep(0.5, 1.6, gaa);
-float poolsX = pow(0.5 + 0.5 * cos(gp.y * 6.2832 / 26.0), 6.0) * sx;
-float poolsZ = pow(0.5 + 0.5 * cos(gp.x * 6.2832 / 26.0), 6.0) * sz;
-float traffic = 0.35 + 0.65 * smoothstep(0.35, 0.8, encNoise(gp * 0.02 + vec2(uTime * 0.02, 0.0)));
-vec3 gEm = vec3(1.0, 0.6, 0.28) * (max(poolsX, poolsZ) * 0.6 * lfade + street * mix(0.06, 0.16, 1.0 - lfade)) * traffic * (1.0 - isW);
+// warm street glow: soft carriageway light + traffic streaks along the centre + lamp points at the kerbs
+float dX = abs(fract(gp.x / ${LOW_GRID.toFixed(1)} + 0.5) - 0.5) * ${LOW_GRID.toFixed(1)};
+float dZ = abs(fract(gp.y / ${LOW_GRID.toFixed(1)} + 0.5) - 0.5) * ${LOW_GRID.toFixed(1)};
+float centreX = exp(-dX * dX / 6.0) * sx;
+float centreZ = exp(-dZ * dZ / 6.0) * sz;
+float lampsX = pow(0.5 + 0.5 * cos(gp.y * 6.2832 / 28.0), 24.0) * (1.0 - smoothstep(0.6, 1.6, abs(dX - ${(LOW_STREET / 2 - 0.5).toFixed(1)}))) * step(dZ, 200.0);
+float lampsZ = pow(0.5 + 0.5 * cos(gp.x * 6.2832 / 28.0), 24.0) * (1.0 - smoothstep(0.6, 1.6, abs(dZ - ${(LOW_STREET / 2 - 0.5).toFixed(1)})));
+float traffic = 0.45 + 0.55 * smoothstep(0.3, 0.75, encNoise(gp * 0.015 + vec2(uTime * 0.03, uTime * 0.017)));
+vec3 gEm = vec3(1.0, 0.56, 0.24) * (street * mix(0.05, 0.11, 1.0 - lfade) + max(centreX, centreZ) * 0.22 * traffic) * (1.0 - isW);
+gEm += vec3(1.0, 0.72, 0.42) * max(lampsX, lampsZ) * 2.2 * lfade * (1.0 - isW);
 gEm += vec3(1.0, 0.7, 0.4) * walk * 0.03 * (1.0 - isW);
 float gRough = mix(mix(0.92, 0.75, street), 0.04, isW);
 `,

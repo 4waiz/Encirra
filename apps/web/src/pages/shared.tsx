@@ -2,7 +2,7 @@ import { Download, ExternalLink, FileJson, FileSpreadsheet } from 'lucide-react'
 import clsx from 'clsx';
 import type { RunSummary, StrategyId } from '@encirra/shared';
 import { useTwin } from '@/state/store';
-import { STRATEGY_LABEL, summariesByStrategy } from '@/data/selectors';
+import { STRATEGY_LABEL, summariesByStrategy, summaryRestoredShare } from '@/data/selectors';
 import { fmtDuration, fmtInt, fmtKW, fmtKWh, fmtM, fmtM3, fmtMs, fmtPct } from '@/data/format';
 import { comparisonCsv, downloadText, exportJson, timeseriesCsv } from '@/data/export';
 import { liveApi } from '@/data/api';
@@ -27,7 +27,8 @@ export const COMPARISON_METRICS: MetricDef[] = [
   {
     key: 'loadRestoredKW',
     label: 'Load restored at end of horizon (% of affected demand)',
-    fmt: (s) => `${fmtKW(s.loadRestoredKW)} (${fmtPct(s.loadRestoredPct)})`,
+    hint: 'Affected demand = load restored + unserved at the end of the horizon (both rows of this table).',
+    fmt: (s) => `${fmtKW(s.loadRestoredKW)} (${fmtPct(summaryRestoredShare(s))})`,
     value: (s) => s.loadRestoredKW,
     better: 'higher',
   },
@@ -86,7 +87,9 @@ export function ComparisonTable({ compact, testId }: { compact?: boolean; testId
             const best = m.better && nums.length > 1 ? (m.better === 'higher' ? Math.max(...nums) : Math.min(...nums)) : null;
             return (
               <tr key={m.key} className="border-t border-line/70">
-                <td className="px-3 py-1.5 text-ink">{m.label}</td>
+                <td className="px-3 py-1.5 text-ink" title={m.hint}>
+                  {m.label}
+                </td>
                 {STRATS.map((s, i) => (
                   <td key={s} className={clsx('px-3 py-1.5 tabular', best != null && vals[i] === best ? 'font-semibold text-navy' : 'text-ink')}>
                     {sums[s] ? m.fmt(sums[s]!) : '—'}

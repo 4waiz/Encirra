@@ -240,22 +240,25 @@ export function Labels() {
       const pill = el.firstElementChild as HTMLElement | null;
       const pw = (pill?.offsetWidth || 170) + 8;
       const ph = (pill?.offsetHeight || 38) + 6;
-      let best: { lift: number; shift: number } | null = null;
-      if (tmp.z < 1 && ay <= safeBottom && ay >= safeTop && ax > 0 && ax < W) {
+      let best: { lift: number; shift: number; below: boolean } | null = null;
+      if (tmp.z < 1 && ay <= safeBottom && ay >= safeTop - 60 && ax > 0 && ax < W) {
         const lifts = [0, 34, 68, 102, 136];
         const shifts = [0, -(pw * 0.55), pw * 0.55, -(pw * 1.05), pw * 1.05];
-        outer: for (const lift of lifts) {
-          for (const shift of shifts) {
-            const cx = ax + shift;
-            const y1 = ay - 29 - lift;
-            const y0 = y1 - ph;
-            const x0 = cx - pw / 2;
-            const x1 = cx + pw / 2;
-            if (y0 < safeTop || x0 < 8 || x1 > W - 8) continue;
-            if (placed.some((p) => x0 < p.x1 && x1 > p.x0 && y0 < p.y1 && y1 > p.y0)) continue;
-            best = { lift, shift };
-            placed.push({ x0, x1, y0, y1 });
-            break outer;
+        outer: for (const below of [false, true]) {
+          for (const lift of lifts) {
+            for (const shift of shifts) {
+              const cx = ax + shift;
+              const y0 = below ? ay + 29 + lift : ay - 29 - lift - ph;
+              const y1 = y0 + ph;
+              const x0 = cx - pw / 2;
+              const x1 = cx + pw / 2;
+              if (y0 < safeTop || y1 > safeBottom || x0 < 8 || x1 > W - 8) continue;
+              if (!below && ay < safeTop) continue;
+              if (placed.some((p) => x0 < p.x1 && x1 > p.x0 && y0 < p.y1 && y1 > p.y0)) continue;
+              best = { lift, shift, below };
+              placed.push({ x0, x1, y0, y1 });
+              break outer;
+            }
           }
         }
       }
@@ -263,6 +266,7 @@ export function Labels() {
         el.style.opacity = '0';
         continue;
       }
+      el.classList.toggle('enc-lbl-below', best.below);
       const prev = offsets.get(l.key) ?? best.lift;
       const next = prev + (best.lift - prev) * 0.3;
       offsets.set(l.key, next);

@@ -341,16 +341,25 @@ export function criticalProgress(run: RunResult, topology: NetworkTopology, k: n
 }
 
 /**
- * Share of the demand affected by the event that is supplied again, from one frame only:
- * restoredKW / (restoredKW + unservedKW) — both numbers are shown next to it, so it can be checked
- * on screen. Unserved demand sits on the interrupted buses (incl. any shed by the plan), so at the
- * final frame this equals the engine's summary.loadRestoredPct (restored ÷ end-of-horizon demand of
- * those buses). It is deliberately not divided by the fault-time interrupted load, which changes
- * with the time-of-day demand profile.
+ * Share of the demand affected by the event (interrupted by the fault or shed by the plan) that is
+ * supplied again, from one frame only: restoredKW / (restoredKW + unservedKW). Both numbers are
+ * shown next to it, so it can be checked on screen. It is deliberately not divided by the
+ * fault-time interrupted load, which changes with the time-of-day demand profile. It equals the
+ * engine's summary.loadRestoredPct (interrupted buses only) when the plan sheds nothing outside the
+ * interrupted area.
  */
 export function restoredShare(frame: Frame): number | null {
-  const denom = frame.power.restoredKW + frame.power.unservedKW;
-  return denom > 1e-6 ? (100 * frame.power.restoredKW) / denom : null;
+  return shareOf(frame.power.restoredKW, frame.power.unservedKW);
+}
+
+/** Same definition from a run summary: loadRestoredKW / (loadRestoredKW + remainingUnservedKW). */
+export function summaryRestoredShare(s: { loadRestoredKW: number; remainingUnservedKW: number }): number | null {
+  return shareOf(s.loadRestoredKW, s.remainingUnservedKW);
+}
+
+function shareOf(restored: number, unserved: number): number | null {
+  const denom = restored + unserved;
+  return denom > 1e-6 ? (100 * restored) / denom : null;
 }
 
 export function recoveryCardModel(run: RunResult, topology: NetworkTopology, k: number): RecoveryCardModel {

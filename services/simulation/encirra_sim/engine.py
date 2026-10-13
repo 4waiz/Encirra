@@ -954,7 +954,12 @@ def build_events(fc: FrameContext, frames: list[Frame], sel: Optional[Selection]
                 for b in fc.plan.spec.shed:
                     fac = [f.name for f in d.facilities_on_bus(b)]
                     shed_kw = d.buses[b].load_kw * st.load_factor[k]
-                    ev.add(k, "switching", "warning", f"B{b + 1} shed" + (f" ({', '.join(fac)})" if fac else ""), f"Non-critical load ({shed_kw:.0f} kW, {d.buses[b].load_kvar * st.load_factor[k]:.0f} kVAr) kept off to free network capacity.", {"buses": [b]})
+                    shed_kvar = d.buses[b].load_kvar * st.load_factor[k]
+                    if b in rt.fault.downstream_dark:
+                        txt = f"Non-critical load ({shed_kw:.0f} kW, {shed_kvar:.0f} kVAr) left off so the restored area stays within every hard limit."
+                    else:
+                        txt = f"Supplied non-critical load ({shed_kw:.0f} kW, {d.buses[b].connections} connections) interrupted to create voltage headroom for the restoration path."
+                    ev.add(k, "switching", "warning", f"B{b + 1} shed" + (f" ({', '.join(fac)})" if fac else ""), txt, {"buses": [b]})
             else:
                 ev.add(k, "info", "info", "No further switching", "The verified plan keeps the post-isolation configuration.")
     # hydraulic threshold crossings (from the EPS results)

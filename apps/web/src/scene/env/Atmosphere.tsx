@@ -43,7 +43,7 @@ function makeSkyMaterial(clouds: boolean) {
         float el = asin(clamp(d0.y, -1.0, 1.0)) + uDip;
         vec2 hz = normalize(d0.xz + vec2(1e-5, 0.0));
         vec3 d = vec3(hz.x * cos(el), sin(el), hz.y * cos(el));
-        vec3 col = encSkyBase(d, 1.0);
+        vec3 col = encSkyGrad(d, 1.0, ${clouds ? '1.7' : '1.0'});
         ${
           clouds
             ? `

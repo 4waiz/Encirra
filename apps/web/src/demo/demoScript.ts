@@ -5,7 +5,7 @@
  */
 import type { NetworkTopology, RunResult, StrategyId } from '@encirra/shared';
 import type { CameraShot, Layers, OverviewMode } from '@/state/store';
-import { frameIndexAtT, runMarks, lostPumpStations } from '@/data/selectors';
+import { frameIndexAtT, runMarks, lostPumpStations, summaryRestoredShare } from '@/data/selectors';
 import { fmtDuration, fmtInt, fmtKW, fmtNum } from '@/data/format';
 
 export interface DemoCtx {
@@ -166,7 +166,7 @@ export const DEMO_STEPS: DemoStep[] = [
       const at = p.appliedAtT;
       const happened = at == null ? [] : e.events.filter((ev) => ev.t === at && (ev.kind === 'restoration' || (ev.kind === 'switching' && ev.severity !== 'info'))).map((ev) => ev.title);
       const s = e.summary;
-      return `${applied ? `${applied}: ` : ''}switching executed — ${p.label}${happened.length ? ` (${happened.join(' · ')})` : ''}. By the end of the horizon ${fmtKW(s.loadRestoredKW)} is back on supply (${fmtNum(s.loadRestoredPct, 0)}% of the affected demand) and ${s.pumpsAvailableEnd}/${s.pumpsTotal} pumps are available.`;
+      return `${applied ? `${applied}: ` : ''}switching executed — ${p.label}${happened.length ? ` (${happened.join(' · ')})` : ''}. By the end of the horizon ${fmtKW(s.loadRestoredKW)} is back on supply (${fmtNum(summaryRestoredShare(s), 0)}% of the affected demand) and ${s.pumpsAvailableEnd}/${s.pumpsTotal} pumps are available.`;
     },
     cues: [
       { at: 0, strategy: 'encirra', whyPlan: false, overview: 'power', camera: { shot: 'recovery-path', durationS: 3 } },

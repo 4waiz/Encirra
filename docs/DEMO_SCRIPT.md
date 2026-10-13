@@ -7,9 +7,10 @@ Touching the playback controls pauses the demo for manual exploration — **Resu
 from where you left the playhead.
 
 **Data:** the default scenario *Electrical Feeder Failure* from the bundled replay (precomputed
-solver output: pandapower AC power flow + EPANET 2.2 via WNTR, engine 1.0.0). The figures quoted
-below are from that replay; if the replay is regenerated or the scenario is recomputed with the
-live solver, read the numbers from the screen — the captions update automatically.
+solver output: pandapower AC power flow + EPANET 2.2 via WNTR, engine 1.0.0, generated
+2026-10-13 11:18 UTC). The figures quoted below are from that replay; if the replay is regenerated
+or the scenario is recomputed with the live solver, read the numbers from the screen — the captions
+and cards update automatically and every quoted value has an on-screen source (noted in brackets).
 
 > Say once, early: *“Everything you see is a synthetic district on the IEEE 33-bus benchmark —
 > research prototype data, not a real utility. The replay is recorded solver output, not live
@@ -41,7 +42,7 @@ haze over the de-energised lateral; by **17:02** the faulted section is isolated
 
 **Talk track:**
 > “At 17:00 a permanent fault hits Feeder F3, line B27–B28. The recloser trips the whole lateral:
-> 829 kW and 186 service connections lose supply — including Pumping Station PS-2, the only pump
+> 829 kW and 186 service connections lose supply [Feeder Fault card] — including Pumping Station PS-2, the only pump
 > of the West pressure zone. City Hospital rides through on its 150 kW genset, but the genset does
 > not power water. Three critical facilities are now at risk. At 17:02 the faulted section is
 > isolated and the healthy upstream part, about 106 kW, comes back.”
@@ -57,7 +58,7 @@ switches to **None** (baseline replay) and the playhead runs to about **18:15**.
 **Talk track:**
 > “This is the part a power-only view misses. With PS-2 stopped, Tank T2 carries the West zone
 > alone. In the no-intervention baseline it drops below 25 % at 17:40 and is empty at 18:12 —
-> 72 minutes after the pump trip — and the hospital’s pressure collapses below the 20 m service
+> 72 minutes after the pump trip [Water Network chart] — and the hospital’s pressure collapses below the 20 m service
 > threshold. That hydraulic delay is our window to act.”
 
 **Point at:** Water chart (critical pressure vs the 20 m line, the shaded tank-buffer window and
@@ -71,9 +72,9 @@ its *72 min* label, Tank T2 level), *Hydraulic delay 1 h 12 min* chip, System Re
 candidates, independent verification) and closes.
 
 **Talk track:**
-> “Two planners look at the same 46 switching candidates. 36 are rejected outright on hard
-> limits — for example closing tie SW-18-33 drives bus B29 to 0.775 pu, and closing SW-25-29
-> alone overloads the tie to 130 %. A grid-only planner maximises restored electricity and picks
+> “Two planners look at the same 80 switching candidates. 59 are rejected outright on hard
+> limits — for example closing tie SW-18-33 alone drives bus B28 to 0.763 pu, and closing SW-25-29
+> alone overloads the tie to 130 % of its rating. A grid-only planner maximises restored electricity and picks
 > *Close SW-25-29 · open SW-31-32*: it restores more feeders but leaves PS-2 and the hospital
 > without grid supply. Encirra scores the coupled objective — served and critical load, water
 > delivered, critical water service, storage — and picks *Close SW-25-29 · shed B30*: it sheds the
@@ -90,8 +91,8 @@ rejected candidates with their failed checks, verification table, assumptions.
 lines turn amber (restoring) then green (restored); the timeline completes.
 
 **Talk track:**
-> “At 17:10 the switching sequence executes: B30 is shed, PU-2 restarts and 500 kW comes back
-> through the tie from Feeder F4. Pump availability returns to 2 of 2, Tank T2 starts refilling
+> “At 17:10 the switching sequence executes: B30 is shed, PU-2 restarts and 554 kW comes back
+> through the tie from Feeder F4 [demo caption, from the run's restoration events]. Pump availability returns to 2 of 2, Tank T2 starts refilling
 > and the hospital keeps about 38 m of pressure for the rest of the evening. The outcome is
 > honest: *Partially restored* — the cooling plant stays off by design — with the plan marked
 > Verified.”
@@ -105,9 +106,10 @@ facilities recovered, 2 / 2 pumps), Feeder Status map, City Overview.
 **On screen:** home shot; playhead to 19:30 (end of horizon); City Overview *Combined*.
 
 **Talk track:**
-> “Over the three-hour horizon: unserved energy 705 kWh with Encirra, 906 kWh grid-only and
+> “Over the three-hour horizon: unserved energy 571 kWh with Encirra, 772 kWh grid-only and
 > 2,236 kWh with no intervention; minutes below service pressure at critical facilities: 0 versus
-> 79 for both alternatives; water delivered 100 % versus 78 %; zero hard-constraint violations.
+> 79 for both alternatives; water delivered 100 % versus 78 %; zero hard-constraint violations
+> [Reports → Strategy comparison].
 > The full comparison, candidate list, methodology and limitations are in Reports, with CSV and
 > JSON exports.”
 
@@ -122,7 +124,7 @@ facilities recovered, 2 / 2 pumps), Feeder Status map, City Overview.
   you repeat any part. Keyboard: `Space` play/pause, `←` / `→` step.
 - **Other scenarios** (scenario selector): *Critical Pump Power Loss* — no switching plan can
   re-energise PS-2 inside the isolated section, so the evidence is about how long Tank T2 holds;
-  *High-Demand Conditions* — tighter limits reject more candidates (52 evaluated, 43 rejected).
+  *High-Demand Conditions* — tighter limits reject more candidates (83 evaluated, 70 rejected).
 - **Live solver:** with `npm run dev:sim` running, the header pill reads *Live solver* and the
   Scenarios page can recompute with edited parameters and objective weights.
 - **Wording:** Encirra is physics-driven and optimization-assisted. Say “Simulation Verified”
