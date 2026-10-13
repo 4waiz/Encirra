@@ -1,0 +1,43 @@
+{
+  "file": "street-furniture.glb",
+  "group": "props",
+  "assets": [
+    {
+      "id": "planter_v0",
+      "kind": "planter",
+      "variant": 0,
+      "node": "planter_v0",
+      "nominalSize": [
+        2.4,
+        2.4,
+        1.7
+      ],
+      "tris": 294,
+      "materials": [
+        "concrete",
+        "rock",
+        "foliage"
+      ],
+      "file": "street-furniture.glb",
+      "vertexAO": false
+    },
+    {
+      "id": "bench_v0",
+      "kind": "bench",
+      "variant": 0,
+      "node": "bench_v0",
+      "nominalSize": [
+        2.0,
+        0.56,
+        0.9
+      ],
+      "tris": 168,
+      "materials": [
+        "concrete",
+        "accent"
+      ],
+      "file": "street-furniture.glb",
+      "vertexAO": false
+    }
+  ]
+}

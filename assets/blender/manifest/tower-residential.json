@@ -1,0 +1,174 @@
+{
+  "file": "tower-residential.glb",
+  "group": "buildings",
+  "assets": [
+    {
+      "id": "tower-residential_v0",
+      "kind": "tower-residential",
+      "variant": 0,
+      "node": "tower-residential_v0",
+      "nominalSize": [
+        22.04,
+        19.04,
+        51.2
+      ],
+      "tris": 3236,
+      "materials": [
+        "glazing",
+        "facade_alt",
+        "facade",
+        "glass_clear",
+        "trim",
+        "roof",
+        "metal",
+        "steel_dark"
+      ],
+      "floors": 14,
+      "storeyHeight": 3.25,
+      "lobbyHeight": 5.0,
+      "roofY": 47.75,
+      "anchors": {
+        "label": [
+          0.0,
+          55.2,
+          0.0
+        ],
+        "roof": [
+          0.0,
+          47.75,
+          0.0
+        ],
+        "roofY": 47.75
+      },
+      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (14 storeys, lobby 5.0 m, storey 3.25 m), u = facade bay.",
+      "file": "tower-residential.glb",
+      "vertexAO": false
+    },
+    {
+      "id": "tower-residential_v1",
+      "kind": "tower-residential",
+      "variant": 1,
+      "node": "tower-residential_v1",
+      "nominalSize": [
+        22.08,
+        19.08,
+        54.05
+      ],
+      "tris": 1732,
+      "materials": [
+        "glazing",
+        "facade",
+        "facade_alt",
+        "roof",
+        "trim",
+        "metal",
+        "steel_dark"
+      ],
+      "floors": 14,
+      "storeyHeight": 3.3,
+      "lobbyHeight": 5.5,
+      "roofY": 48.9,
+      "anchors": {
+        "label": [
+          0.0,
+          58.05,
+          0.0
+        ],
+        "roof": [
+          0.0,
+          48.9,
+          0.0
+        ],
+        "roofY": 48.9
+      },
+      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (14 storeys, lobby 5.5 m, storey 3.30 m), u = facade bay.",
+      "file": "tower-residential.glb",
+      "vertexAO": false
+    },
+    {
+      "id": "tower-residential_v2",
+      "kind": "tower-residential",
+      "variant": 2,
+      "node": "tower-residential_v2",
+      "nominalSize": [
+        22.08,
+        19.08,
+        52.5
+      ],
+      "tris": 3348,
+      "materials": [
+        "glazing",
+        "facade_alt",
+        "facade",
+        "roof",
+        "trim",
+        "accent",
+        "metal",
+        "steel_dark"
+      ],
+      "floors": 14,
+      "storeyHeight": 3.2,
+      "lobbyHeight": 5.0,
+      "roofY": 47.1,
+      "anchors": {
+        "label": [
+          0.0,
+          56.5,
+          0.0
+        ],
+        "roof": [
+          0.0,
+          47.1,
+          0.0
+        ],
+        "roofY": 47.1
+      },
+      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (14 storeys, lobby 5.0 m, storey 3.20 m), u = facade bay.",
+      "file": "tower-residential.glb",
+      "vertexAO": false
+    },
+    {
+      "id": "tower-residential_v3",
+      "kind": "tower-residential",
+      "variant": 3,
+      "node": "tower-residential_v3",
+      "nominalSize": [
+        22.08,
+        19.08,
+        48.7
+      ],
+      "tris": 3332,
+      "materials": [
+        "glazing",
+        "facade_alt",
+        "facade",
+        "glass_clear",
+        "trim",
+        "roof",
+        "accent",
+        "metal",
+        "steel_dark"
+      ],
+      "floors": 13,
+      "storeyHeight": 3.25,
+      "lobbyHeight": 5.0,
+      "roofY": 44.5,
+      "anchors": {
+        "label": [
+          0.0,
+          52.7,
+          0.0
+        ],
+        "roof": [
+          0.0,
+          44.5,
+          0.0
+        ],
+        "roofY": 44.5
+      },
+      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (13 storeys, lobby 5.0 m, storey 3.25 m), u = facade bay.",
+      "file": "tower-residential.glb",
+      "vertexAO": false
+    }
+  ]
+}

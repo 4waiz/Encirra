@@ -1,0 +1,44 @@
+{
+  "file": "streetlight.glb",
+  "group": "props",
+  "assets": [
+    {
+      "id": "streetlight_v0",
+      "kind": "streetlight",
+      "variant": 0,
+      "node": "streetlight_v0",
+      "nominalSize": [
+        0.56,
+        2.88,
+        9.25
+      ],
+      "tris": 168,
+      "materials": [
+        "concrete",
+        "steel_dark",
+        "light_emissive"
+      ],
+      "file": "streetlight.glb",
+      "vertexAO": false
+    },
+    {
+      "id": "streetlight_v1",
+      "kind": "streetlight",
+      "variant": 1,
+      "node": "streetlight_v1",
+      "nominalSize": [
+        0.56,
+        5.2,
+        10.25
+      ],
+      "tris": 262,
+      "materials": [
+        "concrete",
+        "steel_dark",
+        "light_emissive"
+      ],
+      "file": "streetlight.glb",
+      "vertexAO": false
+    }
+  ]
+}

@@ -6,15 +6,21 @@ export const AXIS_TICK = { fontSize: 10, fill: '#5b6b7c' } as const;
 export const AXIS_LINE = { stroke: '#d3dae2' } as const;
 export const GRID = { stroke: '#e8edf2', strokeWidth: 1 } as const;
 
+/**
+ * Series colours (validated with the dataviz palette checker: CVD/normal-vision separation pass;
+ * the grey slots are intentional de-emphasis for reference/baseline series and always ship with
+ * a legend plus a table view).
+ */
 export const SERIES = {
-  served: '#F5A623',
+  served: '#D4880F',
+  servedWash: '#F5A623',
   demand: '#7f93a8',
   pressure: '#00A9D4',
   tank: '#1d7fa6',
   threshold: '#c8281d',
   minPressure: '#5b6b7c',
   noneS: '#98A2AD',
-  gridS: '#B8740A',
+  gridS: '#C97E0A',
   encirraS: '#2A6CB5',
 } as const;
 

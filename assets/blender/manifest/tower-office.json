@@ -1,0 +1,165 @@
+{
+  "file": "tower-office.glb",
+  "group": "buildings",
+  "assets": [
+    {
+      "id": "tower-office_v0",
+      "kind": "tower-office",
+      "variant": 0,
+      "node": "tower-office_v0",
+      "nominalSize": [
+        21.4,
+        17.9,
+        55.95
+      ],
+      "tris": 1390,
+      "materials": [
+        "roof",
+        "glazing",
+        "facade",
+        "trim",
+        "metal",
+        "steel_dark"
+      ],
+      "floors": 13,
+      "storeyHeight": 3.8,
+      "lobbyHeight": 6.5,
+      "roofY": 52.5,
+      "anchors": {
+        "label": [
+          0.0,
+          59.95,
+          0.0
+        ],
+        "roof": [
+          0.0,
+          52.5,
+          0.0
+        ],
+        "roofY": 52.5
+      },
+      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (13 storeys, lobby 6.5 m, storey 3.80 m), u = facade bay.",
+      "file": "tower-office.glb",
+      "vertexAO": false
+    },
+    {
+      "id": "tower-office_v1",
+      "kind": "tower-office",
+      "variant": 1,
+      "node": "tower-office_v1",
+      "nominalSize": [
+        21.4,
+        17.95,
+        55.95
+      ],
+      "tris": 1076,
+      "materials": [
+        "roof",
+        "glazing",
+        "facade",
+        "trim",
+        "metal",
+        "steel_dark"
+      ],
+      "floors": 13,
+      "storeyHeight": 3.8,
+      "lobbyHeight": 6.5,
+      "roofY": 52.5,
+      "anchors": {
+        "label": [
+          0.0,
+          59.95,
+          0.0
+        ],
+        "roof": [
+          0.0,
+          52.5,
+          0.0
+        ],
+        "roofY": 52.5
+      },
+      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (13 storeys, lobby 6.5 m, storey 3.80 m), u = facade bay.",
+      "file": "tower-office.glb",
+      "vertexAO": false
+    },
+    {
+      "id": "tower-office_v2",
+      "kind": "tower-office",
+      "variant": 2,
+      "node": "tower-office_v2",
+      "nominalSize": [
+        21.4,
+        18.0,
+        61.29
+      ],
+      "tris": 964,
+      "materials": [
+        "roof",
+        "glazing",
+        "facade",
+        "trim",
+        "accent"
+      ],
+      "floors": 13,
+      "storeyHeight": 3.8,
+      "lobbyHeight": 6.5,
+      "roofY": 52.1,
+      "anchors": {
+        "label": [
+          0.0,
+          65.29,
+          0.0
+        ],
+        "roof": [
+          0.0,
+          52.1,
+          0.0
+        ],
+        "roofY": 52.1
+      },
+      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (13 storeys, lobby 6.5 m, storey 3.80 m), u = facade bay.",
+      "file": "tower-office.glb",
+      "vertexAO": false
+    },
+    {
+      "id": "tower-office_v3",
+      "kind": "tower-office",
+      "variant": 3,
+      "node": "tower-office_v3",
+      "nominalSize": [
+        21.4,
+        17.9,
+        58.1
+      ],
+      "tris": 1362,
+      "materials": [
+        "roof",
+        "glazing",
+        "facade",
+        "trim",
+        "metal",
+        "steel_dark"
+      ],
+      "floors": 13,
+      "storeyHeight": 3.8,
+      "lobbyHeight": 6.5,
+      "roofY": 52.6,
+      "anchors": {
+        "label": [
+          0.0,
+          62.1,
+          0.0
+        ],
+        "roof": [
+          0.0,
+          52.6,
+          0.0
+        ],
+        "roofY": 52.6
+      },
+      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (13 storeys, lobby 6.5 m, storey 3.80 m), u = facade bay.",
+      "file": "tower-office.glb",
+      "vertexAO": false
+    }
+  ]
+}

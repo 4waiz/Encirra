@@ -1,0 +1,90 @@
+{
+  "file": "villa.glb",
+  "group": "buildings",
+  "assets": [
+    {
+      "id": "villa_v0",
+      "kind": "villa",
+      "variant": 0,
+      "node": "villa_v0",
+      "nominalSize": [
+        15.0,
+        14.5,
+        8.15
+      ],
+      "tris": 440,
+      "materials": [
+        "concrete",
+        "facade_alt",
+        "trim",
+        "roof",
+        "glazing",
+        "facade",
+        "accent",
+        "water"
+      ],
+      "floors": 2,
+      "storeyHeight": 3.4,
+      "lobbyHeight": 3.85,
+      "roofY": 7.4,
+      "anchors": {
+        "label": [
+          0.0,
+          12.15,
+          0.0
+        ],
+        "roof": [
+          0.0,
+          7.4,
+          0.0
+        ],
+        "roofY": 7.4
+      },
+      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (2 storeys, lobby 3.9 m, storey 3.40 m), u = facade bay.",
+      "file": "villa.glb",
+      "vertexAO": false
+    },
+    {
+      "id": "villa_v1",
+      "kind": "villa",
+      "variant": 1,
+      "node": "villa_v1",
+      "nominalSize": [
+        15.0,
+        14.5,
+        10.05
+      ],
+      "tris": 726,
+      "materials": [
+        "concrete",
+        "facade_alt",
+        "trim",
+        "roof",
+        "facade",
+        "glazing",
+        "glass_clear",
+        "accent"
+      ],
+      "floors": 2,
+      "storeyHeight": 3.3,
+      "lobbyHeight": 3.55,
+      "roofY": 6.85,
+      "anchors": {
+        "label": [
+          0.0,
+          14.05,
+          0.0
+        ],
+        "roof": [
+          0.0,
+          6.85,
+          0.0
+        ],
+        "roofY": 6.85
+      },
+      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (2 storeys, lobby 3.5 m, storey 3.30 m), u = facade bay.",
+      "file": "villa.glb",
+      "vertexAO": false
+    }
+  ]
+}

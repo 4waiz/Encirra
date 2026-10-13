@@ -1,0 +1,129 @@
+{
+  "file": "commercial-podium.glb",
+  "group": "buildings",
+  "assets": [
+    {
+      "id": "commercial-podium_v0",
+      "kind": "commercial-podium",
+      "variant": 0,
+      "node": "commercial-podium_v0",
+      "nominalSize": [
+        20.9,
+        17.7,
+        16.1
+      ],
+      "tris": 1212,
+      "materials": [
+        "roof",
+        "glazing",
+        "facade_alt",
+        "trim",
+        "accent",
+        "metal",
+        "steel_dark"
+      ],
+      "floors": 3,
+      "storeyHeight": 4.2,
+      "lobbyHeight": 5.5,
+      "roofY": 14.3,
+      "anchors": {
+        "label": [
+          0.0,
+          20.1,
+          0.0
+        ],
+        "roof": [
+          0.0,
+          14.3,
+          0.0
+        ],
+        "roofY": 14.3
+      },
+      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (3 storeys, lobby 5.5 m, storey 4.20 m), u = facade bay.",
+      "file": "commercial-podium.glb",
+      "vertexAO": false
+    },
+    {
+      "id": "commercial-podium_v1",
+      "kind": "commercial-podium",
+      "variant": 1,
+      "node": "commercial-podium_v1",
+      "nominalSize": [
+        20.9,
+        17.7,
+        16.1
+      ],
+      "tris": 2124,
+      "materials": [
+        "roof",
+        "glazing",
+        "facade",
+        "trim",
+        "accent",
+        "metal",
+        "steel_dark"
+      ],
+      "floors": 3,
+      "storeyHeight": 4.2,
+      "lobbyHeight": 5.5,
+      "roofY": 14.3,
+      "anchors": {
+        "label": [
+          0.0,
+          20.1,
+          0.0
+        ],
+        "roof": [
+          0.0,
+          14.3,
+          0.0
+        ],
+        "roofY": 14.3
+      },
+      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (3 storeys, lobby 5.5 m, storey 4.20 m), u = facade bay.",
+      "file": "commercial-podium.glb",
+      "vertexAO": false
+    },
+    {
+      "id": "commercial-podium_v2",
+      "kind": "commercial-podium",
+      "variant": 2,
+      "node": "commercial-podium_v2",
+      "nominalSize": [
+        20.9,
+        17.7,
+        16.1
+      ],
+      "tris": 756,
+      "materials": [
+        "roof",
+        "glazing",
+        "facade_alt",
+        "trim",
+        "accent",
+        "metal",
+        "steel_dark"
+      ],
+      "floors": 3,
+      "storeyHeight": 4.2,
+      "lobbyHeight": 5.5,
+      "roofY": 14.3,
+      "anchors": {
+        "label": [
+          0.0,
+          20.1,
+          0.0
+        ],
+        "roof": [
+          0.0,
+          14.3,
+          0.0
+        ],
+        "roofY": 14.3
+      },
+      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (3 storeys, lobby 5.5 m, storey 4.20 m), u = facade bay.",
+      "file": "commercial-podium.glb",
+      "vertexAO": false
+    }
+  ]
+}

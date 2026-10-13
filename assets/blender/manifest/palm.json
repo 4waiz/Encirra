@@ -1,0 +1,60 @@
+{
+  "file": "palm.glb",
+  "group": "props",
+  "assets": [
+    {
+      "id": "palm_v0",
+      "kind": "palm",
+      "variant": 0,
+      "node": "palm_v0",
+      "nominalSize": [
+        9.8,
+        9.26,
+        12.76
+      ],
+      "tris": 835,
+      "materials": [
+        "trunk",
+        "foliage"
+      ],
+      "file": "palm.glb",
+      "vertexAO": false
+    },
+    {
+      "id": "palm_v1",
+      "kind": "palm",
+      "variant": 1,
+      "node": "palm_v1",
+      "nominalSize": [
+        8.58,
+        7.72,
+        9.57
+      ],
+      "tris": 931,
+      "materials": [
+        "trunk",
+        "foliage"
+      ],
+      "file": "palm.glb",
+      "vertexAO": false
+    },
+    {
+      "id": "palm_v2",
+      "kind": "palm",
+      "variant": 2,
+      "node": "palm_v2",
+      "nominalSize": [
+        9.06,
+        9.5,
+        15.65
+      ],
+      "tris": 835,
+      "materials": [
+        "trunk",
+        "foliage"
+      ],
+      "file": "palm.glb",
+      "vertexAO": false
+    }
+  ]
+}

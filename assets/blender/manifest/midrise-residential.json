@@ -1,0 +1,174 @@
+{
+  "file": "midrise-residential.glb",
+  "group": "buildings",
+  "assets": [
+    {
+      "id": "midrise-residential_v0",
+      "kind": "midrise-residential",
+      "variant": 0,
+      "node": "midrise-residential_v0",
+      "nominalSize": [
+        20.08,
+        18.58,
+        30.95
+      ],
+      "tris": 1464,
+      "materials": [
+        "glazing",
+        "facade_alt",
+        "facade",
+        "roof",
+        "trim",
+        "accent",
+        "metal",
+        "steel_dark"
+      ],
+      "floors": 8,
+      "storeyHeight": 3.2,
+      "lobbyHeight": 4.6,
+      "roofY": 27.5,
+      "anchors": {
+        "label": [
+          0.0,
+          34.95,
+          0.0
+        ],
+        "roof": [
+          0.0,
+          27.5,
+          0.0
+        ],
+        "roofY": 27.5
+      },
+      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (8 storeys, lobby 4.6 m, storey 3.20 m), u = facade bay.",
+      "file": "midrise-residential.glb",
+      "vertexAO": false
+    },
+    {
+      "id": "midrise-residential_v1",
+      "kind": "midrise-residential",
+      "variant": 1,
+      "node": "midrise-residential_v1",
+      "nominalSize": [
+        20.06,
+        18.56,
+        30.95
+      ],
+      "tris": 1984,
+      "materials": [
+        "glazing",
+        "facade",
+        "facade_alt",
+        "glass_clear",
+        "trim",
+        "roof",
+        "metal",
+        "steel_dark"
+      ],
+      "floors": 8,
+      "storeyHeight": 3.2,
+      "lobbyHeight": 4.6,
+      "roofY": 27.5,
+      "anchors": {
+        "label": [
+          0.0,
+          34.95,
+          0.0
+        ],
+        "roof": [
+          0.0,
+          27.5,
+          0.0
+        ],
+        "roofY": 27.5
+      },
+      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (8 storeys, lobby 4.6 m, storey 3.20 m), u = facade bay.",
+      "file": "midrise-residential.glb",
+      "vertexAO": false
+    },
+    {
+      "id": "midrise-residential_v2",
+      "kind": "midrise-residential",
+      "variant": 2,
+      "node": "midrise-residential_v2",
+      "nominalSize": [
+        20.08,
+        18.58,
+        30.95
+      ],
+      "tris": 2268,
+      "materials": [
+        "glazing",
+        "facade_alt",
+        "facade",
+        "roof",
+        "trim",
+        "accent",
+        "metal",
+        "steel_dark"
+      ],
+      "floors": 8,
+      "storeyHeight": 3.2,
+      "lobbyHeight": 4.6,
+      "roofY": 27.5,
+      "anchors": {
+        "label": [
+          0.0,
+          34.95,
+          0.0
+        ],
+        "roof": [
+          0.0,
+          27.5,
+          0.0
+        ],
+        "roofY": 27.5
+      },
+      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (8 storeys, lobby 4.6 m, storey 3.20 m), u = facade bay.",
+      "file": "midrise-residential.glb",
+      "vertexAO": false
+    },
+    {
+      "id": "midrise-residential_v3",
+      "kind": "midrise-residential",
+      "variant": 3,
+      "node": "midrise-residential_v3",
+      "nominalSize": [
+        20.08,
+        18.58,
+        31.85
+      ],
+      "tris": 1584,
+      "materials": [
+        "glazing",
+        "facade_alt",
+        "facade",
+        "glass_clear",
+        "trim",
+        "roof",
+        "metal",
+        "steel_dark"
+      ],
+      "floors": 8,
+      "storeyHeight": 3.2,
+      "lobbyHeight": 4.8,
+      "roofY": 27.7,
+      "anchors": {
+        "label": [
+          0.0,
+          35.85,
+          0.0
+        ],
+        "roof": [
+          0.0,
+          27.7,
+          0.0
+        ],
+        "roofY": 27.7
+      },
+      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (8 storeys, lobby 4.8 m, storey 3.20 m), u = facade bay.",
+      "file": "midrise-residential.glb",
+      "vertexAO": false
+    }
+  ]
+}

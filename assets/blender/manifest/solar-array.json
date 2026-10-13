@@ -1,0 +1,26 @@
+{
+  "file": "solar-array.glb",
+  "group": "props",
+  "assets": [
+    {
+      "id": "solar-array_v0",
+      "kind": "solar-array",
+      "variant": 0,
+      "node": "solar-array_v0",
+      "nominalSize": [
+        9.8,
+        5.54,
+        0.85
+      ],
+      "tris": 546,
+      "materials": [
+        "solar",
+        "trim",
+        "metal",
+        "concrete"
+      ],
+      "file": "solar-array.glb",
+      "vertexAO": false
+    }
+  ]
+}

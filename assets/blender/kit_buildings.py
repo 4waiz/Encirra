@@ -80,6 +80,15 @@ def edge_parapet(mb, rect, z0, h, t, mat, sides=("front", "back", "left", "right
             mb.box(x1 - t, y0 + gap, z0, x1, y1 - gap, z0 + h, mat)
 
 
+def coping(mb, rect, z, t, mat="trim"):
+    x0, x1, y0, y1 = rect
+    e = 0.04
+    mb.box(x0 - e, y0 - e, z, x1 + e, y0 + t, z + 0.1, mat)
+    mb.box(x0 - e, y1 - t, z, x1 + e, y1 + e, z + 0.1, mat)
+    mb.box(x0 - e, y0 + t, z, x0 + t, y1 - t, z + 0.1, mat)
+    mb.box(x1 - t, y0 + t, z, x1 + e, y1 - t, z + 0.1, mat)
+
+
 def roof_plant(mb, cx, cy, z, w, d, seed, tanks=2, units=3, overrun=True, mat="facade"):
     """Typical Gulf rooftop: lift overrun, water tanks, AC condensers."""
     r = rnd(seed)
@@ -190,8 +199,9 @@ def residential(mb, W, D, fr, P):
                     px = x0 + (x1 - x0) * i / n_p
                     mb.box(px - 0.35, y0 + 0.25, 0.0, px + 0.35, y0 + 0.95, fr.z(1) - SLAB_T, prim, c=0.05)
             # entrance canopy (stays inside the footprint)
-            ew = min(7.0, (x1 - x0) * 0.35)
-            mb.box(-ew / 2, y0 + 0.02, fr.z(1) * 0.62, ew / 2, y0 + ins + 0.3, fr.z(1) * 0.62 + 0.28, "trim")
+            if not arcade:
+                ew = min(7.0, (x1 - x0) * 0.35)
+                mb.box(-ew / 2, y0 + 0.02, fr.z(1) * 0.62, ew / 2, y0 + ins + 0.3, fr.z(1) * 0.62 + 0.28, "trim")
         # slabs
         for k in range(max(k0, 1), k1):
             z = fr.z(k)
@@ -200,10 +210,18 @@ def residential(mb, W, D, fr, P):
             mb.box(x0, y0, z - t, x1, y1, z, sec if thick else prim, c=0.05)
         # balconies parapets
         for k in range(max(k0, 1), k1):
+            if not P.get("parapets", True):
+                break
             z = fr.z(k)
             for side, depth in (("front", bf), ("back", bb), ("left", bl), ("right", br)):
                 if depth < 0.9:
                     continue
+                if pier_w < 0.5:
+                    # balcony end returns
+                    if side in ("front", "back"):
+                        ya, yb = (y0, y0 + depth) if side == "front" else (y1 - depth, y1)
+                        mb.box(x0, ya, z, x0 + 0.2, yb, z + 1.05, prim)
+                        mb.box(x1 - 0.2, ya, z, x1, yb, z + 1.05, prim)
                 st = style
                 if style == "mixed":
                     st = "glass" if (k + (side == "back")) % 2 else "solid"
@@ -249,13 +267,13 @@ def residential(mb, W, D, fr, P):
                 sy = 1 if py == y0 else -1
                 ax, bx = sorted((px, px + sx * pier_w))
                 ay, by = sorted((py, py + sy * pier_w))
-                mb.box(ax, ay, zA if k0 > 0 else 0.0, bx, by, zB + 1.25, prim, c=0.06)
+                mb.box(ax, ay, zA if k0 > 0 else 0.0, bx, by, zB + (1.65 if top_tier else 0.5), prim, c=0.06)
         # tier roof
         mb.box(x0, y0, zB, x1, y1, zB + 0.5, prim, c=0.06, mats={"top": "roof"})
         par_h = 1.15
         if top_tier:
             edge_parapet(mb, (x0, x1, y0, y1), zB + 0.5, par_h, 0.28, prim, gap=0.0)
-            mb.box(x0 - 0.05, y0 - 0.05, zB + 0.5 + par_h, x1 + 0.05, y0 + 0.33, zB + 0.62 + par_h, "trim")
+            coping(mb, (x0, x1, y0, y1), zB + 0.5 + par_h, 0.32)
         else:
             edge_parapet(mb, (x0, x1, y0, y1), zB + 0.5, 1.1, 0.2, prim, glass=True, gap=0.3)
         info["roof_z"] = zB + 0.5
@@ -556,15 +574,14 @@ def variant_specs():
         W, D = 22.0, 19.0
         fr = Frame(5.5, 3.3, 13)
         mb.glazing_uv = glazing_uv_fn(W, D, fr, 2.4, 2.4)
-        info = residential(mb, W, D, fr, dict(primary="facade_alt", secondary="facade", bal=(0.2, 0.2, 0.2, 0.2), pier_w=1.6,
-                                                 band_every=4, side_fins=4, dividers=(), seed=12))
-        # vertical stone fins on the front/back over the glazing
+        info = residential(mb, W, D, fr, dict(primary="facade_alt", secondary="facade", bal=(1.0, 1.0, 0.2, 0.2), pier_w=1.6,
+                                                 band_every=4, side_fins=4, dividers=(), parapets=False, seed=12))
+        # egg-crate facade: deep vertical stone fins flush with the projecting slabs
         top = fr.roof
-        for side_y, sgn in ((-D / 2, 1), (D / 2, -1)):
-            for i in range(1, 9):
-                px = -W / 2 + W * i / 9
-                y0 = side_y if sgn > 0 else side_y - 0.9
-                mb.box(px - 0.16, min(side_y, side_y + sgn * 0.9) - (0.0 if sgn > 0 else 0), fr.z(1) - SLAB_T, px + 0.16, max(side_y, side_y + sgn * 0.9), top, "facade", skip=("bottom",))
+        for i in range(1, 9):
+            px = -W / 2 + W * i / 9
+            mb.box(px - 0.16, -D / 2, fr.z(1) - SLAB_T, px + 0.16, -D / 2 + 1.0, top, "facade", skip=("bottom",))
+            mb.box(px - 0.16, D / 2 - 1.0, fr.z(1) - SLAB_T, px + 0.16, D / 2, top, "facade", skip=("bottom",))
         # crown: open frame
         crown_frame(mb, (-W / 2, W / 2, -D / 2, D / 2), info["roof_z"] + 1.15, 4.0, "facade_alt", depth=1.0)
         roof_plant(mb, 0, 0, info["roof_z"], W - 4, D - 4, 4, tanks=2, units=3)
@@ -584,9 +601,9 @@ def variant_specs():
             screen_panel(mb, "y", fixed, -D * 0.28, D * 0.28, fr.z(1), top - 0.4, "accent", cell=1.3, slat=0.09)
         # stone side walls framing the screens
         for sx in (-1, 1):
-            for sy in (-1, 1):
-                ax = sx * W / 2
-                mb.box(min(ax, ax - sx * 1.0), sy * D * 0.3 - 0.0 if sy > 0 else -D / 2, 0, max(ax, ax - sx * 1.0), D / 2 if sy > 0 else -D * 0.3, top + 1.2, "facade_alt", c=0.06)
+            ax0, ax1 = sorted((sx * W / 2, sx * W / 2 - sx * 1.0))
+            for (ay0, ay1) in ((-D / 2, -D * 0.3), (D * 0.3, D / 2)):
+                mb.box(ax0, ay0, 0, ax1, ay1, top + 1.2, "facade_alt", c=0.06)
         # crown: stepped cap
         mb.box(-W / 2 + 3, -D / 2 + 3, info["roof_z"], W / 2 - 3, D / 2 - 3, info["roof_z"] + 3.0, "facade", c=0.08, mats={"top": "roof"})
         mb.box(-W / 2 + 2.6, -D / 2 + 2.6, info["roof_z"] + 3.0, W / 2 - 2.6, D / 2 - 2.6, info["roof_z"] + 3.35, "trim")
@@ -789,6 +806,14 @@ def build_all(collection_for_kind):
             storeyHeight=round(fr.fh, 2) if fr else None,
             lobbyHeight=round(fr.L, 2) if fr else None,
             roofY=round(info.get("roof_z", H), 2),
+            anchors={
+                "label": [0.0, round(H + 4.0, 2), 0.0],
+                "roof": [0.0, round(info.get("roof_z", H), 2), 0.0],
+                "roofY": round(info.get("roof_z", H), 2),
+            },
+            notes="Kit building: scale non-uniformly to the layout footprint/height (+/-30%% tolerated). "
+                  "Glazing UV0: v = storey (%d storeys, lobby %.1f m, storey %.2f m), u = facade bay." % (
+                      (fr.n + 1) if fr else 0, fr.L if fr else 0, fr.fh if fr else 0),
         )
         out.setdefault(kind, []).append((ob, rec))
     return out

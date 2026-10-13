@@ -103,10 +103,8 @@ def get_material(name):
         return mat
     spec = MATERIALS[name]
     mat = bpy.data.materials.new(name)
-    try:
+    if mat.node_tree is None:
         mat.use_nodes = True
-    except Exception:
-        pass
     bsdf = _principled(mat)
     col = hex_to_lin(spec["hex"])
     _set_input(bsdf, ["Base Color"], (*col, 1.0))
@@ -636,6 +634,20 @@ def reset_scene():
         bpy.data.collections.remove(coll)
     for me in list(bpy.data.meshes):
         bpy.data.meshes.remove(me)
+    for cam in list(bpy.data.cameras):
+        bpy.data.cameras.remove(cam)
+    for li in list(bpy.data.lights):
+        bpy.data.lights.remove(li)
+    bpy.context.scene.camera = None
+    bpy.context.view_layer.update()
+
+
+def _deselect_all():
+    for o in bpy.context.scene.objects:
+        try:
+            o.select_set(False)
+        except Exception:
+            pass
 
 
 def new_collection(name, parent=None):
@@ -722,8 +734,7 @@ def bake_vertex_ao(objects, distance=6.0, samples=48, strength=0.85, floor=0.38,
                 me.color_attributes.render_color_index = list(me.color_attributes).index(ca)
             except Exception:
                 pass
-            for o in bpy.context.view_layer.objects:
-                o.select_set(False)
+            _deselect_all()
             ob.select_set(True)
             bpy.context.view_layer.objects.active = ob
             bpy.ops.object.bake(type="AO", target="VERTEX_COLORS")
@@ -755,8 +766,7 @@ def bake_vertex_ao(objects, distance=6.0, samples=48, strength=0.85, floor=0.38,
 # ---------------------------------------------------------------------------
 
 def _select_tree(objs):
-    for o in bpy.context.view_layer.objects:
-        o.select_set(False)
+    _deselect_all()
     sel = []
 
     def rec(o):
@@ -796,8 +806,7 @@ def export_glb(objs, path, image_format="AUTO"):
         bpy.ops.export_scene.gltf(export_vertex_color="ACTIVE", export_all_vertex_colors=False, **kw)
     except TypeError:
         bpy.ops.export_scene.gltf(**kw)
-    for o in bpy.context.view_layer.objects:
-        o.select_set(False)
+    _deselect_all()
 
 
 # ---------------------------------------------------------------------------
