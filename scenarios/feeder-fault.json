@@ -1,0 +1,38 @@
+{
+  "id": "feeder-fault",
+  "name": "Electrical Feeder Failure",
+  "shortName": "Feeder fault",
+  "description": "A permanent fault on Feeder F3 trips the lateral recloser at 17:00, de-energising the west district: City Hospital (B32) and Pumping Station PS-2 (B33) lose grid supply. The hospital's genset carries its life-safety load, but the genset does not supply water; the West pressure zone now depends on Tank T2.",
+  "narrative": [
+    "17:00 — fault on Feeder F3 (line B27–B28); recloser SW-06-26 trips and the whole lateral B26–B33 goes dark.",
+    "City Hospital transfers to its 150 kW genset; PS-2 stops and the West zone rides on Tank T2 storage.",
+    "17:02 — the faulted section is isolated and the healthy upstream section is re-energised.",
+    "17:05 — recovery candidates are generated, evaluated with the coupled power–water simulation and verified.",
+    "17:10 — the selected switching plan is executed; the extended-period hydraulic simulation shows what happens to Tank T2 and hospital pressure over the evening."
+  ],
+  "defaults": {
+    "loadMultiplier": 1.0,
+    "waterDemandMultiplier": 1.0,
+    "faultLineId": 26,
+    "faultTimeMin": 30,
+    "isolationDelayMin": 2,
+    "analysisDelayMin": 3,
+    "switchingDelayMin": 5,
+    "tankInitPct": 50,
+    "horizonMin": 180,
+    "stepMin": 1,
+    "repairTimeMin": null,
+    "seed": 2026
+  },
+  "faultOptions": [
+    { "lineId": 24, "label": "Feeder F3 · line B6–B26 (lateral head)" },
+    { "lineId": 25, "label": "Feeder F3 · line B26–B27" },
+    { "lineId": 26, "label": "Feeder F3 · line B27–B28" },
+    { "lineId": 27, "label": "Feeder F3 · line B28–B29" },
+    { "lineId": 28, "label": "Feeder F3 · line B29–B30" },
+    { "lineId": 29, "label": "Feeder F3 · line B30–B31" },
+    { "lineId": 30, "label": "Feeder F3 · line B31–B32" },
+    { "lineId": 31, "label": "Feeder F3 · line B32–B33" }
+  ],
+  "editable": ["loadMultiplier", "waterDemandMultiplier", "faultLineId", "faultTimeMin", "tankInitPct", "isolationDelayMin", "analysisDelayMin", "switchingDelayMin", "repairTimeMin"]
+}

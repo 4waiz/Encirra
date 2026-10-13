@@ -207,6 +207,7 @@ function simulate(topo: NetworkTopology, def: ScenarioDefinition, strategy: Stra
   let t2Level = W.tanks[1].initLevelM;
   let t1Level = W.tanks[0].initLevelM;
   const facilityEverLow = new Set<string>();
+  const lostKW = E.buses.filter((b) => lost.has(b.id)).reduce((a, b) => a + b.loadKW * p.loadMultiplier, 0);
 
   for (let k = 0; k < n; k++) {
     const m = k * p.stepMin;
@@ -255,7 +256,6 @@ function simulate(topo: NetworkTopology, def: ScenarioDefinition, strategy: Stra
     const switchClosed = E.lines.map((l) => (l.normallyOpen ? l.id === tie && restored : !(faulted && m >= tIso && l.id === p.faultLineId)));
     const demandKW = E.buses.reduce((a, b) => a + b.loadKW * p.loadMultiplier, 0) + W.pumps.reduce((a, pu) => a + pu.ratedKW * 0.9, 0);
     const servedKW = busServedKW.reduce((a, b) => a + b, 0);
-    const lostKW = E.buses.filter((b) => lost.has(b.id)).reduce((a, b) => a + b.loadKW * p.loadMultiplier, 0);
     const restoredKW = restored ? E.buses.filter((b) => lost.has(b.id) && !shed.has(b.id)).reduce((a, b) => a + busServedKW[b.id], 0) : 0;
     const vs = busVmPu.map((v, i) => [v, i] as const).filter((x): x is readonly [number, number] => x[0] != null);
     const vmin = vs.reduce((a, b) => (b[0] < a[0] ? b : a), vs[0]);

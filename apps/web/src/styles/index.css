@@ -298,3 +298,21 @@ input[type='range'].enc-range::-moz-range-thumb {
 input[type='range'].enc-range:disabled::-webkit-slider-thumb {
   border-color: var(--color-mist);
 }
+
+/* ───────────── width-based helpers for the header ───────────── */
+.show-below-1500 {
+  display: none;
+}
+@media (max-width: 1499.98px) {
+  .hide-below-1500 {
+    display: none;
+  }
+  .show-below-1500 {
+    display: inline;
+  }
+}
+@media (max-width: 1399.98px) {
+  .hide-below-1400 {
+    display: none;
+  }
+}

@@ -1,4 +1,5 @@
 import { motion } from 'motion/react';
+import { useTwin } from '@/state/store';
 import { FaultCard, FeederStatusCard, RecoveryCard, TimelineCard } from './TopCards';
 import { CityOverviewPanel, FacilitiesPanel, PowerPanel, WaterPanel } from './BottomPanels';
 import { PlaybackBar, SceneToolbar } from './Controls';
@@ -9,6 +10,7 @@ import { DemoOverlay } from '@/demo/DemoOverlay';
  * the 3D city (pointer events pass through) · four bottom panels.
  */
 export function LiveTwin() {
+  const inspecting = useTwin((s) => s.selected != null);
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -29,7 +31,7 @@ export function LiveTwin() {
         <div className="pointer-events-none absolute top-0 left-0 flex max-w-[calc(100%-420px)] min-w-[360px]">
           <DemoOverlay />
         </div>
-        <div className="pointer-events-none absolute top-0 right-0 flex justify-end">
+        <div className="pointer-events-none absolute top-0 flex justify-end transition-[right] duration-200" style={{ right: inspecting ? 'min(372px, calc(100vw - 24px))' : 0 }}>
           <SceneToolbar />
         </div>
         <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center">

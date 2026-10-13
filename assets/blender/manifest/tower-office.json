@@ -40,7 +40,7 @@
       },
       "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (13 storeys, lobby 6.5 m, storey 3.80 m), u = facade bay.",
       "file": "tower-office.glb",
-      "vertexAO": false
+      "vertexAO": true
     },
     {
       "id": "tower-office_v1",
@@ -80,7 +80,7 @@
       },
       "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (13 storeys, lobby 6.5 m, storey 3.80 m), u = facade bay.",
       "file": "tower-office.glb",
-      "vertexAO": false
+      "vertexAO": true
     },
     {
       "id": "tower-office_v2",
@@ -119,7 +119,7 @@
       },
       "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (13 storeys, lobby 6.5 m, storey 3.80 m), u = facade bay.",
       "file": "tower-office.glb",
-      "vertexAO": false
+      "vertexAO": true
     },
     {
       "id": "tower-office_v3",
@@ -159,7 +159,7 @@
       },
       "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (13 storeys, lobby 6.5 m, storey 3.80 m), u = facade bay.",
       "file": "tower-office.glb",
-      "vertexAO": false
+      "vertexAO": true
     }
   ]
 }

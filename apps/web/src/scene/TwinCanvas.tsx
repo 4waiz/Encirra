@@ -33,11 +33,11 @@ export function TwinCanvas() {
         gl={{ antialias: false, powerPreference: 'high-performance', stencil: false, alpha: false }}
         camera={{ position: [-205, 245, 600], fov: 30, near: 2, far: 14000 }}
         onPointerMissed={() => setSelected(null)}
-        onCreated={({ gl }) => {
-          gl.toneMappingExposure = 1.0;
+        onCreated={(state) => {
+          state.gl.toneMappingExposure = 1.0;
           if (import.meta.env.DEV) {
             const w = window as unknown as Record<string, Record<string, unknown> | undefined>;
-            w.__encirra = { ...(w.__encirra ?? {}), gl, useTwin, fx, useSceneQuality };
+            w.__encirra = { ...(w.__encirra ?? {}), gl: state.gl, r3f: state.get, useTwin, fx, useSceneQuality };
           }
         }}
       >

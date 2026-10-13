@@ -42,7 +42,7 @@
       },
       "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (8 storeys, lobby 4.6 m, storey 3.20 m), u = facade bay.",
       "file": "midrise-residential.glb",
-      "vertexAO": false
+      "vertexAO": true
     },
     {
       "id": "midrise-residential_v1",
@@ -84,7 +84,7 @@
       },
       "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (8 storeys, lobby 4.6 m, storey 3.20 m), u = facade bay.",
       "file": "midrise-residential.glb",
-      "vertexAO": false
+      "vertexAO": true
     },
     {
       "id": "midrise-residential_v2",
@@ -126,7 +126,7 @@
       },
       "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (8 storeys, lobby 4.6 m, storey 3.20 m), u = facade bay.",
       "file": "midrise-residential.glb",
-      "vertexAO": false
+      "vertexAO": true
     },
     {
       "id": "midrise-residential_v3",
@@ -168,7 +168,7 @@
       },
       "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (8 storeys, lobby 4.8 m, storey 3.20 m), u = facade bay.",
       "file": "midrise-residential.glb",
-      "vertexAO": false
+      "vertexAO": true
     }
   ]
 }

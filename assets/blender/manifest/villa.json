@@ -42,7 +42,7 @@
       },
       "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (2 storeys, lobby 3.9 m, storey 3.40 m), u = facade bay.",
       "file": "villa.glb",
-      "vertexAO": false
+      "vertexAO": true
     },
     {
       "id": "villa_v1",
@@ -84,7 +84,7 @@
       },
       "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (2 storeys, lobby 3.5 m, storey 3.30 m), u = facade bay.",
       "file": "villa.glb",
-      "vertexAO": false
+      "vertexAO": true
     }
   ]
 }

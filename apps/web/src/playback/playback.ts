@@ -37,7 +37,7 @@ export function usePlaybackLoop() {
 }
 
 /** A manual playback action pauses a running guided demo (manual intervention). */
-function interruptDemo() {
+export function interruptDemo() {
   const s = useTwin.getState();
   if (s.demo.active && !s.demo.paused) s.setDemo({ paused: true });
 }

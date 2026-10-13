@@ -339,7 +339,7 @@ function AssetBody({ sel, run, topology, frame }: { sel: Selection; run: RunResu
   }
 }
 
-function titleFor(sel: Selection, topology: NetworkTopology): { title: string; sub: string } {
+export function titleFor(sel: Selection, topology: NetworkTopology): { title: string; sub: string } {
   const ix = indexTopology(topology);
   switch (sel.kind) {
     case 'facility': {
@@ -369,12 +369,17 @@ function titleFor(sel: Selection, topology: NetworkTopology): { title: string; s
   }
 }
 
+/** Details body for any selection (used by the inspector and the Assets page). */
+export function AssetDetails({ sel, run, topology, frame }: { sel: Selection; run: RunResult; topology: NetworkTopology; frame: Frame }) {
+  const facility = sel.kind === 'facility' ? indexTopology(topology).facility.get(sel.id) : undefined;
+  return facility ? <FacilityBody f={facility} run={run} topology={topology} frame={frame} /> : <AssetBody sel={sel} run={run} topology={topology} frame={frame} />;
+}
+
 export function FacilityInspector() {
   const sel = useTwin((s) => s.selected);
   const setSelected = useTwin((s) => s.setSelected);
   const requestCamera = useTwin((s) => s.requestCamera);
   const ctx = useRunCtx();
-  const facility = sel?.kind === 'facility' && ctx ? indexTopology(ctx.topology).facility.get(sel.id) : undefined;
   const head = sel && ctx ? titleFor(sel, ctx.topology) : null;
   return (
     <AnimatePresence>
@@ -408,11 +413,7 @@ export function FacilityInspector() {
             </button>
           </div>
           <div className={clsx('enc-scroll min-h-0 flex-1 overflow-y-auto px-4 pb-4')}>
-            {facility ? (
-              <FacilityBody f={facility} run={ctx.run} topology={ctx.topology} frame={ctx.frame} />
-            ) : (
-              <AssetBody sel={sel} run={ctx.run} topology={ctx.topology} frame={ctx.frame} />
-            )}
+            <AssetDetails sel={sel} run={ctx.run} topology={ctx.topology} frame={ctx.frame} />
             <p className="mt-4 text-[11px] text-mist">
               State at {ctx.frame.clock} (simulated) · {ctx.run.provenance.source === 'live' ? 'live solver' : 'replay of precomputed solver output'}
             </p>

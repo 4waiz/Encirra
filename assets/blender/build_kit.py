@@ -145,6 +145,7 @@ def run_group(name, fn, bake_ao, args):
     if not args.no_previews:
         prev_dir = os.path.join(HERE, "previews")
         os.makedirs(prev_dir, exist_ok=True)
+        prepare_preview_attributes()
         pv.apply_preview_materials()
         pv.ensure_preview_env()
         s = args.preview_scale
@@ -166,8 +167,41 @@ def run_group(name, fn, bake_ao, args):
     print("=== group %s done in %.1fs" % (name, time.time() - t0))
 
 
+def write_material_contract():
+    man_dir = os.path.join(HERE, "manifest")
+    os.makedirs(man_dir, exist_ok=True)
+    desc = {k: v["desc"] for k, v in common.MATERIALS.items()}
+    pbr = {}
+    for k, v in common.MATERIALS.items():
+        d = {"baseColor": v["hex"], "roughness": v["rough"], "metalness": v["metal"]}
+        if v.get("emit"):
+            d["emissive"] = v["emit"]
+            d["emissiveIntensity"] = v.get("strength", 1.0)
+        if v.get("alpha", 1.0) < 1.0:
+            d["opacity"] = v["alpha"]
+            d["transparent"] = True
+        if v.get("double"):
+            d["doubleSided"] = True
+        pbr[k] = d
+    with open(os.path.join(man_dir, "_materials.json"), "w", encoding="utf-8") as fh:
+        json.dump({"materials": desc, "materialPBR": pbr}, fh, indent=2)
+
+
+def prepare_preview_attributes():
+    """Give meshes without baked AO a white AO attribute (preview shading reads it)."""
+    for ob in bpy.context.scene.objects:
+        if ob.type != "MESH":
+            continue
+        me = ob.data
+        if me.color_attributes.get("AO") is None:
+            ca = me.color_attributes.new("AO", "BYTE_COLOR", "CORNER")
+            buf = [1.0] * (len(ca.data) * 4)
+            ca.data.foreach_set("color", buf)
+
+
 def main():
     args = parse_args()
+    write_material_contract()
     reg = group_builders()
     wanted = [g.strip() for g in args.groups.split(",") if g.strip()]
     for g in GROUP_ORDER:

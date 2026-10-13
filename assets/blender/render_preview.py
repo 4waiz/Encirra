@@ -68,7 +68,7 @@ def setup_render(res=(1600, 900), samples=48):
     sc.view_settings.exposure = 0.0
 
 
-def setup_dusk_world(strength=1.0, sun_dir=(-0.62, -0.76, 0.17)):
+def setup_dusk_world(strength=0.85, sun_dir=(-0.62, -0.76, 0.2)):
     sc = bpy.context.scene
     w = bpy.data.worlds.get("Dusk") or bpy.data.worlds.new("Dusk")
     sc.world = w
@@ -82,16 +82,22 @@ def setup_dusk_world(strength=1.0, sun_dir=(-0.62, -0.76, 0.17)):
     tc = nt.nodes.new("ShaderNodeTexCoord")
     sep = nt.nodes.new("ShaderNodeSeparateXYZ")
     L.new(tc.outputs["Generated"], sep.inputs[0])
+    remap = nt.nodes.new("ShaderNodeMath")
+    remap.operation = "MULTIPLY_ADD"
+    L.new(sep.outputs["Z"], remap.inputs[0])
+    remap.inputs[1].default_value = 0.5
+    remap.inputs[2].default_value = 0.5
     ramp = nt.nodes.new("ShaderNodeValToRGB")
     cr = ramp.color_ramp
-    stops = [(0.0, (1.0, 0.50, 0.26)), (0.035, (0.98, 0.58, 0.40)), (0.12, (0.62, 0.45, 0.52)),
-             (0.32, (0.25, 0.26, 0.45)), (0.75, (0.07, 0.10, 0.24))]
+    stops = [(0.0, (0.07, 0.06, 0.055)), (0.488, (0.26, 0.21, 0.17)), (0.5, (1.0, 0.63, 0.37)),
+             (0.515, (0.96, 0.68, 0.50)), (0.56, (0.66, 0.62, 0.66)), (0.66, (0.33, 0.41, 0.60)),
+             (0.9, (0.10, 0.15, 0.33))]
     cr.elements[0].position, cr.elements[0].color = stops[0][0], (*stops[0][1], 1)
     cr.elements[1].position, cr.elements[1].color = stops[-1][0], (*stops[-1][1], 1)
     for pos, col in stops[1:-1]:
         e = cr.elements.new(pos)
         e.color = (*col, 1)
-    L.new(sep.outputs["Z"], ramp.inputs[0])
+    L.new(remap.outputs[0], ramp.inputs[0])
     # sun glow
     dot = nt.nodes.new("ShaderNodeVectorMath")
     dot.operation = "DOT_PRODUCT"
@@ -115,7 +121,7 @@ def setup_dusk_world(strength=1.0, sun_dir=(-0.62, -0.76, 0.17)):
     return w
 
 
-def add_lights(sun_dir=(-0.62, -0.76, 0.17), strength=3.6):
+def add_lights(sun_dir=(-0.62, -0.76, 0.2), strength=4.8):
     sc = bpy.context.scene
     for ob in [o for o in sc.objects if o.name.startswith("_pv_light")]:
         bpy.data.objects.remove(ob, do_unlink=True)
@@ -194,7 +200,33 @@ def glazing_preview(mat):
         bsdf.inputs["Specular IOR Level"].default_value = 0.7
 
 
+def ao_multiply(mat):
+    """Multiply the base colour by the baked COLOR_0 ('AO') like three.js vertexColors does."""
+    nodes, links = _nodes(mat)
+    bsdf = _principled(mat)
+    if any(n.type == "VERTEX_COLOR" for n in nodes):
+        return
+    vc = nodes.new("ShaderNodeVertexColor")
+    vc.layer_name = "AO"
+    mix = nodes.new("ShaderNodeMix")
+    mix.data_type = "RGBA"
+    mix.blend_type = "MULTIPLY"
+    mix.inputs["Factor"].default_value = 1.0
+    sock = bsdf.inputs["Base Color"]
+    if sock.is_linked:
+        links.new(sock.links[0].from_socket, mix.inputs[6])
+    else:
+        mix.inputs[6].default_value = sock.default_value
+    links.new(vc.outputs["Color"], mix.inputs[7])
+    links.new(mix.outputs[2], sock)
+
+
 def apply_preview_materials():
+    from common import MATERIALS
+    for name in MATERIALS:
+        if name in ("glazing", "light_emissive", "emissive_sign", "glass_clear", "water"):
+            continue
+        ao_multiply(get_material(name))
     g = get_material("glazing")
     glazing_preview(g)
     for name, k in (("light_emissive", 14.0), ("emissive_sign", 9.0), ("water", 2.0)):
@@ -203,7 +235,7 @@ def apply_preview_materials():
         b.inputs["Emission Strength"].default_value = k
 
 
-def preview_ground(size=4000.0, z=-0.02, color=(0.30, 0.27, 0.24)):
+def preview_ground(size=4000.0, z=-0.02, color=(0.25, 0.24, 0.225)):
     m = bpy.data.materials.get("_pv_ground") or bpy.data.materials.new("_pv_ground")
     b = _principled(m)
     b.inputs["Base Color"].default_value = (*color, 1)

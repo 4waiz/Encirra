@@ -1,0 +1,147 @@
+{
+  "file": "district-base.glb",
+  "group": "base",
+  "assets": [
+    {
+      "id": "district-base",
+      "kind": "district-base",
+      "variant": 0,
+      "node": "district-base",
+      "nominalSize": [
+        500.0,
+        320.0,
+        42.0
+      ],
+      "anchors": {
+        "surfaceY": 0.0,
+        "bottomY": -42.0,
+        "transmissionFront": [
+          0.0,
+          -15.0,
+          152.0
+        ],
+        "suctionFront": [
+          0.0,
+          -24.0,
+          152.0
+        ],
+        "transmissionWest": [
+          -242.0,
+          -15.0,
+          0.0
+        ],
+        "saddleTopTransmissionY": -15.9,
+        "saddleTopSuctionY": -24.9,
+        "pipeVisualRadius": 0.9
+      },
+      "galleries": [
+        {
+          "name": "transmission-front",
+          "min": [
+            -250.0,
+            -18.2,
+            147.0
+          ],
+          "max": [
+            236.0,
+            -10.4,
+            160.0
+          ]
+        },
+        {
+          "name": "suction-front",
+          "min": [
+            -236.0,
+            -27.6,
+            147.0
+          ],
+          "max": [
+            236.0,
+            -19.2,
+            160.0
+          ]
+        },
+        {
+          "name": "transmission-west",
+          "min": [
+            -250.0,
+            -18.2,
+            -130.0
+          ],
+          "max": [
+            -237.0,
+            -10.4,
+            160.0
+          ]
+        }
+      ],
+      "chambers": [
+        {
+          "name": "PS-2",
+          "minX": -169.0,
+          "maxX": -151.0,
+          "minY": -27.6,
+          "maxY": -10.4,
+          "minZ": 147.0,
+          "maxZ": 160.0
+        },
+        {
+          "name": "R1",
+          "minX": 47.0,
+          "maxX": 65.0,
+          "minY": -27.6,
+          "maxY": -10.4,
+          "minZ": 147.0,
+          "maxZ": 160.0
+        },
+        {
+          "name": "PS-1",
+          "minX": 91.0,
+          "maxX": 109.0,
+          "minY": -27.6,
+          "maxY": -10.4,
+          "minZ": 147.0,
+          "maxZ": 160.0
+        }
+      ],
+      "strata": [
+        {
+          "name": "topsoil",
+          "topY": -1.2,
+          "bottomY": -4.0
+        },
+        {
+          "name": "compacted sand",
+          "topY": -4.0,
+          "bottomY": -13.0
+        },
+        {
+          "name": "limestone",
+          "topY": -13.0,
+          "bottomY": -30.0
+        },
+        {
+          "name": "bedrock",
+          "topY": -30.0,
+          "bottomY": -42.0
+        }
+      ],
+      "textures": [
+        "assets/textures/soil_strata_basecolor.jpg",
+        "assets/textures/soil_strata_normal.jpg"
+      ],
+      "notes": "Top face at y=0 (render roads/blocks >= 0.02 m above it or with polygonOffset). Strata faces are recessed 0.3 m under a 1.2 m concrete band. Galleries: front upper (transmission, pipe centre y=-15, z=152), front lower (suction, y=-24, z=152), west (transmission, y=-15, x=-242). Saddles are sized for a visual pipe radius of 0.9 m. COLOR_0 carries hand-placed occlusion for gallery interiors. Soil UVs: u = perimeter metres / 84 (seamless), v = (y + 42) / 40.8.",
+      "file": "district-base.glb",
+      "tris": 8380,
+      "materials": [
+        "concrete",
+        "rock",
+        "soil",
+        "light_emissive",
+        "metal",
+        "steel_dark"
+      ],
+      "vertexAO": true
+    }
+  ]
+}

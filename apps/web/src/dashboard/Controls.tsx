@@ -19,7 +19,7 @@ import {
 import clsx from 'clsx';
 import type { ScenarioId, StrategyId } from '@encirra/shared';
 import { useTwin, type CameraShot, type Layers } from '@/state/store';
-import { playback, SPEEDS } from '@/playback/playback';
+import { interruptDemo, playback, SPEEDS } from '@/playback/playback';
 import { runMarks, STRATEGY_LABEL, STRATEGY_LONG } from '@/data/selectors';
 import { loadScenario } from '@/data/loader';
 import { IconButton, Segmented } from '@/ui/primitives';
@@ -107,7 +107,10 @@ export function PlaybackBar() {
           className="h-8 max-w-[clamp(120px,11vw,190px)] appearance-none truncate rounded-lg border border-line bg-white/80 pr-7 pl-2.5 text-[12px] font-medium text-navy outline-none hover:border-line-strong disabled:opacity-50"
           value={scenarioId}
           disabled={!!busy || scenarios.length === 0}
-          onChange={(e) => void loadScenario(e.target.value as ScenarioId)}
+          onChange={(e) => {
+            interruptDemo();
+            void loadScenario(e.target.value as ScenarioId);
+          }}
           data-testid="scenario-select"
         >
           {scenarios.map((s) => (
@@ -121,7 +124,10 @@ export function PlaybackBar() {
       <Segmented
         value={strategy}
         testId="strategy-select"
-        onChange={(v) => switchStrategy(v as StrategyId)}
+        onChange={(v) => {
+          interruptDemo();
+          switchStrategy(v as StrategyId);
+        }}
         options={(['none', 'grid-only', 'encirra'] as StrategyId[]).map((s) => ({
           value: s,
           label: STRATEGY_LABEL[s],

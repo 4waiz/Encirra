@@ -83,15 +83,20 @@ def _smooth(edge0, edge1, x):
     return t * t * (3 - 2 * t)
 
 
-def _worley(w, h, cell_m, rng, yscale=1.0):
-    """Periodic (in u) Worley noise.  Returns F1, F2 (metres) and a per-cell random id."""
+def _worley(w, h, cell_m, rng, yscale=1.0, warp_x=None, warp_y=None):
+    """Periodic (in u) Worley noise with optional domain warp (metres).
+    Returns F1, F2 (metres) and the nearest feature's random id."""
     cx = max(2, int(round(U_REPEAT / cell_m)))
     cy = max(2, int(round(40.8 / (cell_m * yscale))))
     fx = (np.arange(cx)[None, :] + rng.random((cy, cx))) / cx
     fy = (np.arange(cy)[:, None] + rng.random((cy, cx))) / cy
     fid = rng.random((cy, cx))
-    px = (np.arange(w) + 0.5) / w
-    py = (np.arange(h) + 0.5) / h
+    px = np.repeat(((np.arange(w) + 0.5) / w)[None, :], h, axis=0)
+    py = np.repeat(((np.arange(h) + 0.5) / h)[:, None], w, axis=1)
+    if warp_x is not None:
+        px = (px + warp_x / U_REPEAT) % 1.0
+    if warp_y is not None:
+        py = np.clip(py + warp_y / 40.8, 0.0, 0.999999)
     ci = np.floor(px * cx).astype(int)
     cj = np.floor(py * cy).astype(int)
     F1 = np.full((h, w), 1e9)
@@ -105,13 +110,13 @@ def _worley(w, h, cell_m, rng, yscale=1.0):
             ni_raw = ci + di
             ni = ni_raw % cx
             wrap = np.where(ni_raw < 0, -1.0, np.where(ni_raw >= cx, 1.0, 0.0))
-            ptx = fx[np.ix_(njc, ni)] + wrap[None, :]
-            pty = fy[np.ix_(njc, ni)]
-            dx = (px[None, :] - ptx) * U_REPEAT
-            dy = (py[:, None] - pty) * 40.8 / yscale
+            ptx = fx[njc, ni] + wrap
+            pty = fy[njc, ni]
+            dx = (px - ptx) * U_REPEAT
+            dy = (py - pty) * 40.8 / yscale
             d = np.sqrt(dx * dx + dy * dy)
-            d = np.where(valid[:, None], d, 1e9)
-            ids = fid[np.ix_(njc, ni)]
+            d = np.where(valid, d, 1e9)
+            ids = fid[njc, ni]
             closer = d < F1
             F2 = np.where(closer, F1, np.minimum(F2, d))
             ID = np.where(closer, ids, ID)
@@ -119,17 +124,25 @@ def _worley(w, h, cell_m, rng, yscale=1.0):
     return F1, F2, ID
 
 
+def _hash(a, b):
+    v = np.sin(a * 127.1 + b * 311.7) * 43758.5453
+    return v - np.floor(v)
+
+
 def generate_strata_textures(out_dir, seed=4242):
     rng = np.random.default_rng(seed)
     W, H = TEX_W, TEX_H
     z = -42.0 + (np.arange(H) + 0.5) / H * 40.8          # rows bottom -> top
     Z = np.repeat(z[:, None], W, axis=1)
+    X = np.repeat(((np.arange(W) + 0.5) / W * U_REPEAT)[None, :], H, axis=0)
     big = _fbm(W, H, 16.0, 4, rng)
     mid = _fbm(W, H, 3.0, 5, rng)
     fine = _fbm(W, H, 0.3, 3, rng)
-    streak = _fbm(W, H, 0.45, 3, rng, aniso=0.12)            # vertical streaks (roots)
-    bed = _fbm(W, H, 7.0, 3, rng, aniso=5.0)                 # horizontally stretched wobble
-    lens = _fbm(W, H, 5.0, 3, rng, aniso=3.0)
+    streak = _fbm(W, H, 0.35, 3, rng, aniso=8.0)          # vertical streaks (roots)
+    hbed = _fbm(W, H, 5.0, 3, rng, aniso=0.15)            # horizontally stretched
+    lens = _fbm(W, H, 4.0, 3, rng, aniso=0.3)
+    wx = (_fbm(W, H, 2.5, 3, rng) - 0.5) * 1.6
+    wy = (_fbm(W, H, 2.5, 3, rng) - 0.5) * 1.6
 
     # wavy layer boundaries
     wob = (big - 0.5) * 1.4 + (mid - 0.5) * 0.45
@@ -137,47 +150,63 @@ def generate_strata_textures(out_dir, seed=4242):
     b2 = -13.0 + wob * 1.0
     b3 = -30.0 + wob * 1.2
 
-    top_c = np.array((0.27, 0.18, 0.115))
-    sand_c = np.array((0.69, 0.54, 0.36))
-    lime_c = np.array((0.74, 0.665, 0.53))
-    bed_c = np.array((0.38, 0.33, 0.29))
+    top_c = np.array((0.25, 0.165, 0.105))
+    sand_c = np.array((0.70, 0.55, 0.37))
+    lime_c = np.array((0.76, 0.68, 0.54))
+    bed_c = np.array((0.37, 0.32, 0.28))
 
     w_top = _smooth(-0.2, 0.2, Z - b1)
     w_sand = _smooth(-0.25, 0.25, Z - b2) * (1 - w_top)
     w_lime = _smooth(-0.25, 0.25, Z - b3) * (1 - w_top - w_sand)
     w_bed = np.clip(1 - w_top - w_sand - w_lime, 0, 1)
 
-    # topsoil: dark organic loam with root streaks, darker at the very top
-    roots = np.clip((streak - 0.6) * 5.0, 0, 1)
-    top_mod = 0.85 + 0.3 * (mid - 0.5) + 0.3 * (fine - 0.5) - 0.25 * roots - 0.12 * _smooth(-2.0, -1.2, Z)
+    # topsoil: dark organic loam with fine vertical root streaks, darker at the very top
+    roots = np.clip((streak - 0.62) * 5.0, 0, 1)
+    top_mod = 0.88 + 0.28 * (mid - 0.5) + 0.3 * (fine - 0.5) - 0.3 * roots - 0.12 * _smooth(-2.0, -1.2, Z)
     top_h = 0.45 * fine + 0.35 * mid - 0.3 * roots
 
-    # compacted sand: soft irregular bedding, darker lenses, gravel pebbles
-    bedding = 0.5 + 0.5 * np.sin(Z * (2 * math.pi / 0.9) + (bed - 0.5) * 7.0)
-    pF1, pF2, pID = _worley(W, H, 0.55, rng)
-    peb = 1 - _smooth(0.07, 0.13, pF1) * 1.0
-    peb *= (pID > 0.55)
-    sand_mod = (0.9 + 0.06 * (bedding - 0.5) + 0.2 * (mid - 0.5) + 0.12 * (fine - 0.5)
-                - 0.14 * np.clip((lens - 0.58) * 4, 0, 1) + 0.12 * peb * (pID - 0.75) * 4)
-    sand_h = 0.12 * bedding + 0.3 * fine + 0.7 * peb
+    # compacted sand: soft wavy bedding, darker lenses, scattered gravel
+    bedding = 0.5 + 0.5 * np.sin(Z * (2 * math.pi / 0.8) + (hbed - 0.5) * 9.0)
+    pF1, pF2, pID = _worley(W, H, 0.6, rng)
+    peb = (1 - _smooth(0.06, 0.12, pF1)) * (pID > 0.6)
+    sand_mod = (0.92 + 0.07 * (bedding - 0.5) + 0.16 * (mid - 0.5) + 0.12 * (fine - 0.5)
+                - 0.12 * np.clip((lens - 0.6) * 4, 0, 1) + 0.5 * peb * (pID - 0.8))
+    sand_h = 0.1 * bedding + 0.3 * fine + 0.7 * peb
 
-    # limestone: horizontally elongated blocks, joints and bedding planes
-    lF1, lF2, lID = _worley(W, H, 3.2, rng, yscale=0.45)
-    ljoint = 1 - _smooth(0.04, 0.16, lF2 - lF1)
-    plane = np.abs(np.sin(Z * (math.pi / 2.2) + (bed - 0.5) * 1.6))
-    planes = 1 - _smooth(0.0, 0.06, plane)
-    lime_mod = (0.92 + 0.16 * (lID - 0.5) + 0.12 * (big - 0.5) + 0.1 * (mid - 0.5) + 0.08 * (fine - 0.5)
-                - 0.42 * ljoint - 0.25 * planes)
-    lime_h = 0.55 + 0.25 * _smooth(0.0, 0.8, lF2 - lF1) - 0.6 * ljoint - 0.4 * planes + 0.15 * fine
+    # limestone: beds of irregular thickness bounded by bedding planes, sparse partial joints
+    Zw = Z + (hbed - 0.5) * 1.4 + (mid - 0.5) * 0.35
+    brng = np.random.default_rng(seed + 7)
+    bounds = [-44.0]
+    while bounds[-1] < 2.0:
+        bounds.append(bounds[-1] + brng.uniform(0.7, 3.6))
+    bounds = np.array(bounds)
+    bed_i = np.searchsorted(bounds, Zw) - 1
+    lo_b = bounds[np.clip(bed_i, 0, len(bounds) - 1)]
+    hi_b = bounds[np.clip(bed_i + 1, 0, len(bounds) - 1)]
+    dplane = np.minimum(Zw - lo_b, hi_b - Zw)
+    pw = 0.02 + 0.03 * fine
+    planes = (1 - _smooth(0.0, 1.0, dplane / pw)) * (0.55 + 0.45 * _smooth(0.3, 0.6, lens))
+    sp = 5.0 + 7.0 * _hash(bed_i * 1.0, 1.0)
+    ph = _hash(bed_i * 1.0, 2.0) * sp
+    xj = X + wx * 0.6 + (Zw - lo_b) * (_hash(bed_i * 1.0, 3.0) - 0.5) * 0.6
+    jf = np.mod(xj + ph, sp)
+    jidx = np.floor((xj + ph) / sp)
+    jd = np.minimum(jf, sp - jf)
+    keep = (_hash(bed_i * 1.0, jidx) > 0.45) * _smooth(0.35, 0.55, _fbm(W, H, 3.0, 2, rng))
+    jw = 0.025 + 0.05 * fine
+    joints = (1 - _smooth(0.0, 1.0, jd / jw)) * keep
+    block = _hash(bed_i + 0.5, jidx + 0.5)
+    vugs = (1 - _smooth(0.03, 0.08, _worley(W, H, 0.45, rng)[0])) * (fine > 0.6)
+    lime_mod = (0.93 + 0.08 * (block - 0.5) + 0.06 * (_hash(bed_i * 1.0, 9.0) - 0.5) + 0.14 * (big - 0.5)
+                + 0.1 * (mid - 0.5) + 0.07 * (fine - 0.5) - 0.35 * planes - 0.38 * joints - 0.15 * vugs)
+    lime_h = 0.45 + 0.2 * _smooth(0.0, 0.3, dplane) + 0.12 * mid + 0.12 * fine - 0.45 * joints - 0.2 * vugs
 
-    # bedrock: dark angular fractured blocks
-    bF1, bF2, bID = _worley(W, H, 4.2, rng, yscale=0.8)
-    bjoint = 1 - _smooth(0.05, 0.2, bF2 - bF1)
-    cF1, cF2, cID = _worley(W, H, 1.3, rng)
-    bjoint2 = (1 - _smooth(0.02, 0.07, cF2 - cF1)) * 0.5
-    bed_mod = (0.88 + 0.2 * (bID - 0.5) + 0.18 * (mid - 0.5) + 0.12 * (fine - 0.5)
-               - 0.5 * bjoint - 0.25 * bjoint2)
-    bed_h = 0.6 + 0.3 * _smooth(0.0, 1.2, bF2 - bF1) - 0.8 * bjoint - 0.3 * bjoint2 + 0.15 * fine
+    # bedrock: dark, massive, domain-warped fractures
+    bF1, bF2, bID = _worley(W, H, 5.0, rng, yscale=0.7, warp_x=wx, warp_y=wy)
+    frac = 1 - _smooth(0.03, 0.16, bF2 - bF1)
+    frac *= _smooth(0.35, 0.55, _fbm(W, H, 6.0, 2, rng))  # fractures fade in and out
+    bed_mod = (0.9 + 0.12 * (bID - 0.5) + 0.2 * (mid - 0.5) + 0.14 * (fine - 0.5) - 0.55 * frac)
+    bed_h = 0.6 + 0.25 * _smooth(0.0, 1.5, bF2 - bF1) - 0.7 * frac + 0.2 * fine + 0.1 * mid
 
     col = (w_top[..., None] * top_c * top_mod[..., None]
            + w_sand[..., None] * sand_c * sand_mod[..., None]
@@ -523,6 +552,10 @@ def _preview_custom(roots, path, res):
     import render_preview as pv
     pv.setup_render(res, 48)
     restore = pv.isolate_render(roots)
+    g = bpy.context.scene.objects.get("_pv_ground")
+    gz = g.location.z if g else 0.0
+    if g:
+        g.location.z = -160.0
     try:
         # oblique view of the front-west corner (galleries)
         lo = (-260.0, -175.0, -45.0)
@@ -535,6 +568,8 @@ def _preview_custom(roots, path, res):
         pv.render_to(p2)
     finally:
         restore()
+        if g:
+            g.location.z = gz
 
 
 PREVIEW_OPTS = {"district-base": {"custom": _preview_custom}}

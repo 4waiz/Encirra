@@ -1,0 +1,142 @@
+{
+  "materials": {
+    "facade": "Primary warm-white stone/render: walls, slabs, piers, balcony fronts.",
+    "facade_alt": "Secondary sand/beige stone: bands, alternate volumes, podiums.",
+    "glazing": "Facade glazing planes/bands; replaced in the scene by the lit-window shader. UV0 encodes the window grid: v = storey index (1.0 per storey, slab-aligned), u = bay index (1.0 per ~3 m bay).",
+    "roof": "Roof decks and membranes.",
+    "trim": "Dark anodised aluminium: mullions, frames, louvres, copings, rails.",
+    "accent": "Bronze/champagne metal accents: fins, mashrabiya-style screens, signage bands.",
+    "glass_clear": "Clear glass (balustrades, canopies, tank level band); alpha blended.",
+    "emissive_sign": "Self-lit signage: hospital red cross and lettering.",
+    "solar": "Photovoltaic module glass.",
+    "metal": "Galvanised/bright steel: fences, gantries, rails, vents, ladders.",
+    "steel_dark": "Dark painted steel: transformers, machinery, frames, antenna masts.",
+    "concrete": "Cast concrete: plinths, slabs, galleries, pipe supports, paving.",
+    "asphalt": "Asphalt / dark paving / helipad deck.",
+    "foliage": "Palm fronds and planting (double sided).",
+    "trunk": "Palm trunks.",
+    "water": "Water bodies (tank level column); faintly self-lit cyan.",
+    "soil": "Soil/rock strata on the district base cut faces (baked colour + normal textures).",
+    "rock": "Rock and gravel: bedrock underside, substation yard gravel.",
+    "light_emissive": "Warm lamp heads, aviation and helipad lights.",
+    "pipe": "Painted pipework and pump/valve bodies (industrial blue).",
+    "valve_red": "Red-painted valve handwheels, check-valve covers and fire equipment."
+  },
+  "materialPBR": {
+    "facade": {
+      "baseColor": "#E8E1D4",
+      "roughness": 0.78,
+      "metalness": 0.0
+    },
+    "facade_alt": {
+      "baseColor": "#D2BC98",
+      "roughness": 0.82,
+      "metalness": 0.0
+    },
+    "glazing": {
+      "baseColor": "#2C3A44",
+      "roughness": 0.16,
+      "metalness": 0.35
+    },
+    "roof": {
+      "baseColor": "#B6AFA3",
+      "roughness": 0.92,
+      "metalness": 0.0
+    },
+    "trim": {
+      "baseColor": "#4A4E54",
+      "roughness": 0.42,
+      "metalness": 0.75
+    },
+    "accent": {
+      "baseColor": "#A88457",
+      "roughness": 0.45,
+      "metalness": 0.7
+    },
+    "glass_clear": {
+      "baseColor": "#BCD5DC",
+      "roughness": 0.06,
+      "metalness": 0.0,
+      "opacity": 0.35,
+      "transparent": true,
+      "doubleSided": true
+    },
+    "emissive_sign": {
+      "baseColor": "#E3242B",
+      "roughness": 0.5,
+      "metalness": 0.0,
+      "emissive": "#FF2A2A",
+      "emissiveIntensity": 4.0
+    },
+    "solar": {
+      "baseColor": "#1B2C47",
+      "roughness": 0.2,
+      "metalness": 0.5
+    },
+    "metal": {
+      "baseColor": "#A7ABAE",
+      "roughness": 0.4,
+      "metalness": 0.9
+    },
+    "steel_dark": {
+      "baseColor": "#3A3F45",
+      "roughness": 0.5,
+      "metalness": 0.6
+    },
+    "concrete": {
+      "baseColor": "#B8AFA2",
+      "roughness": 0.92,
+      "metalness": 0.0
+    },
+    "asphalt": {
+      "baseColor": "#343537",
+      "roughness": 0.95,
+      "metalness": 0.0
+    },
+    "foliage": {
+      "baseColor": "#55702E",
+      "roughness": 0.72,
+      "metalness": 0.0,
+      "doubleSided": true
+    },
+    "trunk": {
+      "baseColor": "#8A7152",
+      "roughness": 0.95,
+      "metalness": 0.0
+    },
+    "water": {
+      "baseColor": "#2A7C9E",
+      "roughness": 0.08,
+      "metalness": 0.0,
+      "emissive": "#1A8FD0",
+      "emissiveIntensity": 0.6
+    },
+    "soil": {
+      "baseColor": "#FFFFFF",
+      "roughness": 0.95,
+      "metalness": 0.0
+    },
+    "rock": {
+      "baseColor": "#7B6F61",
+      "roughness": 0.95,
+      "metalness": 0.0
+    },
+    "light_emissive": {
+      "baseColor": "#FFE6BF",
+      "roughness": 0.4,
+      "metalness": 0.0,
+      "emissive": "#FFD08A",
+      "emissiveIntensity": 6.0
+    },
+    "pipe": {
+      "baseColor": "#3F6D8C",
+      "roughness": 0.45,
+      "metalness": 0.35
+    },
+    "valve_red": {
+      "baseColor": "#B0231D",
+      "roughness": 0.5,
+      "metalness": 0.2
+    }
+  }
+}

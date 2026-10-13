@@ -42,7 +42,7 @@
       },
       "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (3 storeys, lobby 3.8 m, storey 3.20 m), u = facade bay.",
       "file": "lowrise-residential.glb",
-      "vertexAO": false
+      "vertexAO": true
     },
     {
       "id": "lowrise-residential_v1",
@@ -85,7 +85,7 @@
       },
       "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (3 storeys, lobby 3.8 m, storey 3.20 m), u = facade bay.",
       "file": "lowrise-residential.glb",
-      "vertexAO": false
+      "vertexAO": true
     },
     {
       "id": "lowrise-residential_v2",
@@ -128,7 +128,7 @@
       },
       "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (4 storeys, lobby 3.8 m, storey 3.20 m), u = facade bay.",
       "file": "lowrise-residential.glb",
-      "vertexAO": false
+      "vertexAO": true
     }
   ]
 }

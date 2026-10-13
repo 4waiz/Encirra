@@ -26,7 +26,7 @@ function MarkerLabel({ viewBox, text, color, side }: { viewBox?: ViewBox; text: 
 const kTick = (v: number) => (Math.abs(v) >= 1000 ? `${fmtNum(v / 1000, v % 1000 === 0 ? 0 : 1)}k` : fmtNum(v, 0));
 
 // ───────────────────────────────────────────────────────────── power: served vs demand
-export const PowerChart = memo(function PowerChart({ run, playMin, height }: { run: RunResult; playMin: number; height?: number | string }) {
+export const PowerChart = memo(function PowerChart({ run, playMin, height }: { run: RunResult; playMin: number; height?: number }) {
   const data = powerSeries(run);
   const marks = runMarks(run);
   const maxMin = data.length ? data[data.length - 1].min : 0;
