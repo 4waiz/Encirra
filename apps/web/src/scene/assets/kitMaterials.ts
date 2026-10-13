@@ -130,7 +130,7 @@ float h2 = mix(kHash13(cid + 11.3), 0.5, farF);
 float h3 = mix(kHash13(cid + 27.1), 0.5, farF);
 bool lobby = g.y < 1.0;
 #ifdef ENC_SKYLINE
-float litFrac = 0.42;
+float litFrac = 0.5;
 #else
 float litFrac = lobby ? 0.85 : 0.44;
 #endif
@@ -187,7 +187,7 @@ diffuseColor.rgb *= mix(vec3(0.72, 0.7, 0.76), vec3(1.0), clamp(vBState.r * 1.4,
     }
     frag = frag.replace(
       '#include <lights_fragment_end>',
-      '#include <lights_fragment_end>\n#ifdef ENC_SKYLINE\nreflectedLight.directDiffuse *= 0.45;\nreflectedLight.directSpecular *= 0.45;\n#endif',
+      '#include <lights_fragment_end>\n#ifdef ENC_SKYLINE\nreflectedLight.directDiffuse *= 0.32;\nreflectedLight.directSpecular *= 0.06;\n#endif',
     );
     frag = frag.replace('#include <dithering_fragment>', '#include <dithering_fragment>\ngl_FragColor.a *= uFade;');
     shader.fragmentShader = frag;

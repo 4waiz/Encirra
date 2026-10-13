@@ -103,8 +103,8 @@ function cluster(out: TowerSpec[], rnd: () => number, cx: number, cz: number, rx
     if (isWaterCtx(x, z, 35)) continue;
     const [wx, wz] = fromCtx(x, z);
     if (nearDistrict(wx, wz, 250)) continue;
-    const w = 20 + rnd() * 22;
-    const d = 18 + rnd() * 20;
+    const w = 15 + rnd() * 17;
+    const d = 14 + rnd() * 15;
     if (out.some((t) => Math.abs(t.x - x) < (t.w + w) * 0.7 && Math.abs(t.z - z) < (t.d + d) * 0.7)) continue;
     const h = hMin + (hMax - hMin) * Math.pow(rnd(), skew);
     out.push({ x, z, w, d, h, rot: rnd() < 0.7 ? 0 : rnd() * Math.PI, kind: rnd() < 0.12 ? 1 : 0, seed: rnd() * 1000, tone: rnd() < 0.75 ? rnd() * 0.45 : 0.5 + rnd() * 0.5, base: GROUND_Y });
@@ -115,11 +115,11 @@ function cluster(out: TowerSpec[], rnd: () => number, cx: number, cz: number, rx
 export function skylineTowers(): TowerSpec[] {
   const rnd = mulberry32(2026);
   const out: TowerSpec[] = [];
-  cluster(out, rnd, 0, -1120, 1050, 210, 70, 110, 330, 1.9); // dense waterfront on the far shore
-  cluster(out, rnd, -150, -1500, 1400, 200, 46, 120, 360, 1.8); // downtown behind it
-  cluster(out, rnd, -860, -420, 180, 380, 16, 90, 230, 1.8); // left, beyond the creek
-  cluster(out, rnd, 1050, -380, 200, 420, 16, 90, 240, 1.8); // right, beyond the marina
-  cluster(out, rnd, -100, -2050, 1700, 230, 30, 140, 300, 2.0); // far silhouettes
+  cluster(out, rnd, 0, -1080, 1050, 170, 48, 55, 210, 2.3); // waterfront on the far shore (mostly mid-rise)
+  cluster(out, rnd, -150, -1450, 1350, 220, 40, 90, 300, 2.0); // downtown behind it
+  cluster(out, rnd, -860, -420, 180, 380, 12, 70, 190, 2.0); // left, beyond the creek
+  cluster(out, rnd, 1050, -380, 200, 420, 12, 70, 200, 2.0); // right, beyond the marina
+  cluster(out, rnd, -100, -2050, 1700, 230, 26, 120, 280, 2.0); // far silhouettes
   return out;
 }
 

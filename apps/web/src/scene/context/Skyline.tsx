@@ -144,10 +144,10 @@ vec3 roofC;
   roofC = vec3(0.16, 0.16, 0.17);
 #endif
 diffuseColor.rgb = roof ? roofC : mix(wallA, glassC, m);
-vec3 tEm = warm * (0.6 + 1.1 * mix(encH13(vec3(ci, seed + 9.0)), 0.5, farF)) * lit * m;
+vec3 tEm = warm * (0.7 + 1.4 * mix(encH13(vec3(ci, seed + 9.0)), 0.5, farF)) * lit * m;
 // crown light band on taller towers
-float crown = smoothstep(vH - 6.0, vH - 4.0, v) * (1.0 - smoothstep(vH - 2.5, vH - 1.5, v)) * step(90.0, vH) * step(0.5, fract(seed * 1.3));
-tEm += vec3(1.0, 0.85, 0.65) * crown * 2.5 * (roof ? 0.0 : 1.0);
+float crown = smoothstep(vH - 6.0, vH - 4.0, v) * (1.0 - smoothstep(vH - 2.5, vH - 1.5, v)) * step(150.0, vH) * step(0.7, fract(seed * 1.3));
+tEm += vec3(1.0, 0.85, 0.65) * crown * 0.9 * (roof ? 0.0 : 1.0);
 float tRough = roof ? 0.9 : mix(glassy ? 0.45 : 0.75, 0.28, m);
 float tMetal = roof ? 0.0 : mix(glassy ? 0.25 : 0.0, 0.3, m);`,
       )
@@ -161,8 +161,9 @@ float tMetal = roof ? 0.0 : mix(glassy ? 0.25 : 0.0, 0.3, m);`,
 #ifdef ENC_LOW
 reflectedLight.directDiffuse *= 0.42;
 #else
-reflectedLight.directDiffuse *= 0.5;
-reflectedLight.directSpecular *= 0.5;
+// distant towers: soft dusk light only (no broad specular glints from the low key light)
+reflectedLight.directDiffuse *= 0.32;
+reflectedLight.directSpecular *= 0.06;
 #endif`,
       );
   };

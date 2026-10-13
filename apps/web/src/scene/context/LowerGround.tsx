@@ -163,17 +163,19 @@ totalEmissiveRadiance += gEm;
 if (isW > 0.0) {
   vec3 V = normalize(vGW - cameraPosition);
   vec3 R = reflect(V, encWN);
-  R.y = abs(R.y);
+  // bias the reflected ray upwards: the bay mirrors the blue-grey evening sky, not only the bright horizon band
+  R.y = abs(R.y) * 0.75 + 0.16;
+  R = normalize(R);
   float cosT = max(dot(-V, encWN), 0.0);
   float fres = 0.02 + 0.98 * pow(1.0 - cosT, 5.0);
-  vec3 skyR = encSkyBase(normalize(R), 1.0);
+  vec3 skyR = encSkyBase(R, 0.6);
   // reflected skyline: screen-space lookup of the mirrored skyline pass, distorted by the ripples
   vec2 suv = gl_FragCoord.xy / uViewport + encWN.xz * vec2(0.02, 0.05);
   vec4 rr = uReflOn > 0.5 ? texture2D(uRefl, suv) : vec4(0.0);
   float ra = clamp(rr.a, 0.0, 1.0);
   vec3 refl = mix(skyR * fres, rr.rgb * max(fres, 0.42), ra);
   // a little deep-water colour so it reads blue-teal even where the reflection is dark
-  totalEmissiveRadiance += (refl + vec3(0.004, 0.018, 0.028)) * isW;
+  totalEmissiveRadiance += (refl + vec3(0.006, 0.026, 0.045)) * isW;
 }`,
         )
         .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>\nreflectedLight.directDiffuse *= 0.4;`)
