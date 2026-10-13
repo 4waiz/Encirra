@@ -31,7 +31,7 @@ export function TwinCanvas() {
         shadows="percentage"
         dpr={DPR[tier]}
         gl={{ antialias: false, powerPreference: 'high-performance', stencil: false, alpha: false }}
-        camera={{ position: [-140, 180, 440], fov: 42, near: 2, far: 14000 }}
+        camera={{ position: [-420, 215, 420], fov: 40, near: 2, far: 14000 }}
         onPointerMissed={() => setSelected(null)}
         onCreated={(state) => {
           state.gl.toneMappingExposure = 1.0;

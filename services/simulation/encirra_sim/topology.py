@@ -3,10 +3,13 @@
 * Energisation: a bus is energised when a path of closed, in-service lines connects it to the
   substation (pandapower ext_grid bus).
 * Radiality: the energised subgraph must be a tree (|E| = |V| − 1, no loops).
-* Protection and isolation follow the normal radial orientation (BFS from the substation over
-  normally-closed lines). Each line's switch sits at the line's ``from`` end, so isolating a faulted
-  line opens its own switch and the switches of the lines leaving its downstream bus: the faulted
-  *section* is the faulted line plus its downstream bus (extended through any non-remote switch).
+* Protection follows the normal radial orientation (BFS from the substation over normally-closed
+  lines): the first recloser/breaker upstream of the fault trips.
+* Isolation uses the branch-switch abstraction common in distribution-reconfiguration studies on
+  this benchmark: every line section has a load-break switch and opening it takes that section out
+  of service. A faulted line with a remote switch is isolated by that switch alone (its end buses
+  stay healthy and can be re-supplied); with a manual switch the isolated section extends through
+  manual switches to the nearest remote ones.
 """
 
 from __future__ import annotations
@@ -156,47 +159,34 @@ def plan_fault(district: District, fault_line: int) -> FaultPlan:
         raise ValueError("No protective device upstream of the faulted line")
     tripped = frozenset(downstream_of_line(district, prot, tree))
 
-    # Isolation: smallest section bounded by remote switches.
+    # Isolation (branch-switch abstraction of the reconfiguration literature): opening a line's
+    # remote switch takes that line section out of service, so a faulted line with a remote switch is
+    # isolated by its own switch and no bus is lost with it. If the faulted line's switch is not
+    # remotely operable, the fault stays connected to both end buses; the isolated section then grows
+    # through closed non-remote switches until remote switches bound it on every side.
     section_lines = {fault_line}
-    section_buses = set()
+    section_buses: set[int] = set()
     open_sw: list[str] = []
-    # upstream boundary
-    cur = fault_line
-    while not district.lines[cur].remote:
-        # extend upwards: include the from-bus and its feeding line
-        fb = district.lines[cur].from_bus
-        if fb not in tree.parent_line:
-            break
-        section_buses.add(fb)
-        cur = tree.parent_line[fb]
-        section_lines.add(cur)
-    if district.lines[cur].remote:
-        open_sw.append(district.lines[cur].switch_id)
-    # downstream boundary
-    stack = [ln.to_bus]
-    while stack:
-        b = stack.pop()
-        if b in section_buses:
-            continue
-        section_buses.add(b)
-        for lid in tree.children[b]:
-            if lid in section_lines:
+    normal = district.normal_switch_state()
+    if ln.remote:
+        open_sw.append(ln.switch_id)
+    else:
+        stack = [ln.from_bus, ln.to_bus]
+        while stack:
+            b = stack.pop()
+            if b in section_buses:
                 continue
-            child_line = district.lines[lid]
-            if child_line.remote:
-                open_sw.append(child_line.switch_id)
-            else:
-                section_lines.add(lid)
-                stack.append(child_line.to_bus if child_line.from_bus == b else child_line.from_bus)
-    # also handle the branch the upstream walk climbed into: other children of included upstream buses
-    upstream_extra = [b for b in section_buses if b != ln.to_bus and b not in downstream_of_line(district, fault_line, tree)]
-    for b in upstream_extra:
-        for lid in tree.children[b]:
-            if lid in section_lines:
-                continue
-            child_line = district.lines[lid]
-            if child_line.remote:
-                open_sw.append(child_line.switch_id)
+            section_buses.add(b)
+            for other in district.lines:
+                if other.id in section_lines or not normal[other.id] or b not in (other.from_bus, other.to_bus):
+                    continue
+                if other.remote:
+                    open_sw.append(other.switch_id)
+                else:
+                    section_lines.add(other.id)
+                    stack.append(other.to_bus if other.from_bus == b else other.from_bus)
+        if district.substation_bus in section_buses:
+            raise ValueError("The faulted section cannot be isolated from the substation with remote switches")
     prot_sw = district.lines[prot].switch_id
     reclose: tuple[str, ...] = ()
     if prot_sw not in open_sw and prot not in section_lines:

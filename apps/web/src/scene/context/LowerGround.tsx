@@ -109,7 +109,7 @@ float lfade = 1.0 - smoothstep(0.5, 1.6, gaa);
 float poolsX = pow(0.5 + 0.5 * cos(gp.y * 6.2832 / 26.0), 6.0) * sx;
 float poolsZ = pow(0.5 + 0.5 * cos(gp.x * 6.2832 / 26.0), 6.0) * sz;
 float traffic = 0.35 + 0.65 * smoothstep(0.35, 0.8, encNoise(gp * 0.02 + vec2(uTime * 0.02, 0.0)));
-vec3 gEm = vec3(1.0, 0.6, 0.28) * (max(poolsX, poolsZ) * 0.9 * lfade + street * mix(0.06, 0.16, 1.0 - lfade)) * traffic * (1.0 - isW);
+vec3 gEm = vec3(1.0, 0.6, 0.28) * (max(poolsX, poolsZ) * 0.6 * lfade + street * mix(0.06, 0.16, 1.0 - lfade)) * traffic * (1.0 - isW);
 gEm += vec3(1.0, 0.7, 0.4) * walk * 0.03 * (1.0 - isW);
 float gRough = mix(mix(0.92, 0.75, street), 0.04, isW);
 `,

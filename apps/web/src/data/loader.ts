@@ -13,10 +13,7 @@ const PAGES: PageId[] = ['live', 'analytics', 'scenarios', 'assets', 'reports'];
 
 async function fetchRuns(scenarioId: ScenarioId, extra?: { params?: Partial<ScenarioParams>; weights?: Partial<ObjectiveWeights> }): Promise<Runs> {
   const s = useTwin.getState();
-  if (s.dataSource === 'live') {
-    const list = await Promise.all(STRATEGIES.map((strategy) => liveApi.run({ scenarioId, strategy, ...extra })));
-    return Object.fromEntries(list.map((r) => [r.strategy, r])) as Runs;
-  }
+  if (s.dataSource === 'live') return liveRuns(scenarioId, extra);
   if (!s.manifest) throw new DataError('Replay manifest not loaded');
   const manifest = s.manifest;
   const list = await Promise.all(STRATEGIES.map((strategy) => replayApi.run(manifest, scenarioId, strategy)));
@@ -47,14 +44,37 @@ function urlOptions() {
   };
 }
 
-async function startLive(scenarioId: ScenarioId | null, strategy: StrategyId) {
-  const st = useTwin.getState();
+async function liveRuns(scenarioId: ScenarioId, extra?: { params?: Partial<ScenarioParams>; weights?: Partial<ObjectiveWeights> }): Promise<Runs> {
+  const list = await Promise.all(STRATEGIES.map((strategy) => liveApi.run({ scenarioId, strategy, ...extra })));
+  return Object.fromEntries(list.map((r) => [r.strategy, r])) as Runs;
+}
+
+/**
+ * Switch to the live solver. Everything is fetched first and swapped in at once, so the replay
+ * stays on screen (and interactive) while the service computes.
+ */
+async function upgradeToLive(scenarioId: ScenarioId | null, keepPlayhead: boolean) {
   const [topology, scenarios] = await Promise.all([liveApi.topology(), liveApi.scenarios()]);
-  const id = scenarioId && scenarios.some((d) => d.id === scenarioId) ? scenarioId : (scenarios[0]?.id ?? 'feeder-fault');
+  const wanted = scenarioId ?? useTwin.getState().scenarioId;
+  const id = scenarios.some((d) => d.id === wanted) ? wanted : (scenarios[0]?.id ?? 'feeder-fault');
+  const runs = await liveRuns(id);
+  let comparison: Comparison | null = null;
+  try {
+    comparison = await liveApi.compare(id);
+  } catch (err) {
+    console.warn('[encirra] live comparison unavailable; derived from the runs', err);
+  }
+  const st = useTwin.getState();
+  const scenarioChanged = st.scenarioId !== id && st.dataSource === 'replay' && st.run != null;
   st.setData({ dataSource: 'live', topology, scenarios, manifest: null });
-  const runs = await fetchRuns(id);
-  st.setRuns(runs, strategy, { resetPlayhead: true });
-  st.setData({ comparison: await fetchComparison(id) });
+  if (scenarioChanged) {
+    // the viewer switched scenario while the service was computing: reload that one live
+    st.setData({ comparison: null });
+    await loadScenario(st.scenarioId);
+    return;
+  }
+  st.setRuns(runs, st.strategy, { resetPlayhead: !keepPlayhead });
+  st.setData({ comparison });
 }
 
 async function startReplay(scenarioId: ScenarioId | null, strategy: StrategyId | null) {
@@ -71,39 +91,53 @@ async function startReplay(scenarioId: ScenarioId | null, strategy: StrategyId |
 
 let booted = false;
 
-/** Loads the default working example: scenario feeder-fault, strategy Encirra, playhead at the start. */
+function applyUrlOptions(opts: ReturnType<typeof urlOptions>) {
+  const st = useTwin.getState();
+  if (opts.page) st.setPage(opts.page);
+  if (opts.frame != null) st.setPlayhead(opts.frame);
+}
+
+/**
+ * Loads the default working example (scenario feeder-fault, strategy Encirra, playhead at the
+ * start) from the bundled replay immediately; if the live simulation service answers, the same
+ * scenario is then recomputed live in the background and swapped in.
+ */
 export async function bootstrap(): Promise<void> {
   if (booted) return;
   booted = true;
   const st = useTwin.getState();
   const opts = urlOptions();
-  st.setData({ dataSource: 'loading', busy: 'Connecting to the simulation service…', dataError: null });
+  st.setData({ dataSource: 'loading', busy: 'Loading simulation data…', dataError: null });
 
-  const health = await detectBackend();
-  let loaded = false;
+  const healthP = detectBackend();
+  let replayError: Error | null = null;
+  try {
+    await startReplay(opts.scenario, opts.strategy);
+    applyUrlOptions(opts);
+    st.setData({ busy: null });
+  } catch (err) {
+    replayError = err as Error;
+  }
+
+  const health = await healthP;
   if (health) {
-    st.setData({ health, busy: 'Running the live solver…' });
+    const replayShown = replayError == null;
+    st.setData({ health, liveSync: 'syncing', busy: replayShown ? null : 'Running the live solver…' });
     try {
-      await startLive(opts.scenario, opts.strategy ?? 'encirra');
-      loaded = true;
-    } catch (err) {
-      console.warn('[encirra] live simulation service failed; falling back to replay files', err);
-      st.setData({ health: null });
-    }
-  }
-  if (!loaded) {
-    st.setData({ busy: 'Loading replay of precomputed solver output…' });
-    try {
-      await startReplay(opts.scenario, opts.strategy);
-      loaded = true;
-    } catch (err) {
-      st.setData({ dataSource: 'error', dataError: (err as Error).message, busy: null });
+      await upgradeToLive(opts.scenario, replayShown);
+      if (!replayShown) {
+        if (opts.strategy) useTwin.getState().switchStrategy(opts.strategy);
+        applyUrlOptions(opts);
+      }
+      st.setData({ liveSync: 'idle', busy: null });
       return;
+    } catch (err) {
+      console.warn('[encirra] live simulation service failed; staying on the replay files', err);
+      st.setData({ health: null, liveSync: 'failed' });
     }
   }
-  if (opts.page) st.setPage(opts.page);
-  if (opts.frame != null) st.setPlayhead(opts.frame);
-  st.setData({ busy: null });
+  if (replayError) st.setData({ dataSource: 'error', dataError: replayError.message, busy: null });
+  else st.setData({ busy: null });
 }
 
 /** Switch scenario: loads all three strategies (keeps the selected strategy, rewinds the playhead). */

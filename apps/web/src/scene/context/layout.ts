@@ -127,8 +127,8 @@ export function lowerCity(): LowSpec[] {
       const bx0 = gx + LOW_STREET / 2 + 4;
       const bz0 = gz + LOW_STREET / 2 + 4;
       const span = LOW_GRID - LOW_STREET - 8;
-      const nx = rnd() < 0.5 ? 2 : 3;
-      const nz = rnd() < 0.5 ? 2 : 3;
+      const nx = rnd() < 0.5 ? 3 : 4;
+      const nz = rnd() < 0.5 ? 3 : 4;
       const cw = span / nx;
       const cd = span / nz;
       for (let i = 0; i < nx; i++) {
@@ -142,8 +142,8 @@ export function lowerCity(): LowSpec[] {
           const w = cw * (0.62 + rnd() * 0.3);
           const d = cd * (0.62 + rnd() * 0.3);
           const near = r < 700;
-          const cap = near ? 22 : r < 1200 ? 46 : 70;
-          const h = 7 + Math.pow(rnd(), 1.8) * cap;
+          const cap = near ? 16 : r < 1200 ? 34 : 56;
+          const h = 6 + Math.pow(rnd(), 2.0) * cap;
           out.push({ x, z, w, d, h, rot: 0, seed: rnd() * 1000 });
         }
       }

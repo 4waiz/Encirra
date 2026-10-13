@@ -60,7 +60,7 @@ export function kitMaterialKind(name: string): Kind {
  * Build the batched material for a kit material name.
  * `src` is the GLTF material (PBR values are taken from it, falling back to the manifest).
  */
-export function createKitMaterial(name: string, src: Material | null, manifest: KitManifest | null, uniforms: KitUniforms, opts: { darkenOutage?: boolean } = {}) {
+export function createKitMaterial(name: string, src: Material | null, manifest: KitManifest | null, uniforms: KitUniforms, opts: { darkenOutage?: boolean; skyline?: boolean } = {}) {
   const pbr = manifest?.materialPBR?.[name] ?? {};
   const s = src as MeshStandardMaterial | null;
   const kind = kitMaterialKind(name);
@@ -94,7 +94,11 @@ export function createKitMaterial(name: string, src: Material | null, manifest: 
   mat.userData.uniforms = uniforms;
   mat.userData.kitKind = kind;
   const darken = opts.darkenOutage !== false;
-  mat.customProgramCacheKey = () => `encirra-kit-${kind}-${name === 'water' ? 'w' : ''}${darken ? 'd' : ''}${mat.map ? 'm' : ''}${mat.normalMap ? 'n' : ''}`;
+  if (opts.skyline) {
+    mat.defines = { ENC_SKYLINE: '' };
+    if (kind === 'standard') mat.color.multiplyScalar(0.62);
+  }
+  mat.customProgramCacheKey = () => `encirra-kit-${kind}-${name === 'water' ? 'w' : ''}${darken ? 'd' : ''}${mat.map ? 'm' : ''}${mat.normalMap ? 'n' : ''}${opts.skyline ? 's' : ''}`;
   mat.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
@@ -124,7 +128,11 @@ float h1 = kHash13(cid);
 float h2 = mix(kHash13(cid + 11.3), 0.5, farF);
 float h3 = mix(kHash13(cid + 27.1), 0.5, farF);
 bool lobby = g.y < 1.0;
+#ifdef ENC_SKYLINE
+float litFrac = 0.3;
+#else
 float litFrac = lobby ? 0.85 : 0.44;
+#endif
 float lit = step(h1, litFrac);
 lit = mix(lit, litFrac, farF);
 vec3 warm = mix(vec3(1.0, 0.55, 0.24), vec3(1.0, 0.78, 0.5), h2);
@@ -138,9 +146,18 @@ vec3 litCol = warm * inten * lit * power;
 litCol = mix(litCol, litCol * vec3(0.35, 1.25, 0.6) + vec3(0.02, 0.35, 0.12) * lit, restoreTint);
 vec3 kWinEm = (litCol + vec3(0.65, 0.85, 1.0) * 0.55 * emerg) * pane;
 vec3 frameCol = vec3(0.16, 0.17, 0.19);
+#ifdef ENC_SKYLINE
+diffuseColor.rgb = mix(frameCol * 0.6, diffuseColor.rgb * 0.45, pane);
+kWinEm *= 0.75;
+#else
 diffuseColor.rgb = mix(frameCol, diffuseColor.rgb * 0.85, pane);
+#endif
 float kRough = mix(0.45, 0.06, pane);
-float kMetal = mix(0.6, 0.55, pane);`,
+#ifdef ENC_SKYLINE
+float kMetal = 0.35;
+#else
+float kMetal = mix(0.6, 0.55, pane);
+#endif`,
         )
         .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = kRough;')
         .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\nmetalnessFactor = kMetal;')

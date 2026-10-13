@@ -86,6 +86,8 @@ export interface TwinState {
   dataError: string | null;
   /** /api/health response when the live simulation service is reachable */
   health: HealthResponse | null;
+  /** background upgrade from the bundled replay to the live solver: 'syncing' while it computes */
+  liveSync: 'idle' | 'syncing' | 'failed';
   topology: NetworkTopology | null;
   manifest: ReplayManifest | null;
   scenarios: ScenarioDefinition[];
@@ -126,6 +128,7 @@ export interface TwinState {
         | 'dataSource'
         | 'dataError'
         | 'health'
+        | 'liveSync'
         | 'topology'
         | 'manifest'
         | 'scenarios'
@@ -169,6 +172,7 @@ export const useTwin = create<TwinState>()((set, get) => ({
   dataSource: 'loading',
   dataError: null,
   health: null,
+  liveSync: 'idle',
   topology: null,
   manifest: null,
   scenarios: [],

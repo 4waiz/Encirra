@@ -23,9 +23,9 @@ vec3 encSkyBase(vec3 d, float withSun) {
   float t = clamp(h, 0.0, 1.0);
   vec3 cHor = ${v3('#FFD0A0')} * 1.6;
   vec3 cLow = ${v3('#F6AA78')} * 1.35;
-  vec3 cMid = ${v3('#D99A8C')} * 1.0;
-  vec3 cUp  = ${v3('#959CB8')} * 0.9;
-  vec3 cTop = ${v3('#5C7599')} * 0.82;
+  vec3 cMid = ${v3('#E3A27F')} * 1.0;
+  vec3 cUp  = ${v3('#8E9DB9')} * 0.88;
+  vec3 cTop = ${v3('#4F6E99')} * 0.8;
   vec3 col = mix(cHor, cLow, smoothstep(0.0, 0.05, t));
   col = mix(col, cMid, smoothstep(0.03, 0.16, t));
   col = mix(col, cUp, smoothstep(0.12, 0.38, t));

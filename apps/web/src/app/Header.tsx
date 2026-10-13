@@ -1,4 +1,4 @@
-import { BarChart3, Boxes, FileText, Layers3, MapPin, ShieldCheck, Sun } from 'lucide-react';
+import { BarChart3, Boxes, FileText, Layers3, Loader2, MapPin, ShieldCheck, Sun } from 'lucide-react';
 import clsx from 'clsx';
 import { district } from '@encirra/shared';
 import { useTwin, useFrame, type PageId } from '@/state/store';
@@ -62,6 +62,7 @@ function ClockAndContext() {
   const run = useTwin((s) => s.run);
   const frame = useFrame();
   const dataSource = useTwin((s) => s.dataSource);
+  const liveSync = useTwin((s) => s.liveSync);
   const amb = district.district.ambient;
   const date = run && frame ? simDate(run.timebase.startISO, run.timebase.startClock, frame.t) : '—';
   const stage = frame ? STAGE_LABEL[frame.stage] : dataSource === 'loading' ? 'Loading…' : '—';
@@ -123,6 +124,12 @@ function ClockAndContext() {
         <span className="shrink-0 font-medium whitespace-nowrap">
           {dataSource === 'loading' ? 'Loading simulation data' : dataSource === 'error' ? 'Data unavailable' : live ? 'Live solver' : 'Replay · precomputed solver output'}
         </span>
+        {liveSync === 'syncing' && !live && (
+          <span className="inline-flex shrink-0 items-center gap-1 text-info" data-tip="Live simulation service detected: recomputing this scenario. The replay stays on screen until it is ready." data-tip-pos="bottom-end">
+            <Loader2 size={12} className="animate-spin" />
+            <span className="narrow:hidden">live solver computing</span>
+          </span>
+        )}
         <span className="text-mist narrow:hidden">·</span>
         <span className="truncate font-semibold text-navy narrow:sr-only" data-testid="sim-stage">
           {stage}

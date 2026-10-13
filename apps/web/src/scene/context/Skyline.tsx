@@ -97,10 +97,10 @@ if (glassy) lit = step(encH13(vec3(ci.y, seed, 1.0)) * 0.75 + h1 * 0.25, litF);
 lit = mix(lit, litF, farF);
 vec3 warm = mix(vec3(1.0, 0.56, 0.25), vec3(1.0, 0.8, 0.55), mix(encH13(vec3(ci, seed + 5.0)), 0.5, farF));
 if (glassy) warm = mix(warm, vec3(0.85, 0.92, 1.0), 0.35);
-vec3 wallA = glassy ? mix(vec3(0.05, 0.07, 0.085), vec3(0.14, 0.16, 0.17), fract(seed * 0.37)) : (tone < 0.75 ? mix(vec3(0.42, 0.4, 0.37), vec3(0.6, 0.58, 0.55), fract(seed * 0.71)) : mix(vec3(0.36, 0.28, 0.2), vec3(0.52, 0.42, 0.31), fract(seed * 0.71)));
+vec3 wallA = glassy ? mix(vec3(0.05, 0.07, 0.085), vec3(0.14, 0.16, 0.17), fract(seed * 0.37)) : (tone < 0.75 ? mix(vec3(0.28, 0.27, 0.26), vec3(0.4, 0.39, 0.37), fract(seed * 0.71)) : mix(vec3(0.26, 0.21, 0.16), vec3(0.36, 0.3, 0.23), fract(seed * 0.71)));
 vec3 glassC = glassy ? vec3(0.02, 0.035, 0.05) : vec3(0.025, 0.027, 0.03);
 #ifdef ENC_LOW
-wallA = mix(mix(vec3(0.15, 0.14, 0.13), vec3(0.29, 0.26, 0.22), fract(seed * 0.71)), vec3(0.42, 0.41, 0.4), step(0.82, fract(seed * 0.29)));
+wallA = mix(mix(vec3(0.1, 0.095, 0.09), vec3(0.2, 0.18, 0.155), fract(seed * 0.71)), vec3(0.32, 0.31, 0.3), step(0.85, fract(seed * 0.29)));
 #endif
 vec3 roofC = vec3(0.35, 0.34, 0.33);
 #ifdef ENC_LOW
@@ -135,7 +135,7 @@ function buildInstances(specs: { x: number; z: number; w: number; d: number; h: 
     attr[i * 4] = s.seed;
     attr[i * 4 + 1] = low ? 0.5 + ((s.seed * 7.13) % 1) * 0.5 : tone;
     attr[i * 4 + 2] = low ? 3.4 : tone < 0.55 ? 4.0 : 3.5;
-    attr[i * 4 + 3] = low ? 0.42 : 0.2 + ((s.seed * 3.7) % 0.2);
+    attr[i * 4 + 3] = low ? 0.55 : 0.2 + ((s.seed * 3.7) % 0.2);
   });
   mesh.geometry = geo.clone();
   mesh.geometry.setAttribute('aTower', new InstancedBufferAttribute(attr, 4));
@@ -223,7 +223,7 @@ function KitSkyline() {
     for (const [name, g] of groups) {
       const geometry = mergeItems(g.items);
       if (!geometry) continue;
-      const material = createKitMaterial(name, g.src, m, uniforms, { darkenOutage: false });
+      const material = createKitMaterial(name, g.src, m, uniforms, { darkenOutage: false, skyline: true });
       const prev = material.onBeforeCompile;
       material.onBeforeCompile = (shader, r) => {
         prev.call(material, shader, r);

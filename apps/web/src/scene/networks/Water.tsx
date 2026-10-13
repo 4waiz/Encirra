@@ -30,6 +30,21 @@ import { GeoBuilder, lin } from '../lib/GeoBuilder';
 import { LIN } from '../config';
 import { useKitSignature } from '../assets/kit';
 
+/**
+ * Cut-away reveal: the gallery mains sit ~8 m behind the cut face under a soil lip. When the camera
+ * is outside that face (and not looking steeply down) their glow is depth-pulled towards the camera
+ * so it reads through the lip, without leaking through the district surface or the block itself.
+ */
+export const PULL_GLSL = /* glsl */ `
+float encGalleryPull(vec3 wp, vec3 camPos) {
+  vec3 V = normalize(wp - camPos);
+  float steep = 1.0 - smoothstep(0.72, 0.93, -V.y);
+  float front = step(146.0, wp.z) * step(wp.y, -8.0) * smoothstep(0.12, 0.45, -V.z) * step(wp.z, camPos.z);
+  float west = step(wp.x, -235.0) * step(wp.y, -8.0) * smoothstep(0.12, 0.45, V.x) * step(camPos.x, wp.x);
+  return max(front, west) * steep;
+}
+`;
+
 const tubeSpecs: TubeSpec[] = PIPES.map((p) => ({ id: p.index, points: p.route, radius: pipeRadius(p.diameterMM, p.kind) }));
 
 function flowMaterial() {
@@ -41,18 +56,27 @@ function flowMaterial() {
     uniforms: { uPipeTex: { value: pipeTex }, uTime: { value: 0 }, uOpacity: { value: 1 } },
     vertexShader: /* glsl */ `
       attribute float aId; attribute float aS; attribute float aAround;
-      varying float vId; varying float vS; varying vec3 vN; varying vec3 vV;
+      varying float vId; varying float vS; varying vec3 vN; varying vec3 vV; varying vec3 vVp; varying float vPull;
+      ${PULL_GLSL}
       void main() {
         vId = aId; vS = aS;
         vec4 wp = modelMatrix * vec4(position, 1.0);
         vN = normalize(mat3(modelMatrix) * normal);
         vV = normalize(cameraPosition - wp.xyz);
-        gl_Position = projectionMatrix * viewMatrix * wp;
+        vec4 vp = viewMatrix * wp;
+        vVp = vp.xyz;
+        vPull = encGalleryPull(wp.xyz, cameraPosition);
+        gl_Position = projectionMatrix * vp;
       }`,
     fragmentShader: /* glsl */ `
-      uniform sampler2D uPipeTex; uniform float uTime; uniform float uOpacity;
-      varying float vId; varying float vS; varying vec3 vN; varying vec3 vV;
+      uniform sampler2D uPipeTex; uniform float uTime; uniform float uOpacity; uniform mat4 projectionMatrix;
+      varying float vId; varying float vS; varying vec3 vN; varying vec3 vV; varying vec3 vVp; varying float vPull;
       void main() {
+        // depth pull (see encGalleryPull): move the fragment up to 13 m towards the camera
+        float dz = -vVp.z;
+        vec3 pv = vVp * ((dz - min(13.0 * vPull, dz - 1.0)) / max(dz, 1.0));
+        vec4 cp = projectionMatrix * vec4(pv, 1.0);
+        gl_FragDepth = clamp(cp.z / cp.w * 0.5 + 0.5, 0.0, 1.0);
         int pi = int(vId + 0.5);
         vec4 c0 = texelFetch(uPipeTex, ivec2(pi, 0), 0);
         vec4 c1 = texelFetch(uPipeTex, ivec2(pi, 1), 0);
@@ -63,7 +87,7 @@ function flowMaterial() {
         float k = fract((vS - c1.r) / 8.0);
         float kk = dir > 0.0 ? k : 1.0 - k;
         float dash = pow(smoothstep(0.05, 0.62, kk) * (1.0 - smoothstep(0.62, 0.7, kk)), 2.0);
-        float inten = (body * (0.42 + 1.5 * dash * c1.g) + rim * 0.5);
+        float inten = (body * (0.62 + 1.9 * dash * c1.g) + rim * 0.5) * (1.0 + 0.35 * vPull);
         gl_FragColor = vec4(c0.rgb * inten * uOpacity, 1.0);
       }`,
   });
@@ -132,7 +156,8 @@ function arrowMaterial() {
     vertexShader: /* glsl */ `
       attribute vec3 aPos; attribute vec3 aAxis; attribute vec3 aOut; attribute vec4 aMeta;
       uniform sampler2D uPipeTex;
-      varying vec2 vUv; varying vec4 vC0; varying vec4 vC1; varying float vS;
+      varying vec2 vUv; varying vec4 vC0; varying vec4 vC1; varying float vS; varying vec3 vVp; varying float vPull;
+      ${PULL_GLSL}
       void main() {
         int pi = int(aMeta.x + 0.5);
         vC0 = texelFetch(uPipeTex, ivec2(pi, 0), 0);
@@ -144,15 +169,21 @@ function arrowMaterial() {
         float size = aMeta.z * 2.2;
         vUv = uv * 2.0 - 1.0;
         vec3 p = aPos + ax * position.x * size + side * position.y * size;
-        gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0);
+        vPull = encGalleryPull(p, cameraPosition);
+        vec4 vp = viewMatrix * vec4(p, 1.0);
+        vVp = vp.xyz;
+        gl_Position = projectionMatrix * vp;
       }`,
     fragmentShader: /* glsl */ `
-      uniform float uTime; uniform float uOpacity;
-      varying vec2 vUv; varying vec4 vC0; varying vec4 vC1; varying float vS;
+      uniform float uTime; uniform float uOpacity; uniform mat4 projectionMatrix;
+      varying vec2 vUv; varying vec4 vC0; varying vec4 vC1; varying float vS; varying vec3 vVp; varying float vPull;
       void main() {
+        float dz = -vVp.z;
+        vec3 pv = vVp * ((dz - min(13.0 * vPull, dz - 1.0)) / max(dz, 1.0));
+        vec4 cp = projectionMatrix * vec4(pv, 1.0);
+        gl_FragDepth = clamp(cp.z / cp.w * 0.5 + 0.5, 0.0, 1.0);
         // chevron pointing to +x
         vec2 p = vUv;
-        float d = abs(abs(p.y) * 0.9 + (p.x - 0.2) * -1.0 + 0.0) ;
         float chev = smoothstep(0.24, 0.12, abs(p.x + abs(p.y) * 0.95 - 0.35)) * step(abs(p.y), 0.75) * step(-0.75, p.x);
         float dir = vC1.a < 0.0 ? -1.0 : 1.0;
         float k = fract((vS * dir - vC1.r * dir) / 13.0 / 3.0);
