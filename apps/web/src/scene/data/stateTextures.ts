@@ -160,7 +160,8 @@ export function updateStateTextures(t: number, dt: number) {
     // intensity ∝ flow (relative to the pipe's capacity at ~1.2 m/s)
     const cap = Math.PI * Math.pow(PIPES[i].diameterMM / 2000, 2) * 1.2 * 1000; // L/s
     const rel = hasData ? Math.min(1.4, Math.abs(q) / Math.max(cap, 1)) : 0.55;
-    const inten = moving ? 0.7 + 2.2 * Math.min(1, rel / 0.6) : 0.0;
+    // intensity grows with flow (relative to the pipe capacity); a visible floor keeps low flows legible
+    const inten = moving ? 1.25 + 1.9 * Math.sqrt(Math.min(1, rel / 0.5)) : 0.0;
     tmp.multiplyScalar(inten);
     const c = pipeAnim.col[i];
     const k = Math.min(1, dt * 3);

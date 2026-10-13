@@ -39,8 +39,8 @@ export const PULL_GLSL = /* glsl */ `
 float encGalleryPull(vec3 wp, vec3 camPos) {
   vec3 V = normalize(wp - camPos);
   float steep = 1.0 - smoothstep(0.72, 0.93, -V.y);
-  float front = step(146.0, wp.z) * step(wp.y, -8.0) * smoothstep(0.12, 0.45, -V.z) * step(wp.z, camPos.z);
-  float west = step(wp.x, -235.0) * step(wp.y, -8.0) * smoothstep(0.12, 0.45, V.x) * step(camPos.x, wp.x);
+  float front = step(146.0, wp.z) * step(wp.y, -8.0) * smoothstep(0.06, 0.3, -V.z) * step(wp.z, camPos.z);
+  float west = step(wp.x, -235.0) * step(wp.y, -8.0) * smoothstep(0.06, 0.3, V.x) * step(camPos.x, wp.x);
   return max(front, west) * steep;
 }
 `;

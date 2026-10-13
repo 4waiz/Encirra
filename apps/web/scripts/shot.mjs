@@ -121,6 +121,8 @@ for (const [w, h] of sizes) {
       if (!r && runSpec && runSpec.startsWith('replay:')) {
         const res = await fetch('/replay/' + runSpec.slice(7));
         r = await res.json();
+        const topo = await fetch('/replay/topology.json').then((x) => (x.ok ? x.json() : null)).catch(() => null);
+        if (topo) st.setData({ topology: topo });
       }
       if (r) st.setRun(r);
       if (frame !== null && r) {

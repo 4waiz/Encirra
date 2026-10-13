@@ -43,7 +43,7 @@ def test_verification_rejects_non_radial_candidate(feeder_fault_runtime):
 
 def test_planner_rejects_thermal_overload(feeder_fault_runtime):
     rt = feeder_fault_runtime
-    cand = _outcome(rt, ties=["SW-25-29"])  # everything through the 44 A tie
+    cand = _outcome(rt, ties=["SW-25-29"])  # everything through the ~1 MVA (46 A) tie
     assert not cand.feasible
     assert any("rating" in r and "SW-25-29" in r for r in cand.reasons)
 
@@ -52,7 +52,7 @@ def test_planner_topology_checks_flag_reenergised_fault(feeder_fault_runtime):
     rt = feeder_fault_runtime
     d = rt.district
     closed = list(rt.closed_iso)
-    closed[d.switch_index["SW-28-29"]] = True  # re-close an isolation boundary switch
+    closed[d.switch_index["SW-27-28"]] = True  # re-close the faulted section's own switch
     closed[d.switch_index["SW-25-29"]] = True
     spec = CandidateSpec((d.switch_index["SW-25-29"],), (), (), tuple(closed))
     checks, reasons = topology_checks(rt.planning_context(), spec)
@@ -70,3 +70,23 @@ def test_selected_plans_are_simulation_verified(feeder_fault_runs):
         ids = {c.id for c in plan.verification.checks}
         assert {"pf-convergence", "voltage-band", "thermal", "radiality", "connectivity", "fault-isolation", "pump-supply", "switching-feasible", "pressure-critical", "tank-level"} <= ids
         assert "field" not in plan.verification.method.lower() or "not a field certification" in plan.verification.method
+
+
+def test_grid_only_never_interrupts_supplied_customers(feeder_fault_runs, feeder_fault_runtime):
+    _, runs = feeder_fault_runs
+    region = feeder_fault_runtime.fault.downstream_dark
+    for c in runs["grid-only"].candidates:
+        if c.feasible and any(b not in region for b in c.shed_buses):
+            assert c.score_grid_only is None and c.rank_grid_only is None
+            assert any(ch.id == "new-interruptions" and not ch.hard for ch in c.checks)
+    plan = runs["grid-only"].plan
+    assert all(b in region for b in plan.shed_buses)
+
+
+def test_every_rejected_candidate_has_a_specific_reason(feeder_fault_runs):
+    _, runs = feeder_fault_runs
+    for c in runs["encirra"].candidates:
+        if not c.feasible:
+            assert c.rejected_reasons
+            for r in c.rejected_reasons:
+                assert any(t in r for t in ("pu <", "pu >", "rating", "loop formed", "faulted section", "trip", "not remotely", "switching operations", "converge")), r

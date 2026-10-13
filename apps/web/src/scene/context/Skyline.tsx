@@ -14,6 +14,7 @@ import {
   InstancedBufferAttribute,
   InstancedMesh,
   Matrix4,
+  MeshLambertMaterial,
   MeshStandardMaterial,
   Quaternion,
   Vector3,
@@ -34,7 +35,7 @@ float encAAB(float x, float a, float b, float w){ return clamp(smoothstep(a - w,
 
 /** Instanced tower material: windows computed in metric object space from the instance scale. */
 function createTowerMaterial(kind: 'tower' | 'low') {
-  const m = new MeshStandardMaterial({ color: '#ffffff', roughness: 0.8, metalness: 0, envMapIntensity: 1.0 });
+  const m = kind === 'low' ? new MeshLambertMaterial({ color: '#ffffff' }) : new MeshStandardMaterial({ color: '#ffffff', roughness: 0.8, metalness: 0, envMapIntensity: 1.0 });
   m.customProgramCacheKey = () => `encirra-tower-${kind}-v2`;
   if (kind === 'low') m.defines = { ENC_LOW: '' };
   m.onBeforeCompile = (shader) => {
@@ -111,8 +112,8 @@ vec3 tEm = warm * (0.6 + 1.1 * mix(encH13(vec3(ci, seed + 9.0)), 0.5, farF)) * l
 // crown light band on taller towers
 float crown = smoothstep(vH - 6.0, vH - 4.0, v) * (1.0 - smoothstep(vH - 2.5, vH - 1.5, v)) * step(90.0, vH) * step(0.5, fract(seed * 1.3));
 tEm += vec3(1.0, 0.85, 0.65) * crown * 2.5 * (roof ? 0.0 : 1.0);
-float tRough = roof ? 0.9 : mix(glassy ? 0.3 : 0.75, 0.07, m);
-float tMetal = roof ? 0.0 : mix(glassy ? 0.6 : 0.0, 0.9, m);`,
+float tRough = roof ? 0.9 : mix(glassy ? 0.45 : 0.75, 0.28, m);
+float tMetal = roof ? 0.0 : mix(glassy ? 0.25 : 0.0, 0.3, m);`,
       )
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>\nroughnessFactor = tRough;`)
       .replace('#include <metalnessmap_fragment>', `#include <metalnessmap_fragment>\nmetalnessFactor = tMetal;`)
@@ -121,7 +122,7 @@ float tMetal = roof ? 0.0 : mix(glassy ? 0.6 : 0.0, 0.9, m);`,
   return m;
 }
 
-function buildInstances(specs: { x: number; z: number; w: number; d: number; h: number; rot: number; seed: number; tone?: number; kind?: number }[], geo: BoxGeometry | CylinderGeometry, mat: MeshStandardMaterial, low: boolean) {
+function buildInstances(specs: { x: number; z: number; w: number; d: number; h: number; rot: number; seed: number; tone?: number; kind?: number }[], geo: BoxGeometry | CylinderGeometry, mat: MeshStandardMaterial | MeshLambertMaterial, low: boolean) {
   const mesh = new InstancedMesh(geo, mat, specs.length);
   const attr = new Float32Array(specs.length * 4);
   const m = new Matrix4();

@@ -154,7 +154,8 @@ diffuseColor.rgb = mix(frameCol, diffuseColor.rgb * 0.85, pane);
 #endif
 float kRough = mix(0.45, 0.06, pane);
 #ifdef ENC_SKYLINE
-float kMetal = 0.35;
+kRough = mix(0.5, 0.32, pane);
+float kMetal = 0.12;
 #else
 float kMetal = mix(0.6, 0.55, pane);
 #endif`,

@@ -815,6 +815,8 @@ class _Events:
 def reason_category(reason: str) -> str:
     if "loop" in reason:
         return "loop"
+    if "faulted section" in reason:
+        return "fault re-energisation"
     if "rating" in reason:
         return "thermal"
     if "trip on undervoltage" in reason or "cannot run" in reason:
@@ -911,7 +913,7 @@ def build_events(fc: FrameContext, frames: list[Frame], sel: Optional[Selection]
         if sel is not None and rt.k_cand < rt.n:
             outs = [s.outcome for s in sel.scored.values()]
             rej = [o for o in outs if not o.feasible]
-            cats = {"loop": 0, "undervoltage": 0, "overvoltage": 0, "thermal": 0, "pump trip": 0, "other": 0}
+            cats = {"loop": 0, "undervoltage": 0, "overvoltage": 0, "thermal": 0, "pump trip": 0, "fault re-energisation": 0, "other": 0}
             for o in rej:
                 cats[reason_category(o.reasons[0]) if o.reasons else "other"] += 1
             breakdown = ", ".join(f"{v} {k}" for k, v in cats.items() if v)
@@ -1233,44 +1235,100 @@ def build_plan(rt: ScenarioRuntime, strategy: str, sel: Selection, frames: list[
     )
 
 
+def _first_below(o: CandidateOutcome, rt: ScenarioRuntime) -> Optional[tuple[str, int]]:
+    """(junction id, frame) of the first critical-facility pressure below the service threshold."""
+    if o.cr is None:
+        return None
+    thr = float(rt.district.water_options["serviceThresholdM"])
+    hyd = o.cr.hyd
+    best = None
+    for j in rt.district.critical_junction_ids:
+        k = _first_cross(hyd.pressure_m[:, hyd.jidx(j)], rt.k_fault, lambda v: v < thr)
+        if k is not None and (best is None or k < best[1]):
+            best = (j, k)
+    return best
+
+
 def plan_rationale(rt: ScenarioRuntime, strategy: str, sel: Selection, o: CandidateOutcome, s: Scored, report: VerificationReport) -> list[str]:
     d = rt.district
     st = rt.setup
     m = o.metrics
-    out = []
+    region = rt.fault.downstream_dark
+    k_sw = min(rt.k_switch, rt.n - 1)
+    lf = float(st.load_factor[k_sw])
+    out: list[str] = []
     feas = [x for x in sel.scored.values() if x.outcome.feasible]
     rej = [x for x in sel.scored.values() if not x.outcome.feasible]
+    interrupting = [x for x in feas if x.outcome.extra.get("interrupts")]
+    clock = lambda k: _clock(k, st.step_min)  # noqa: E731
     if strategy == "encirra":
-        out.append(f"Highest Encirra score of {len(feas)} feasible candidates ({s.score_encirra:.2f}); rank {s.rank_grid} under the grid-only objective.")
+        adm = [x for x in feas if x.score_encirra is not None]
+        grid_txt = (
+            f"rank {s.rank_grid} under the grid-only objective"
+            if s.rank_grid is not None
+            else "not admissible for grid-only, which never interrupts customers who still have supply"
+        )
+        out.append(f"Highest Encirra score among {len(adm)} admissible feasible candidates ({s.score_encirra:.2f}); {grid_txt}.")
     else:
-        out.append(f"Highest grid-only score of {len(feas)} feasible candidates ({s.score_grid:.2f}): maximum restored electrical energy, backup-supplied load counted as served.")
+        adm = [x for x in feas if x.score_grid is not None]
+        out.append(
+            f"Highest grid-only score among {len(adm)} admissible feasible candidates ({s.score_grid:.2f}): conventional restoration "
+            "maximises restored electrical energy and never interrupts customers who still have supply."
+        )
+        # why grid-only values the west-district loads the way it does
+        notes = []
+        for f in d.facilities:
+            if f.bus is not None and f.bus in region and f.backup:
+                dem = d.buses[f.bus].load_kw * lf
+                notes.append(f"{f.name}'s {f.backup_kw:.0f} kW genset-supplied load counts as already served, so re-energising B{f.bus + 1} is worth only {max(0.0, dem - f.backup_kw):.0f} kW")
+        for p in d.pumps:
+            if p.bus in region:
+                kw = d.buses[p.bus].load_kw * lf + float(rt.baseline_pump_kw()[k_sw, [x.id for x in d.pumps].index(p.id)])
+                notes.append(f"{p.station_id.upper()} (B{p.bus + 1}) is an ordinary {kw:.0f} kW load whose water service is outside the objective")
+        if notes:
+            out.append("Grid-only accounting: " + "; ".join(notes) + ".")
+        if interrupting:
+            ex = interrupting[0].outcome
+            out.append(f"{len(interrupting)} feasible plan(s) that interrupt supplied customers for voltage headroom (e.g. {ex.cid}: {ex.label}) are outside this policy.")
     out.append(f"Restores {m.restored_kw:.0f} kW at switching; sheds {m.shed_kw:.0f} kW; {m.switch_ops} switching operation(s).")
-    if o.spec.shed:
+    region_shed = [b for b in o.spec.shed if b in region]
+    head_shed = [b for b in o.spec.shed if b not in region]
+    if region_shed:
         names = []
-        for b in o.spec.shed:
+        for b in region_shed:
             fac = d.facilities_on_bus(b)
             names.append(f"B{b + 1}" + (f" ({fac[0].name}, {d.buses[b].load_kw:.0f} kW / {d.buses[b].load_kvar:.0f} kVAr)" if fac else ""))
-        out.append(f"Shedding {', '.join(names)} frees capacity so the remaining restoration satisfies every hard limit.")
-    pumps = [p for p in d.pumps if p.bus in rt.fault.downstream_dark]
-    for p in pumps:
-        if p.bus in o.restored_buses:
-            out.append(f"{p.id} back in service: minimum tank level {m.tank_min_pct:.0f}% and critical-facility pressure ≥ {m.min_critical_pressure_m:.1f} m over the remaining horizon.")
+        out.append(f"Leaves {', '.join(names)} off so the rest of the de-energised area can be restored within every hard limit.")
+    if head_shed:
+        kw = sum(d.buses[b].load_kw * lf for b in head_shed)
+        conn = sum(d.buses[b].connections for b in head_shed)
+        out.append(
+            f"Interrupts {bus_list(head_shed)} ({kw:.0f} kW, {conn} connections) — customers who still had supply — to create voltage headroom "
+            "at the tie; admissible only because no plan without new interruptions protects the same critical facilities."
+        )
+    for p in [p for p in d.pumps if p.bus in region]:
+        if p.bus in o.restored_buses and m.pumps_restored:
+            out.append(f"{p.id} back in service: tank storage stays ≥ {m.tank_min_pct:.0f}% and critical-facility pressure ≥ {m.min_critical_pressure_m:.1f} m for the rest of the horizon.")
         else:
-            out.append(f"{p.id} stays without supply: the extended-period simulation shows critical-facility pressure falling to {m.min_critical_pressure_m:.1f} m and tank storage to {m.tank_min_pct:.0f}%.")
+            fb = _first_below(o, rt)
+            when = f" from {clock(fb[1])}" if fb else ""
+            out.append(f"{p.id} stays without supply: the extended-period simulation shows critical-facility pressure falling to {m.min_critical_pressure_m:.1f} m{when} and tank storage to {m.tank_min_pct:.0f}%.")
     if m.v_min_pu is not None:
         out.append(f"Worst evaluated voltage {m.v_min_pu:.3f} pu (hard limit 0.90 pu); peak line loading {m.max_loading_pct:.0f}%.")
-    # contrast with the best alternative of the other objective
     other = "grid-only" if strategy == "encirra" else "encirra"
     alt_list = ranked(sel.scored, other)
     if alt_list and alt_list[0].outcome.cid != o.cid:
         a = alt_list[0].outcome
-        out.append(
-            f"The {other} optimum ({a.cid}: {a.label}) restores {a.metrics.restored_kw:.0f} kW with critical pressure ≥ {a.metrics.min_critical_pressure_m:.1f} m and tank minimum {a.metrics.tank_min_pct:.0f}%."
+        fb = _first_below(a, rt)
+        water = (
+            f"critical-facility pressure falls below 20 m at {clock(fb[1])}" if fb else f"critical-facility pressure stays ≥ {a.metrics.min_critical_pressure_m:.1f} m"
         )
+        txt = f"The {other} optimum ({a.cid}: {a.label}) restores {a.metrics.restored_kw:.0f} kW; with it {water} (tank minimum {a.metrics.tank_min_pct:.0f}%)."
+        if strategy == "grid-only" and o.terms and a.terms:
+            txt += f" In grid-only accounting it is worth {a.terms['gridValueMWh']:.2f} MWh against {o.terms['gridValueMWh']:.2f} MWh for this plan."
+        out.append(txt)
     if rej:
-        reasons = []
-        for x in rej[:3]:
-            reasons.append(f"{x.outcome.cid} — {x.outcome.reasons[0]}")
+        reasons = [f"{x.outcome.cid} — {x.outcome.reasons[0]}" for x in rej[:3]]
         out.append(f"{len(rej)} candidates rejected on hard constraints, e.g. " + "; ".join(reasons) + ".")
     hard = [c for c in report.checks if c.hard]
     out.append(f"Independent verification: {sum(1 for c in hard if c.passed)}/{len(hard)} hard checks passed ({'Simulation Verified' if report.passed else 'rejected'}).")

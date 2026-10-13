@@ -4,7 +4,7 @@
  */
 import { useEffect, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { BufferAttribute, BufferGeometry, MeshStandardMaterial } from 'three';
+import { BufferAttribute, BufferGeometry, MeshLambertMaterial } from 'three';
 import { bendShader } from './bend';
 import { GROUND_Y, LOW_GRID, LOW_STREET, WATER_GLSL } from './layout';
 import { NOISE_GLSL, SKY_GLSL } from '../env/skyShader';
@@ -48,7 +48,8 @@ function discGeometry(r0: number, r1: number, rings: number, segs: number) {
 export function LowerGround() {
   const geo = useMemo(() => discGeometry(60, 7000, 90, 160), []);
   const mat = useMemo(() => {
-    const m = new MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, metalness: 0, envMapIntensity: 0.5 });
+    // Lambert (no IBL / specular): the lower city covers a lot of pixels; water reflections are analytic
+    const m = new MeshLambertMaterial({ color: '#ffffff' });
     const uniforms = { uTime: { value: 0 }, uFade: { value: 1 } };
     m.userData.uniforms = uniforms;
     m.customProgramCacheKey = () => 'encirra-lower-ground-v1';
@@ -164,5 +165,5 @@ if (isW > 0.0) {
     [geo, mat],
   );
 
-  return <mesh geometry={geo} material={mat} position={[0, GROUND_Y, 0]} receiveShadow frustumCulled={false} />;
+  return <mesh geometry={geo} material={mat} position={[0, GROUND_Y, 0]} frustumCulled={false} />;
 }

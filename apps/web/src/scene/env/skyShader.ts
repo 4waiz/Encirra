@@ -65,7 +65,7 @@ float encNoise(vec2 p){
 float encFbm(vec2 p){
   float v = 0.0; float a = 0.5;
   mat2 r = mat2(0.8, 0.6, -0.6, 0.8);
-  for (int i = 0; i < 5; i++) { v += a * encNoise(p); p = r * p * 2.03 + 11.7; a *= 0.5; }
+  for (int i = 0; i < 4; i++) { v += a * encNoise(p); p = r * p * 2.03 + 11.7; a *= 0.5; }
   return v;
 }
 `;
