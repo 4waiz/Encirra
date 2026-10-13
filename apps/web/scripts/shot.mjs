@@ -20,6 +20,7 @@
  *   --quality <tier>     force a quality tier (high|medium|low)
  *   --cinematic          enable the cinematic auto-orbit
  *   --eval <js>          extra JS evaluated in the page before capture
+ *   --gpu <igpu|dgpu>    GPU for headless Edge (default igpu = integrated, the stricter target)
  *
  * Writes PNGs to tests/e2e/output/ and prints console errors/warnings, fps and renderer stats.
  */
@@ -70,10 +71,11 @@ const parseSel = (s) => {
   return { kind, id: rest.join(':') };
 };
 
+const gpuOpt = String(opt('gpu', 'igpu'));
 const browser = await chromium.launch({
   channel: 'msedge',
   headless: true,
-  args: ['--use-angle=d3d11', '--enable-gpu', '--ignore-gpu-blocklist', '--enable-unsafe-swiftshader=false'],
+  args: ['--use-angle=d3d11', '--enable-gpu', '--ignore-gpu-blocklist', ...(gpuOpt === 'dgpu' ? ['--force_high_performance_gpu'] : [])],
 });
 
 let failed = false;
@@ -173,6 +175,7 @@ for (const [w, h] of sizes) {
               triangles: info.triangles,
               tier: api.useSceneQuality?.getState().tier,
               gpuMs: api.fx.gpuMs,
+              renderer: (() => { const g = api.gl?.getContext?.(); const e = g?.getExtension('WEBGL_debug_renderer_info'); return e ? g.getParameter(e.UNMASKED_RENDERER_WEBGL) : '?'; })(),
               cpuMs: api.fx.cpuMs,
               dpr: api.gl?.getPixelRatio?.(),
             });
@@ -186,6 +189,7 @@ for (const [w, h] of sizes) {
   const file = join(outDir, `${name}-${w}x${h}.png`);
   await page.screenshot({ path: file });
   console.log(`\n▶ ${file}`);
+  console.log(`  renderer: ${perf.renderer}`);
   console.log(`  load ${loadMs} ms · fps ${perf.fps.toFixed(1)} · p95 frame ${perf.p95FrameMs.toFixed(1)} ms · gpu ${perf.gpuMs?.toFixed?.(2)} ms · cpu ${perf.cpuMs?.toFixed?.(2)} ms · tier ${perf.tier} · dpr ${perf.dpr} · draw calls ${perf.calls} · tris ${perf.triangles}`);
   const uniq = [...new Set(logs)];
   if (uniq.length) {
