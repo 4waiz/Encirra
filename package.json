@@ -23,7 +23,8 @@
     "typecheck": "npm run typecheck -w apps/web",
     "sim:export": "node scripts/run-sim.mjs export",
     "layout": "node packages/shared/scripts/build-layout.mjs",
-    "assets:build": "node scripts/build-assets.mjs"
+    "assets:build": "node scripts/build-assets.mjs",
+    "deploy": "npm run build && npm run deploy -w apps/web"
   },
   "devDependencies": {
     "@gltf-transform/core": "^4.5.1",

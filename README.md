@@ -6,6 +6,8 @@ Encirra is a physics-driven, optimization-assisted digital twin that models casc
 urban electrical distribution network and the water infrastructure that depends on it, then evaluates and
 independently verifies safer recovery strategies.
 
+**Live demo:** [encirra.kanbanstudios.ae](https://encirra.kanbanstudios.ae) — runs on the bundled replay of precomputed solver output.
+
 ![Encirra Live Twin during a feeder fault and verified recovery](docs/screenshots/live-twin-recovery.jpg)
 
 > **Research Prototype — Synthetic/Benchmark Infrastructure Data.** The electrical model is the published
@@ -94,8 +96,15 @@ demo.
 | Regenerate the replay bundle from the solvers | `npm run sim:export` |
 | Regenerate layout + `docs/MAPPING.md` from the district config | `npm run layout` |
 | Rebuild the Blender asset kit (headless) | `npm run assets:build` |
+| Build and publish the hosted demo (Cloudflare Workers) | `npm run deploy` |
 
 Environment variables are documented in [.env.example](.env.example).
+
+> If `npm run dev` reports *Port 5173 is already in use*, another dev server is still running — stop it (or close its terminal) and run the command again.
+
+**Hosting.** `npm run deploy` builds the app and publishes it with Wrangler as a Cloudflare Worker with static assets
+([apps/web/wrangler.jsonc](apps/web/wrangler.jsonc)). The Python service is not hosted; the Worker answers `/api/health` with
+`ok: false`, so the hosted site always runs on the labelled replay.
 
 ---
 

@@ -1,0 +1,17 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  // Hosted demo: static production build + a tiny Worker that answers /api/* (solver offline → replay mode).
+  "name": "encirra",
+  "account_id": "f8dc06dc6cc06ecfe499b2fdbcf45196",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "routes": [{ "pattern": "encirra.kanbanstudios.ae", "custom_domain": true }],
+  "workers_dev": false,
+  "observability": { "enabled": true }
+}
