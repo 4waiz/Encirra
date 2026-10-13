@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { TwinCanvas } from '@/scene';
@@ -10,10 +10,12 @@ import { LiveTwin } from '@/dashboard/LiveTwin';
 import { FacilityInspector } from '@/inspector/FacilityInspector';
 import { WhyPlanModal } from '@/modals/WhyPlanModal';
 import { AboutModal } from '@/modals/AboutModal';
-import { AnalyticsPage } from '@/pages/AnalyticsPage';
-import { ScenariosPage } from '@/pages/ScenariosPage';
-import { AssetsPage } from '@/pages/AssetsPage';
-import { ReportsPage } from '@/pages/ReportsPage';
+
+// content pages load on first visit (keeps the initial bundle to the twin + dashboard)
+const AnalyticsPage = lazy(() => import('@/pages/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })));
+const ScenariosPage = lazy(() => import('@/pages/ScenariosPage').then((m) => ({ default: m.ScenariosPage })));
+const AssetsPage = lazy(() => import('@/pages/AssetsPage').then((m) => ({ default: m.AssetsPage })));
+const ReportsPage = lazy(() => import('@/pages/ReportsPage').then((m) => ({ default: m.ReportsPage })));
 import { Header } from './Header';
 import { Footer } from './Footer';
 
@@ -101,10 +103,18 @@ function PageLayer() {
           className="absolute inset-x-0 top-[var(--header-h)] bottom-[var(--footer-h)] z-10 px-[var(--pad-x)] pb-[var(--gap)]"
           data-testid={`page-${page}`}
         >
-          {page === 'analytics' && <AnalyticsPage />}
-          {page === 'scenarios' && <ScenariosPage />}
-          {page === 'assets' && <AssetsPage />}
-          {page === 'reports' && <ReportsPage />}
+          <Suspense
+            fallback={
+              <div className="enc-panel enc-panel-strong flex h-full items-center justify-center rounded-[12px] text-[13px] text-slate">
+                <Loader2 size={16} className="mr-2 animate-spin text-info" /> Loading…
+              </div>
+            }
+          >
+            {page === 'analytics' && <AnalyticsPage />}
+            {page === 'scenarios' && <ScenariosPage />}
+            {page === 'assets' && <AssetsPage />}
+            {page === 'reports' && <ReportsPage />}
+          </Suspense>
         </motion.main>
       )}
     </AnimatePresence>

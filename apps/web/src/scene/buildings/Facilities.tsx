@@ -159,7 +159,8 @@ function waterTowerGeometry(d: TowerDims[]) {
   return g.build();
 }
 
-export function Facilities() {
+export function Facilities({ skip }: { skip?: Set<string> }) {
+  const has = (id: string) => !skip?.has(id);
   const sub = useMemo(() => substationGeometry(), []);
   const desal = useMemo(() => desalGeometry(), []);
   const eoc = useMemo(() => eocGeometry(), []);
@@ -261,18 +262,23 @@ export function Facilities() {
   const hTop = hosp.height;
   return (
     <group>
-      <group {...facilityHandlers('substation-s1')}>
-        <mesh geometry={sub.equip} material={equipMat} castShadow receiveShadow />
-        <mesh geometry={sub.live} material={busbarMat} />
-      </group>
-      <mesh geometry={desal} material={whiteMat} castShadow receiveShadow {...facilityHandlers('desal-r1')} />
+      {has('substation-s1') && (
+        <group {...facilityHandlers('substation-s1')}>
+          <mesh geometry={sub.equip} material={equipMat} castShadow receiveShadow />
+          <mesh geometry={sub.live} material={busbarMat} />
+        </group>
+      )}
+      {has('desal-r1') && <mesh geometry={desal} material={whiteMat} castShadow receiveShadow {...facilityHandlers('desal-r1')} />}
+      {has('eoc') && (
       <group {...facilityHandlers('eoc')}>
         <mesh geometry={eoc} material={equipMat} castShadow />
         <mesh ref={beacon} material={beaconMat.clone()} position={[eocB.pos[0] + 8, eocB.height + 26.5, eocB.pos[1] - 5]}>
           <sphereGeometry args={[0.8, 10, 8]} />
         </mesh>
       </group>
+      )}
       {/* hospital: red cross on the main facade + roof, signage, helipad */}
+      {has('hospital') && (
       <group {...facilityHandlers('hospital')}>
         <group position={[hosp.pos[0], 0, hosp.pos[1] + 6 + 8.05]}>
           <mesh material={crossMat} position={[0, hTop - 4.2, 0]}>
@@ -311,9 +317,10 @@ export function Facilities() {
           </mesh>
         </group>
       </group>
+      )}
       {/* elevated water towers */}
-      <mesh geometry={towerGeo} material={whiteMat} castShadow receiveShadow />
-      {towers.map((tw, i) => (
+      {towers.some((tw) => has(tw.facilityId)) && <mesh geometry={towerGeo} material={whiteMat} castShadow receiveShadow />}
+      {towers.filter((tw) => has(tw.facilityId)).map((tw, i) => (
         <group key={tw.id} {...facilityHandlers(tw.facilityId)}>
           <mesh ref={(m) => (waterRefs.current[i] = m)} geometry={waterCyl} material={waterMat} />
           <mesh ref={(m) => (ringRefs.current[i] = m)} geometry={levelRing} material={levelRingMat} rotation-x={Math.PI / 2} />

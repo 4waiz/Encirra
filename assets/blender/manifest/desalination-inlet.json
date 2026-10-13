@@ -44,7 +44,7 @@
         "trim",
         "light_emissive"
       ],
-      "vertexAO": true
+      "vertexAO": false
     }
   ]
 }

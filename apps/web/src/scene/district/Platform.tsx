@@ -3,9 +3,10 @@
  * galleries (front/south and west) where the transmission and suction mains run, so the water
  * network is visible from the default view exactly like an architectural section model.
  */
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { BufferAttribute, BufferGeometry, Color, type Material, MeshStandardMaterial } from 'three';
+import { BufferAttribute, BufferGeometry, Color, type Material, Mesh, MeshStandardMaterial } from 'three';
+import { useKitFile, useKitSignature } from '../assets/kit';
 import { PLATFORM, DEPTH } from '../data/twin';
 import { createGalleryTexture, createStrataTexture, STRATA_U_METRES } from './textures';
 import { createSurfaceMaterial } from './surfaceShader';
@@ -141,13 +142,30 @@ function useFade(materials: Material[], min = 0.12) {
   });
 }
 
-export function Platform() {
+/** Landscaped top surface (roads, blocks, outage tint). Sits 3 cm above the base top face. */
+function Surface() {
+  const surfaceMat = useMemo(() => createSurfaceMaterial(), []);
+  useFade([surfaceMat], 0.1);
+  useFrame((state) => {
+    surfaceMat.userData.uniforms.uTime.value = state.clock.elapsedTime;
+  });
+  useEffect(() => () => surfaceMat.dispose(), [surfaceMat]);
+  const w = maxX - minX;
+  const d = maxZ - minZ;
+  return (
+    <mesh material={surfaceMat} rotation-x={-Math.PI / 2} position={[(minX + maxX) / 2, 0.03, (minZ + maxZ) / 2]} receiveShadow>
+      <planeGeometry args={[w, d, 1, 1]} />
+    </mesh>
+  );
+}
+
+/** Procedural slab: strata cut faces, soil-walled galleries and gallery furniture (fallback). */
+function ProceduralBase() {
   const strataTex = useMemo(() => createStrataTexture(), []);
   const galleryTex = useMemo(() => createGalleryTexture(), []);
   const strataGeo = useMemo(() => strataGeometry(), []);
   const galleryGeo = useMemo(() => galleryGeometry(), []);
   const furniture = useMemo(() => galleryFurniture(), []);
-  const surfaceMat = useMemo(() => createSurfaceMaterial(), []);
   const strataMat = useMemo(
     () =>
       new MeshStandardMaterial({
@@ -167,31 +185,17 @@ export function Platform() {
   const concMat = useMemo(() => new MeshStandardMaterial({ vertexColors: true, roughness: 0.9 }), []);
   const steelMat = useMemo(() => new MeshStandardMaterial({ vertexColors: true, roughness: 0.45, metalness: 0.7 }), []);
   const lampMat = useMemo(() => new MeshStandardMaterial({ color: '#000000', emissive: new Color('#FFE2B8'), emissiveIntensity: 3.2 }), []);
-  const surfaceRef = useRef(null);
-
-  useFade([surfaceMat], 0.1);
   useFade([strataMat, galleryMat, concMat, steelMat], 0.14);
-
-  useFrame((state) => {
-    surfaceMat.userData.uniforms.uTime.value = state.clock.elapsedTime;
-  });
-
   useEffect(
     () => () => {
       [strataTex, galleryTex].forEach((t) => t.dispose());
       [strataGeo, galleryGeo, furniture.conc, furniture.steel, furniture.lamps].forEach((g) => g.dispose());
-      [surfaceMat, strataMat, galleryMat, concMat, steelMat, lampMat].forEach((m) => m.dispose());
+      [strataMat, galleryMat, concMat, steelMat, lampMat].forEach((m) => m.dispose());
     },
-    [strataTex, galleryTex, strataGeo, galleryGeo, furniture, surfaceMat, strataMat, galleryMat, concMat, steelMat, lampMat],
+    [strataTex, galleryTex, strataGeo, galleryGeo, furniture, strataMat, galleryMat, concMat, steelMat, lampMat],
   );
-
-  const w = maxX - minX;
-  const d = maxZ - minZ;
   return (
     <group>
-      <mesh ref={surfaceRef} material={surfaceMat} rotation-x={-Math.PI / 2} position={[(minX + maxX) / 2, 0, (minZ + maxZ) / 2]} receiveShadow>
-        <planeGeometry args={[w, d, 1, 1]} />
-      </mesh>
       <mesh geometry={strataGeo} material={strataMat} receiveShadow castShadow />
       <mesh geometry={galleryGeo} material={galleryMat} receiveShadow />
       <mesh geometry={furniture.conc} material={concMat} receiveShadow castShadow />
@@ -199,4 +203,61 @@ export function Platform() {
       <mesh geometry={furniture.lamps} material={lampMat} />
     </group>
   );
+}
+
+/** district-base.glb from the asset kit (cut faces with soil strata, galleries, chambers). */
+function KitBase() {
+  const gltf = useKitFile('district-base.glb');
+  const { meshes, materials } = useMemo(() => {
+    if (!gltf) return { meshes: [] as Mesh[], materials: [] as Material[] };
+    const node = gltf.scene.getObjectByName('district-base') ?? gltf.scene;
+    const ms: Mesh[] = [];
+    const mats: Material[] = [];
+    node.updateMatrixWorld(true);
+    node.traverse((o) => {
+      const m = o as Mesh;
+      if (!m.isMesh) return;
+      const src = (Array.isArray(m.material) ? m.material[0] : m.material) as MeshStandardMaterial;
+      const mat = src.clone();
+      mat.vertexColors = !!m.geometry.getAttribute('color');
+      if (mat.name === 'light_emissive') mat.emissiveIntensity = (src.emissiveIntensity ?? 4) * 0.6;
+      if (mat.name === 'soil') {
+        mat.envMapIntensity = 0.35;
+        mat.color.multiplyScalar(1.12);
+      }
+      mat.userData.baseOpacity = 1;
+      const mesh = new Mesh(m.geometry, mat);
+      mesh.matrixAutoUpdate = false;
+      mesh.matrix.copy(m.matrixWorld);
+      mesh.castShadow = mat.name !== 'light_emissive';
+      mesh.receiveShadow = true;
+      ms.push(mesh);
+      mats.push(mat);
+    });
+    return { meshes: ms, materials: mats };
+  }, [gltf]);
+  useFade(materials, 0.14);
+  useEffect(() => () => materials.forEach((m) => m.dispose()), [materials]);
+  return (
+    <group>
+      {meshes.map((m, i) => (
+        <primitive key={i} object={m} />
+      ))}
+    </group>
+  );
+}
+
+export function Platform() {
+  const sig = useKitSignature(['district-base.glb']);
+  const kit = sig === 'ready:district-base.glb';
+  return (
+    <group>
+      <Surface />
+      {kit ? <KitBase /> : <ProceduralBase />}
+    </group>
+  );
+}
+
+export function useKitBaseActive() {
+  return useKitSignature(['district-base.glb']) === 'ready:district-base.glb';
 }

@@ -40,7 +40,6 @@
         "metal",
         "steel_dark"
       ],
-      "vertexAO": true
+      "vertexAO": false
     }
   ]
-}

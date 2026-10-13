@@ -33,12 +33,17 @@
           0.0,
           8.2,
           13.3
+        ],
+        "roofSign": [
+          -11.2,
+          37.5,
+          9.0
         ]
       },
       "notes": "City Hospital: podium + ward tower, red cross and HOSPITAL lettering (emissive_sign), drop-off canopy, emergency canopy, rooftop helipad.",
       "facilityId": "hospital",
       "file": "hospital.glb",
-      "tris": 3876,
+      "tris": 4308,
       "materials": [
         "concrete",
         "glazing",
@@ -46,16 +51,16 @@
         "roof",
         "trim",
         "emissive_sign",
+        "steel_dark",
         "glass_clear",
         "metal",
         "light_emissive",
         "valve_red",
-        "steel_dark",
         "asphalt",
         "rock",
         "foliage"
       ],
-      "vertexAO": true
+      "vertexAO": false
     }
   ]
 }

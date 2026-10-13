@@ -1388,6 +1388,7 @@ def compare(scenario_id: str, params=None, weights=None, source: str = "live", u
     """Run all three strategies for one scenario; returns (Comparison, {strategy: RunResult})."""
     from .models import Comparison, StrategyPlans, StrategySummaries
 
+    scenario_definition(scenario_id)  # KeyError for unknown scenarios
     runs = {}
     for strategy in default_strategies():
         runs[strategy] = run(RunRequest(scenario_id=scenario_id, strategy=strategy, params=params, weights=weights), source=source, use_cache=use_cache)

@@ -161,6 +161,14 @@ def hospital(mb):
         mb.box(-0.75, -2.5, 0.25, 0.75, 2.5, 0.45, "emissive_sign")
         mb.box(-2.5, -0.75, 0.25, 2.5, 0.75, 0.45, "emissive_sign")
     info["redCross"] = (0.0, cr[2] - 0.5, cz)
+    # large rooftop lettering on the tower parapet (west half; the helipad is on the east half)
+    sz = t_top + 1.6
+    tw2 = parts.facade_text(mb, "HOSPITAL", -11.2, tr[2] + 0.35, sz + 0.25, 2.5, "emissive_sign", depth=0.3, facing=(0, -1, 0))
+    mb.box(-11.2 - tw2 / 2 - 0.4, tr[2] + 0.35, sz, -11.2 + tw2 / 2 + 0.4, tr[2] + 0.6, sz + 0.25, "steel_dark")
+    for k in range(5):
+        x = -11.2 - tw2 / 2 + tw2 * k / 4
+        mb.box(x - 0.06, tr[2] + 0.62, sz, x + 0.06, tr[2] + 0.75, sz + 2.6, "steel_dark")
+    info["roofSign"] = (-11.2, tr[2], sz + 1.5)
     # "HOSPITAL" lettering above the entrance canopy on the podium fascia
     tw = parts.facade_text(mb, "HOSPITAL", 0.0, pr[2] - 0.0, pod_top - 1.75, 1.7, "emissive_sign", depth=0.22, facing=(0, -1, 0))
     # sign backing band
@@ -962,7 +970,7 @@ def build_group():
     info = hospital(mb)
     ob = build_object(mb, "hospital_v0", coll("hospital"))
     out["hospital"] = [(ob, _rec("hospital_v0", "hospital", 0, mb.bounds(), ob, info, facility="hospital",
-                                 extra={"helipad": to_three(info["helipad"]), "redCross": to_three(info["redCross"]), "sign": to_three(info["sign"])},
+                                 extra={"helipad": to_three(info["helipad"]), "redCross": to_three(info["redCross"]), "sign": to_three(info["sign"]), "roofSign": to_three(info["roofSign"])},
                                  notes="City Hospital: podium + ward tower, red cross and HOSPITAL lettering (emissive_sign), drop-off canopy, emergency canopy, rooftop helipad."))]
     # substation
     mb = MeshBuilder()

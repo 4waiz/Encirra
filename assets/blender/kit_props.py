@@ -42,15 +42,15 @@ def palm(mb, height=10.0, lean=0.9, fronds=12, seed=1, frond_len=4.4, crown_r=0.
         droop = (0.55 + 0.6 * age) * L * 0.42
         d = Vector((math.cos(az) * math.cos(elev), math.sin(az) * math.cos(elev), math.sin(elev)))
         side = Vector((-math.sin(az), math.cos(az), 0.0))
-        samples = 12
+        samples = 22
         spine, left, right = [], [], []
         for s in range(samples + 1):
             u = s / samples
             p = crown + d * (u * L) + Vector((0, 0, -droop * u * u))
-            # width profile with comb teeth (leaflets)
-            w = 0.62 * (math.sin(math.pi * min(1.0, u * 1.05)) ** 0.75)
+            # width profile with fine comb teeth (leaflets)
+            w = 0.66 * (math.sin(math.pi * min(1.0, u * 1.04)) ** 0.7)
             if s % 2 == 1:
-                w *= 0.35
+                w *= 0.22
             if s == 0:
                 w = 0.05
             # leaflets hang down from the rachis

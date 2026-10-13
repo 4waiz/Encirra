@@ -28,6 +28,7 @@ import { fx } from '../runtime';
 import { buildTubes, type TubeSpec } from '../lib/tubes';
 import { GeoBuilder, lin } from '../lib/GeoBuilder';
 import { LIN } from '../config';
+import { useKitSignature } from '../assets/kit';
 
 const tubeSpecs: TubeSpec[] = PIPES.map((p) => ({ id: p.index, points: p.route, radius: pipeRadius(p.diameterMM, p.kind) }));
 
@@ -267,14 +268,16 @@ export function WaterNetwork() {
   });
 
   const r1 = RESERVOIRS[0];
+  const kitPumps = useKitSignature(['pump-station.glb']) === 'ready:pump-station.glb';
+  const kitDesal = useKitSignature(['desalination-inlet.glb']) === 'ready:desalination-inlet.glb';
   return (
     <group ref={group}>
       <mesh geometry={pipeGeo} material={pipeMat} castShadow receiveShadow />
       <mesh geometry={flowGeo} material={flowMat} renderOrder={4} />
       <mesh geometry={arrowGeo} material={arrowMat} renderOrder={9} frustumCulled={false} />
-      <mesh geometry={equip.metal} material={equipMetal} castShadow receiveShadow />
-      <mesh geometry={equip.dark} material={equipDark} castShadow receiveShadow />
-      <mesh geometry={clearwell} material={clearwellMat} position={[r1.pos[0], r1.pos[1] + 2.4, r1.pos[2]]} renderOrder={3} />
+      {!kitPumps && <mesh geometry={equip.metal} material={equipMetal} castShadow receiveShadow />}
+      {!kitPumps && <mesh geometry={equip.dark} material={equipDark} castShadow receiveShadow />}
+      {!kitDesal && <mesh geometry={clearwell} material={clearwellMat} position={[r1.pos[0], r1.pos[1] + 2.4, r1.pos[2]]} renderOrder={3} />}
       <PumpStatus />
       <Valves />
     </group>

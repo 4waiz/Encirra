@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generatedAt": "2026-10-13T10:51:58.192Z",
+  "generatedAt": "2026-10-13T10:54:33.926Z",
   "units": "m",
   "up": "+Y",
   "front": "+Z",
@@ -51,9 +51,9 @@
       "metalness": 0
     },
     "glazing": {
-      "baseColor": "#1D2730",
-      "roughness": 0.12,
-      "metalness": 0.45
+      "baseColor": "#24313B",
+      "roughness": 0.14,
+      "metalness": 0.15
     },
     "roof": {
       "baseColor": "#B6AFA3",
@@ -61,14 +61,14 @@
       "metalness": 0
     },
     "trim": {
-      "baseColor": "#4A4E54",
-      "roughness": 0.42,
-      "metalness": 0.75
+      "baseColor": "#555A61",
+      "roughness": 0.45,
+      "metalness": 0.45
     },
     "accent": {
       "baseColor": "#A88457",
       "roughness": 0.45,
-      "metalness": 0.7
+      "metalness": 0.45
     },
     "glass_clear": {
       "baseColor": "#BCD5DC",
@@ -86,19 +86,19 @@
       "emissiveIntensity": 4
     },
     "solar": {
-      "baseColor": "#1B2C47",
-      "roughness": 0.2,
-      "metalness": 0.5
+      "baseColor": "#1F3150",
+      "roughness": 0.22,
+      "metalness": 0.25
     },
     "metal": {
       "baseColor": "#A7ABAE",
-      "roughness": 0.4,
-      "metalness": 0.9
+      "roughness": 0.42,
+      "metalness": 0.6
     },
     "steel_dark": {
-      "baseColor": "#3A3F45",
+      "baseColor": "#3E434A",
       "roughness": 0.5,
-      "metalness": 0.6
+      "metalness": 0.4
     },
     "concrete": {
       "baseColor": "#B8AFA2",
@@ -158,7 +158,7 @@
   },
   "files": {
     "commercial-podium.glb": {
-      "bytes": 115624,
+      "bytes": 115644,
       "group": "buildings",
       "nodes": [
         "commercial-podium_v0",
@@ -167,42 +167,42 @@
       ]
     },
     "cooling-plant.glb": {
-      "bytes": 221064,
+      "bytes": 221080,
       "group": "facilities",
       "nodes": [
         "cooling-plant_v0"
       ]
     },
     "desalination-inlet.glb": {
-      "bytes": 324732,
+      "bytes": 324748,
       "group": "facilities",
       "nodes": [
         "desalination-inlet_v0"
       ]
     },
     "district-base.glb": {
-      "bytes": 781768,
+      "bytes": 781772,
       "group": "base",
       "nodes": [
         "district-base"
       ]
     },
     "emergency-ops.glb": {
-      "bytes": 154132,
+      "bytes": 154148,
       "group": "facilities",
       "nodes": [
         "emergency-ops_v0"
       ]
     },
     "hospital.glb": {
-      "bytes": 128164,
+      "bytes": 128180,
       "group": "facilities",
       "nodes": [
         "hospital_v0"
       ]
     },
     "lowrise-residential.glb": {
-      "bytes": 149580,
+      "bytes": 149596,
       "group": "buildings",
       "nodes": [
         "lowrise-residential_v0",
@@ -211,14 +211,14 @@
       ]
     },
     "mall.glb": {
-      "bytes": 166988,
+      "bytes": 167008,
       "group": "facilities",
       "nodes": [
         "mall_v0"
       ]
     },
     "midrise-residential.glb": {
-      "bytes": 266704,
+      "bytes": 266724,
       "group": "buildings",
       "nodes": [
         "midrise-residential_v0",
@@ -228,7 +228,7 @@
       ]
     },
     "office-complex.glb": {
-      "bytes": 102316,
+      "bytes": 102336,
       "group": "facilities",
       "nodes": [
         "office-complex_v0"
@@ -244,7 +244,7 @@
       ]
     },
     "pump-station.glb": {
-      "bytes": 473052,
+      "bytes": 473072,
       "group": "facilities",
       "nodes": [
         "pump-station_v0",
@@ -252,7 +252,7 @@
       ]
     },
     "skyline.glb": {
-      "bytes": 429264,
+      "bytes": 429280,
       "group": "skyline",
       "nodes": [
         "skyline_spire",
@@ -271,14 +271,14 @@
       ]
     },
     "solar-array.glb": {
-      "bytes": 23640,
+      "bytes": 23656,
       "group": "props",
       "nodes": [
         "solar-array_v0"
       ]
     },
     "street-furniture.glb": {
-      "bytes": 21376,
+      "bytes": 21380,
       "group": "props",
       "nodes": [
         "planter_v0",
@@ -286,7 +286,7 @@
       ]
     },
     "streetlight.glb": {
-      "bytes": 19376,
+      "bytes": 19380,
       "group": "props",
       "nodes": [
         "streetlight_v0",
@@ -294,14 +294,14 @@
       ]
     },
     "substation.glb": {
-      "bytes": 861420,
+      "bytes": 861436,
       "group": "facilities",
       "nodes": [
         "substation_v0"
       ]
     },
     "tower-office.glb": {
-      "bytes": 173068,
+      "bytes": 173084,
       "group": "buildings",
       "nodes": [
         "tower-office_v0",
@@ -311,7 +311,7 @@
       ]
     },
     "tower-residential.glb": {
-      "bytes": 380376,
+      "bytes": 380396,
       "group": "buildings",
       "nodes": [
         "tower-residential_v0",
@@ -321,7 +321,7 @@
       ]
     },
     "underground-kit.glb": {
-      "bytes": 167792,
+      "bytes": 167812,
       "group": "underground",
       "nodes": [
         "pump-unit_v0",
@@ -333,7 +333,7 @@
       ]
     },
     "villa.glb": {
-      "bytes": 60984,
+      "bytes": 61000,
       "group": "buildings",
       "nodes": [
         "villa_v0",
@@ -341,7 +341,7 @@
       ]
     },
     "water-tower.glb": {
-      "bytes": 190456,
+      "bytes": 190476,
       "group": "facilities",
       "nodes": [
         "water-tower_v0",
@@ -349,7 +349,7 @@
       ]
     }
   },
-  "totalBytes": 5276524,
+  "totalBytes": 5276856,
   "assets": [
     {
       "id": "tower-residential_v0",

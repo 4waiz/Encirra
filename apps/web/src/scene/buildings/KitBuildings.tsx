@@ -141,21 +141,21 @@ function buildBatches(placements: Placement[], loaded: Record<string, GLTF>, m: 
       groups.get(key)!.items.push({ geometry: mm.geometry, matrix: world, bld: p.b.index, tint: tints[mm.name] ?? [1, 1, 1] });
     }
     // live water level columns
-    node.traverse((o) => {
-      if (isDynamic(o) && (o as Mesh).isMesh !== undefined) {
-        const tankIdx = TANKS.findIndex((t) => t.facilityId === p.b.facilityId);
-        if (tankIdx < 0) return;
-        o.updateWorldMatrix(true, false);
-        const inv = new Matrix4().copy(gltf.scene.matrixWorld).invert();
-        const rel = new Matrix4().multiplyMatrices(inv, o.matrixWorld);
+    const tankIdx = TANKS.findIndex((t) => t.facilityId === p.b.facilityId);
+    if (tankIdx >= 0) {
+      gltf.scene.updateMatrixWorld(true);
+      const inv = new Matrix4().copy(gltf.scene.matrixWorld).invert();
+      const seen = new Set<Object3D>();
+      node.traverse((o) => {
+        if (!isDynamic(o)) return;
         o.traverse((c) => {
-          if ((c as Mesh).isMesh) {
-            const cm = c as Mesh;
-            levels.push({ tank: tankIdx, mesh: cm, base: new Matrix4().multiplyMatrices(p.matrix, rel), facilityId: p.b.facilityId! });
-          }
+          if (!(c as Mesh).isMesh || seen.has(c)) return;
+          seen.add(c);
+          const rel = new Matrix4().multiplyMatrices(inv, c.matrixWorld);
+          levels.push({ tank: tankIdx, mesh: c as Mesh, base: new Matrix4().multiplyMatrices(p.matrix, rel), facilityId: p.b.facilityId! });
         });
-      }
-    });
+      });
+    }
   }
   const batches: Batch[] = [];
   for (const [, g] of groups) {

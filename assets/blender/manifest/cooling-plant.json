@@ -36,7 +36,6 @@
         "pipe",
         "valve_red"
       ],
-      "vertexAO": true
+      "vertexAO": false
     }
   ]
-}

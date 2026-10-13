@@ -288,9 +288,12 @@ def main():
     # skyline (nodes carry their placement)
     for name, ob in kit.items():
         if name.startswith("skyline_"):
-            s = instance(ob, name, sky, ob.location.copy(), ob.rotation_euler.z)
+            loc = ob.location.copy()
+            loc.z = -59.0   # background city stands on the coast at sea level, below the floating block
+            instance(ob, name, sky, loc, ob.rotation_euler.z)
     build_sea(env)
-    build_far_city(env)
+    land = simple_material("_pv_land", (0.16, 0.13, 0.11), rough=0.9)
+    mesh_object("_pv_land", env, [(-5000.0, 520.0, -59.2), (5000.0, 520.0, -59.2), (5000.0, 5000.0, -59.2), (-5000.0, 5000.0, -59.2)], [(0, 1, 2, 3)], land)
     if not args.no_save:
         bpy.ops.wm.save_as_mainfile(filepath=os.path.join(HERE, "district_assembled.blend"), compress=True)
     # ---- previews ----
@@ -303,11 +306,12 @@ def main():
     pv.setup_dusk_world(0.5, sun_dir)
     pv.add_lights(sun_dir, 8.0)
     pv.setup_render(res, args.samples)
+    bpy.context.scene.view_settings.exposure = 0.45
     setup_compositor_bloom()
     prev = os.path.join(HERE, "previews")
     views = args.views.split(",")
     if "hero" in views:
-        set_camera((120.0, -620.0, 330.0), (-10.0, 0.0, -20.0), 32.0)
+        set_camera((150.0, -820.0, 230.0), (-30.0, 200.0, 70.0), 30.0)
         pv.render_to(os.path.join(prev, "district_dusk.jpg"))
     if "cutaway" in views:
         set_camera((-95.0, -238.0, -2.0), (-175.0, -150.0, -18.0), 30.0)

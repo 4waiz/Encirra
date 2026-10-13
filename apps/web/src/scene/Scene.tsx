@@ -10,14 +10,14 @@ import { fx } from './runtime';
 import { SkyDome, SkyEnvironment, Lights } from './env/Atmosphere';
 import { Effects } from './env/Effects';
 import { Platform } from './district/Platform';
-import { Buildings } from './buildings/Buildings';
 import { CameraRig } from './camera/CameraRig';
 import { LowerGround } from './context/LowerGround';
 import { Skyline } from './context/Skyline';
 import { Electrical } from './networks/Electrical';
 import { WaterNetwork } from './networks/Water';
 import { Props } from './district/Props';
-import { Facilities } from './buildings/Facilities';
+import { BuildingsLayer } from './buildings/BuildingsLayer';
+import { startKitLoading } from './assets/kit';
 import { Labels } from './labels/Labels';
 
 /** Runs first every frame: store → `live` typed arrays → shared state textures. */
@@ -46,6 +46,8 @@ function LiveSampler() {
   return null;
 }
 
+startKitLoading(['district-base.glb', 'midrise-residential.glb', 'tower-residential.glb', 'hospital.glb', 'substation.glb']);
+
 export function Scene() {
   const surface = useTwin((s) => s.layers.surface);
   const skyline = useTwin((s) => s.layers.skyline);
@@ -61,8 +63,7 @@ export function Scene() {
       </group>
       <Platform />
       <group visible={surface}>
-        <Buildings />
-        <Facilities />
+        <BuildingsLayer />
         <Props />
       </group>
       <Electrical />

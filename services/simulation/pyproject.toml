@@ -35,3 +35,7 @@ packages = ["encirra_sim"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
+filterwarnings = [
+  "ignore:builtin type .* has no __module__ attribute:DeprecationWarning",
+  "ignore::FutureWarning",
+]

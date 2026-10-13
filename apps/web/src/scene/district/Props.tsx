@@ -27,6 +27,8 @@ import { busTex } from '../data/stateTextures';
 import { createFrondTexture } from './textures';
 import { GeoBuilder, lin } from '../lib/GeoBuilder';
 import { fx } from '../runtime';
+import { useKitSignature } from '../assets/kit';
+import { KitProps } from './KitProps';
 
 const PALMS = cityLayout.props.palms;
 const LIGHTS = cityLayout.props.streetLights;
@@ -232,11 +234,15 @@ export function Props() {
     [trunk, crown, poleGeo, glowGeo, trunkMat, crownMat, poleMat, glowMat, poolMat, frondTex],
   );
 
+  const sig = useKitSignature(['palm.glb', 'streetlight.glb']);
+  const kitPalms = sig.includes('palm.glb');
+  const kitLights = sig.includes('streetlight.glb');
   return (
     <group>
-      <primitive object={palms[0]} />
-      <primitive object={palms[1]} />
-      <primitive object={poles} />
+      <KitProps palms={kitPalms} lights={kitLights} />
+      {!kitPalms && <primitive object={palms[0]} />}
+      {!kitPalms && <primitive object={palms[1]} />}
+      {!kitLights && <primitive object={poles} />}
       <mesh geometry={glowGeo} material={poolMat} renderOrder={2} frustumCulled={false} />
       <mesh geometry={glowGeo} material={glowMat} renderOrder={10} frustumCulled={false} />
     </group>

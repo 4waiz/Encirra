@@ -50,7 +50,7 @@
         "valve_red",
         "accent"
       ],
-      "vertexAO": true
+      "vertexAO": false
     },
     {
       "id": "pump-station_v1",
@@ -100,7 +100,7 @@
         "valve_red",
         "accent"
       ],
-      "vertexAO": true
+      "vertexAO": false
     }
   ]
 }
