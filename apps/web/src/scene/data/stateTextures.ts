@@ -53,13 +53,13 @@ export function lineTargetColor(code: number, out: Color): { intensity: number; 
   switch (code) {
     case CODE.energized:
       out.copy(LIN.energized);
-      return { intensity: 2.3, flow: 1, dash: 0, width: 1, pulse: 0 };
+      return { intensity: 2.7, flow: 1, dash: 0, width: 1, pulse: 0 };
     case CODE.restored:
       out.copy(LIN.restored);
-      return { intensity: 2.6, flow: 1, dash: 0, width: 1.05, pulse: 0 };
+      return { intensity: 3.0, flow: 1, dash: 0, width: 1.05, pulse: 0 };
     case CODE.faulted:
       out.copy(LIN.faulted);
-      return { intensity: 3.0, flow: 0, dash: 0, width: 1.25, pulse: 1 };
+      return { intensity: 3.6, flow: 0, dash: 0, width: 1.3, pulse: 1 };
     case CODE.restoring:
       out.copy(LIN.energized);
       return { intensity: 1.6, flow: 0, dash: 1, width: 0.9, pulse: 0.6 };
@@ -67,8 +67,8 @@ export function lineTargetColor(code: number, out: Color): { intensity: number; 
       out.copy(LIN.isolated);
       return { intensity: 0.32, flow: 0, dash: 0, width: 0.75, pulse: 0 };
     case CODE.deenergized:
-      out.copy(LIN.isolated).lerp(LIN.faulted, 0.25);
-      return { intensity: 0.3, flow: 0, dash: 0, width: 0.75, pulse: 0 };
+      out.copy(LIN.isolated).lerp(LIN.faulted, 0.55);
+      return { intensity: 0.55, flow: 0, dash: 0, width: 0.8, pulse: 0 };
     case CODE.open:
     default:
       out.copy(LIN.open);

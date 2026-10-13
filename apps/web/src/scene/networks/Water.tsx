@@ -265,7 +265,7 @@ function clearwellGeometry() {
 
 export function WaterNetwork() {
   const pipeGeo = useMemo(() => buildTubes(tubeSpecs, 14, true, 1), []);
-  const flowGeo = useMemo(() => buildTubes(tubeSpecs, 14, true, 1.07), []);
+  const flowGeo = useMemo(() => buildTubes(tubeSpecs, 14, true, 1.12), []);
   const pipeMat = useMemo(() => new MeshStandardMaterial({ color: '#8E9AA3', metalness: 0.78, roughness: 0.32, envMapIntensity: 1.2 }), []);
   const flowMat = useMemo(() => flowMaterial(), []);
   const arrowGeo = useMemo(() => arrowGeometry(), []);

@@ -40,8 +40,8 @@ vec4 encSurface(vec2 p, out float kind) {
   float n3 = encNoise(p * 0.043 + 7.0);
   bool inAv = dAv < AV_HALF;
   bool inSt = dSt < ST_HALF;
-  vec3 col;
-  float rough;
+  vec3 col = vec3(0.0);
+  float rough = 0.85;
   kind = 0.0;
   if (inAv || inSt) {
     kind = 1.0;
@@ -209,7 +209,7 @@ vec3 tintEm = vec3(0.0);
 if (busIdx >= 0.0) {
   vec4 bs = texelFetch(uBusState, ivec2(int(busIdx), 0), 0);
   float pulse = 0.85 + 0.15 * sin(uTime * 2.2);
-  tintEm += vec3(1.0, 0.1, 0.07) * bs.r * busW * busW * 0.13 * pulse;
+  tintEm += vec3(1.0, 0.1, 0.07) * bs.r * busW * busW * 0.22 * pulse;
   tintEm += vec3(0.1, 0.9, 0.35) * bs.g * busW * 0.35;
   diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.12, 0.72, 0.7), bs.r * busW * 0.45);
 }

@@ -215,6 +215,9 @@ function landmarks() {
   return g.build();
 }
 
+/** Distance multiplier applied to the kit's suggested skyline placements. */
+const SKYLINE_SPREAD = 1.3;
+
 /** skyline.glb landmarks at their suggested placements (context frame), batched per material. */
 function KitSkyline() {
   const gltf = useKitFile('skyline.glb');
@@ -228,7 +231,12 @@ function KitSkyline() {
     for (const root of gltf.scene.children) {
       for (const mm of collectMeshes(root, gltf.scene)) {
         if (!groups.has(mm.name)) groups.set(mm.name, { items: [], src: mm.material });
-        groups.get(mm.name)!.items.push({ geometry: mm.geometry, matrix: mm.matrix, bld: 0, tint: [1, 1, 1] });
+        // push the suggested placements further out (aerial perspective, more sky above the
+        // district): scale the node translation, keep the tower's own size/orientation
+        const m = mm.matrix.clone();
+        m.elements[12] *= SKYLINE_SPREAD;
+        m.elements[14] *= SKYLINE_SPREAD;
+        groups.get(mm.name)!.items.push({ geometry: mm.geometry, matrix: m, bld: 0, tint: [1, 1, 1] });
       }
     }
     const out: { geometry: BufferGeometry; material: Material }[] = [];

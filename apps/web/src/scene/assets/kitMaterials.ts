@@ -96,7 +96,7 @@ export function createKitMaterial(name: string, src: Material | null, manifest: 
   const darken = opts.darkenOutage !== false;
   if (opts.skyline) {
     mat.defines = { ENC_SKYLINE: '' };
-    if (kind === 'standard') mat.color.multiplyScalar(0.62);
+    if (kind === 'standard') mat.color.multiply(new Color(0.34, 0.37, 0.43));
   }
   mat.customProgramCacheKey = () => `encirra-kit-${kind}-${name === 'water' ? 'w' : ''}${darken ? 'd' : ''}${mat.map ? 'm' : ''}${mat.normalMap ? 'n' : ''}${opts.skyline ? 's' : ''}`;
   mat.onBeforeCompile = (shader) => {
@@ -129,7 +129,7 @@ float h2 = mix(kHash13(cid + 11.3), 0.5, farF);
 float h3 = mix(kHash13(cid + 27.1), 0.5, farF);
 bool lobby = g.y < 1.0;
 #ifdef ENC_SKYLINE
-float litFrac = 0.3;
+float litFrac = 0.42;
 #else
 float litFrac = lobby ? 0.85 : 0.44;
 #endif
