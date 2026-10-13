@@ -21,7 +21,7 @@ export const HOME_FOV = 40;
 
 export const SHOTS: Record<CameraShot, ShotDef> = {
   // reference composition: high oblique from the south-south-west, district in the middle band
-  home: { position: [-520, 175, 455], target: [-70, -75, 25], fov: HOME_FOV, duration: 2.2 },
+  home: { position: [-520, 175, 455], target: [-70, -45, 25], fov: HOME_FOV, duration: 2.2 },
   aerial: { position: [-600, 560, 600], target: [0, 0, 0], fov: 36, duration: 2.6 },
   substation: { position: [-62, 92, 128], target: [0, 4, 0], fov: 34, duration: 2.0 },
   hospital: { position: [-150, 88, 120], target: [-80, 14, 2], fov: 34, duration: 2.0 },
@@ -43,6 +43,6 @@ export const LIMITS = {
   minPolarAngle: 0.05,
   maxPolarAngle: Math.PI * 0.47,
   // target must stay over the district (+ margin)
-  boundary: { min: [-420, -45, -360], max: [420, 120, 360] } as { min: [number, number, number]; max: [number, number, number] },
-  minCameraY: -40,
+  boundary: { min: [-420, -110, -360], max: [420, 120, 360] } as { min: [number, number, number]; max: [number, number, number] },
+  minCameraY: -30,
 };

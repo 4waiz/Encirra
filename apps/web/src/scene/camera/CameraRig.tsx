@@ -189,6 +189,14 @@ export function CameraRig() {
     if (mode === 'cinematic' && clock.elapsedTime > pauseUntil.current) {
       c.rotate(MathUtils.degToRad(2.2) * dt, 0, false);
     }
+    // never let the user orbit below the lower city ground
+    c.getPosition(tmpP);
+    if (tmpP.y < LIMITS.minCameraY) {
+      c.getTarget(tmpT);
+      const dist = tmpP.distanceTo(tmpT);
+      const cosPolar = MathUtils.clamp((LIMITS.minCameraY - tmpT.y) / Math.max(dist, 1e-3), -1, 1);
+      c.rotatePolarTo(Math.acos(cosPolar), false);
+    }
   });
 
   return <CameraControls ref={ref} makeDefault />;

@@ -29,6 +29,7 @@ const SUMMARY_FIELDS = [
   'loadRestoredKW',
   'loadRestoredPct',
   'remainingUnservedKW',
+  'loadShedKW',
   'criticalRecovered',
   'criticalTotal',
   'pumpsAvailableEnd',
