@@ -1,33 +1,72 @@
 @import 'tailwindcss';
 
-/* ───────────── Encirra design tokens (see docs/DESIGN.md) ───────────── */
+/* ───────────── Encirra design tokens ───────────── */
 @theme {
   --font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   --color-navy: #15283c; /* primary text */
+  --color-ink: #2b3d50; /* strong secondary text */
   --color-slate: #5b6b7c; /* secondary text */
   --color-mist: #8a96a3; /* tertiary text, isolated/offline */
   --color-line: #e3e8ee; /* hairlines */
+  --color-line-strong: #d3dae2;
   --color-surface: #f6f5f2; /* warm soft grey */
+  --color-wash: #f3f6f9; /* inner wells, table headers */
 
   --color-power: #f5a623; /* electricity / energized supply */
+  --color-power-deep: #b8740a;
+  --color-power-soft: #fef4e2;
   --color-water: #00bfea; /* water */
+  --color-water-deep: #0287a6;
+  --color-water-soft: #e0f6fc;
   --color-fault: #f04438; /* faults */
+  --color-fault-deep: #c8281d;
+  --color-fault-soft: #fdeceb;
   --color-ok: #17a769; /* verified recovery */
+  --color-ok-deep: #0f7f4f;
+  --color-ok-soft: #e5f6ee;
   --color-restoring: #f5a623; /* restoration candidates (amber) */
+  --color-warn: #e08a00;
+  --color-warn-soft: #fff3df;
   --color-isolated: #98a2ad; /* isolated / de-energized */
   --color-brand: #2f6fb3; /* logo steel blue */
   --color-brand-deep: #1d4f86;
+  --color-info: #2a6cb5;
+  --color-info-soft: #e8f1fb;
   --color-active: #e8f1fb; /* active nav pill */
+  --color-steel: #7f93a8;
 }
 
 :root {
   color-scheme: light;
   --panel-bg: rgba(255, 255, 255, 0.86);
   --panel-bg-strong: rgba(255, 255, 255, 0.94);
-  --panel-border: rgba(255, 255, 255, 0.7);
-  --panel-shadow: 0 10px 30px -12px rgba(21, 40, 60, 0.35), 0 2px 6px -2px rgba(21, 40, 60, 0.12);
+  --panel-border: rgba(255, 255, 255, 0.72);
+  --panel-shadow: 0 10px 30px -12px rgba(21, 40, 60, 0.32), 0 2px 6px -2px rgba(21, 40, 60, 0.12);
   --panel-radius: 10px;
+
+  /* layout rhythm (scales with the viewport; see the reference composition) */
+  --pad-x: clamp(10px, 0.8vw, 16px);
+  --gap: clamp(8px, 0.68vw, 13px);
+  --header-h: clamp(66px, 10.6vh, 104px);
+  --top-h: clamp(116px, 15.4vh, 162px);
+  --bottom-h: clamp(186px, 26.6vh, 292px);
+  --footer-h: 24px;
+
+  /* type scale */
+  --fs-title: clamp(13.5px, 0.98vw, 17.5px);
+  --fs-metric: clamp(15px, 1.08vw, 19.5px);
+  --fs-body: clamp(11.5px, 0.76vw, 13.5px);
+  --fs-label: clamp(10.5px, 0.66vw, 12px);
+  --fs-micro: clamp(9.5px, 0.58vw, 11px);
+}
+
+@media (max-height: 760px) {
+  :root {
+    --top-h: clamp(112px, 17vh, 130px);
+    --bottom-h: clamp(176px, 27vh, 210px);
+    --header-h: clamp(62px, 10vh, 76px);
+  }
 }
 
 html,
@@ -44,6 +83,14 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
 }
 
 /* Glass-like white card used across the dashboard (subtle, not heavy blur) */
@@ -55,7 +102,199 @@ body {
   backdrop-filter: blur(6px) saturate(1.1);
   -webkit-backdrop-filter: blur(6px) saturate(1.1);
 }
+.enc-panel-strong {
+  background: var(--panel-bg-strong);
+}
 
 .tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/* ───────────── typography roles ───────────── */
+.t-title {
+  font-size: var(--fs-title);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+.t-metric {
+  font-size: var(--fs-metric);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.t-unit {
+  font-size: 0.68em;
+  font-weight: 600;
+  letter-spacing: 0;
+  margin-left: 0.18em;
+}
+.t-body {
+  font-size: var(--fs-body);
+  line-height: 1.35;
+}
+.t-label {
+  font-size: var(--fs-label);
+  line-height: 1.25;
+  color: var(--color-slate);
+}
+.t-micro {
+  font-size: var(--fs-micro);
+  line-height: 1.2;
+}
+
+/* ───────────── scrollbars: thin in Chromium (see note), standard elsewhere ───────────── */
+.enc-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.enc-scroll::-webkit-scrollbar-thumb {
+  background: rgba(21, 40, 60, 0.22);
+  border-radius: 6px;
+}
+.enc-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+/* Chromium ignores ::-webkit-scrollbar when the standard properties are set, so only apply them elsewhere. */
+@supports not selector(::-webkit-scrollbar) {
+  .enc-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(21, 40, 60, 0.25) transparent;
+  }
+}
+
+/* ───────────── tooltips (data-tip) ───────────── */
+[data-tip] {
+  position: relative;
+}
+[data-tip]:hover::after,
+[data-tip]:focus-visible::after {
+  content: attr(data-tip);
+  position: absolute;
+  z-index: 60;
+  white-space: pre-line;
+  width: max-content;
+  max-width: 260px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(21, 40, 60, 0.94);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0;
+  text-align: left;
+  pointer-events: none;
+  box-shadow: 0 6px 18px -6px rgba(21, 40, 60, 0.45);
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+[data-tip-pos='left']:hover::after,
+[data-tip-pos='left']:focus-visible::after {
+  top: 50%;
+  left: auto;
+  right: calc(100% + 8px);
+  transform: translateY(-50%);
+}
+[data-tip-pos='top']:hover::after,
+[data-tip-pos='top']:focus-visible::after {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+[data-tip-pos='bottom-end']:hover::after,
+[data-tip-pos='bottom-end']:focus-visible::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+[data-tip-pos='bottom-start']:hover::after,
+[data-tip-pos='bottom-start']:focus-visible::after {
+  left: 0;
+  transform: none;
+}
+
+/* ───────────── animations ───────────── */
+@keyframes enc-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(42, 108, 181, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 7px rgba(42, 108, 181, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(42, 108, 181, 0);
+  }
+}
+.enc-pulse {
+  animation: enc-pulse 1.6s ease-out infinite;
+}
+@keyframes enc-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+.enc-blink {
+  animation: enc-blink 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .enc-pulse,
+  .enc-blink {
+    animation: none;
+  }
+}
+
+/* ───────────── focus ───────────── */
+:focus-visible {
+  outline: 2px solid var(--color-info);
+  outline-offset: 2px;
+}
+
+/* Recharts: keep text in text tokens and avoid focus outlines on the svg surface */
+.recharts-wrapper svg:focus,
+.recharts-surface:focus {
+  outline: none;
+}
+.recharts-text {
+  fill: var(--color-slate);
+}
+
+/* range input (scrubber, sliders) */
+input[type='range'].enc-range {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  height: 18px;
+  margin: 0;
+}
+input[type='range'].enc-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 4px;
+  background: var(--track, #d6dee7);
+}
+input[type='range'].enc-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--color-info);
+  box-shadow: 0 1px 3px rgba(21, 40, 60, 0.3);
+}
+input[type='range'].enc-range::-moz-range-track {
+  height: 4px;
+  border-radius: 4px;
+  background: var(--track, #d6dee7);
+}
+input[type='range'].enc-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--color-info);
+}
+input[type='range'].enc-range:disabled::-webkit-slider-thumb {
+  border-color: var(--color-mist);
 }
