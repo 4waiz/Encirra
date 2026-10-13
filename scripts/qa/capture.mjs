@@ -40,6 +40,11 @@ for (const [w, h] of sizes) {
   await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 }).catch((e) => logs.push(`[goto] ${e.message}`));
   await page.waitForSelector('canvas', { timeout: 30000 }).catch(() => logs.push('[wait] no canvas'));
   await page.waitForTimeout(wait);
+  if (args.eval) {
+    // e.g. --eval="__encirra.useTwin.getState().setPlayhead(40)"  (dev builds expose window.__encirra)
+    await page.evaluate(args.eval).catch((e) => logs.push(`[eval] ${e.message}`));
+    await page.waitForTimeout(Number(args.settle ?? 4000));
+  }
   const file = join(out, `${prefix}-${w}x${h}.png`);
   await page.screenshot({ path: file });
   const fps = await page

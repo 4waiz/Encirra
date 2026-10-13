@@ -556,13 +556,30 @@ def _evaluate_one(ctx: PlanningContext, spec: CandidateSpec, frames: list[int], 
     served = cr.served_bus_kw(k0)
     k1 = min(k0 + 1, cr.n - 1)
     pumps_restored = sum(1 for p in pumps_region if cr.hyd.pump_on[k1, cr.hyd.pump_ids.index(p.id)])
-    crit_restored = 0
+    crit_ids = []
     for f in crit_fac_region:
         if f.bus not in restored:
             continue
         if f.pumps and not all(cr.hyd.pump_on[k1, cr.hyd.pump_ids.index(p)] for p in f.pumps):
             continue
-        crit_restored += 1
+        crit_ids.append(f.id)
+    crit_restored = len(crit_ids)
+    if interrupts:
+        lf_i = ctx.setup.load_factor[k0]
+        kw_i = sum(d.buses[b].load_kw * lf_i for b in interrupts)
+        conn_i = sum(d.buses[b].connections for b in interrupts)
+        checks.append(
+            _check(
+                "new-interruptions",
+                "Interrupts customers with supply (advisory)",
+                False,
+                False,
+                f"{bus_list(interrupts)}: {kw_i:.0f} kW, {conn_i} connections",
+                "avoid unless needed to protect critical service",
+                "Voltage-headroom shedding of energised non-critical load. Admissible for Encirra only when no plan "
+                "without new interruptions protects the same critical facilities; never admissible for grid-only (FLISR).",
+            )
+        )
     hyd = cr.hyd
     req = float(hyd.required_lps[k0:].sum())
     dlv = float(hyd.delivered_lps[k0:].sum())
@@ -584,6 +601,7 @@ def _evaluate_one(ctx: PlanningContext, spec: CandidateSpec, frames: list[int], 
     terms = objective_terms(ctx, cr, k0)
     out = CandidateOutcome("", spec, label, actions, not reasons, reasons, checks, metrics, terms, restored, en, cr=cr)
     out.extra["interrupts"] = interrupts
+    out.extra["critical_ids"] = crit_ids
     return out
 
 
@@ -733,17 +751,32 @@ def score_and_rank(outcomes: list[CandidateOutcome], w: ObjectiveWeights) -> dic
     for o in outcomes:
         if o.feasible and o.terms is not None:
             bd = score_encirra(o.terms, o.spec.ops, w)
+            enc = bd.total if encirra_admissible(o, outcomes) else None
             grid = score_grid_only(o.terms, o.spec.ops, w) if grid_only_admissible(o) else None
-            out[o.cid] = Scored(o, bd.total, bd, grid)
+            out[o.cid] = Scored(o, enc, bd if enc is not None else None, grid)
         else:
             out[o.cid] = Scored(o, None, None, None)
     feas = [s for s in out.values() if s.outcome.feasible]
-    for rank, s in enumerate(sorted(feas, key=lambda x: (-x.score_encirra, x.outcome.spec.ops, x.outcome.cid)), start=1):
+    enc_feas = [s for s in feas if s.score_encirra is not None]
+    for rank, s in enumerate(sorted(enc_feas, key=lambda x: (-x.score_encirra, x.outcome.spec.ops, x.outcome.cid)), start=1):
         s.rank_encirra = rank
     grid_feas = [s for s in feas if s.score_grid is not None]
     for rank, s in enumerate(sorted(grid_feas, key=lambda x: (-x.score_grid, x.outcome.spec.ops, x.outcome.cid)), start=1):
         s.rank_grid = rank
     return out
+
+
+def encirra_admissible(o: CandidateOutcome, outcomes: list[CandidateOutcome]) -> bool:
+    """Last-resort rule for new interruptions: a plan that interrupts customers who currently have
+    supply is admissible only if no feasible plan without new interruptions protects (re-energises,
+    with pumps running) every critical facility that this plan protects."""
+    if not o.extra.get("interrupts"):
+        return True
+    mine = set(o.extra.get("critical_ids", []))
+    for other in outcomes:
+        if other.feasible and not other.extra.get("interrupts") and mine <= set(other.extra.get("critical_ids", [])):
+            return False
+    return True
 
 
 def grid_only_admissible(o: CandidateOutcome) -> bool:
@@ -754,5 +787,5 @@ def grid_only_admissible(o: CandidateOutcome) -> bool:
 def ranked(scored: dict[str, Scored], strategy: str) -> list[Scored]:
     feas = [s for s in scored.values() if s.outcome.feasible]
     if strategy == "encirra":
-        return sorted(feas, key=lambda x: x.rank_encirra)
+        return sorted((s for s in feas if s.rank_encirra is not None), key=lambda x: x.rank_encirra)
     return sorted((s for s in feas if s.rank_grid is not None), key=lambda x: x.rank_grid)
