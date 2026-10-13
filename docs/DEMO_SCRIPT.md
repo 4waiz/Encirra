@@ -96,7 +96,8 @@ lines turn amber (restoring) then green (restored); the timeline completes.
 > honest: *Partially restored* — the cooling plant stays off by design — with the plan marked
 > Verified.”
 
-**Point at:** System Recovery card (load restored and % of interrupted demand, 3 / 3 critical
+**Point at:** System Recovery card (load restored and its share of the affected demand — load
+restored ÷ (restored + remaining unserved), both on the card — 3 / 3 critical
 facilities recovered, 2 / 2 pumps), Feeder Status map, City Overview.
 
 ## 2:45 – 3:00 · Evidence

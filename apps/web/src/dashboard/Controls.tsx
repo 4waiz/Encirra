@@ -225,8 +225,8 @@ function FocusMenu() {
   }, [open]);
   return (
     <div ref={ref} className="relative">
-      <IconButton tip={open ? undefined : 'Focus presets'} active={open} onClick={() => setOpen((o) => !o)} data-testid="focus-menu-btn">
-        <Crosshair size={16} />
+      <IconButton tip={open ? undefined : 'Camera focus presets'} active={open} onClick={() => setOpen((o) => !o)} data-testid="focus-menu-btn" compact>
+        <Crosshair size={15} />
       </IconButton>
       {open && (
         <div
@@ -264,22 +264,21 @@ export function SceneToolbar() {
   const demoActive = useTwin((s) => s.demo.active);
   const hasRun = useTwin((s) => !!s.run);
   return (
-    <div className="enc-panel pointer-events-auto flex items-center gap-0.5 rounded-[12px] p-1" data-testid="scene-toolbar">
-      <span className="hidden px-1.5 t-micro font-semibold tracking-wide text-slate uppercase 2xl:inline">Layers</span>
+    <div className="enc-panel pointer-events-auto flex items-center gap-0.5 rounded-[11px] p-[3px]" data-testid="scene-toolbar">
       {LAYER_BTNS.map(({ key, label, icon: Icon }) => (
-        <IconButton key={key} tip={label} active={layers[key]} onClick={() => toggleLayer(key)} data-testid={`layer-${key}`}>
-          <Icon size={16} />
+        <IconButton key={key} tip={`${label} layer`} active={layers[key]} onClick={() => toggleLayer(key)} data-testid={`layer-${key}`} compact>
+          <Icon size={15} />
         </IconButton>
       ))}
-      <div className="mx-0.5 h-6 w-px bg-line" />
-      <IconButton tip="Auto-orbit" active={autoOrbit} onClick={() => setAutoOrbit(!autoOrbit)} data-testid="auto-orbit">
-        <Orbit size={16} />
+      <div className="mx-0.5 h-5 w-px bg-line" />
+      <IconButton tip="Auto-orbit" active={autoOrbit} onClick={() => setAutoOrbit(!autoOrbit)} data-testid="auto-orbit" compact>
+        <Orbit size={15} />
       </IconButton>
-      <IconButton tip="Reset camera" onClick={() => requestCamera({ shot: 'home' })} data-testid="camera-reset">
-        <RotateCcw size={16} />
+      <IconButton tip="Reset camera" onClick={() => requestCamera({ shot: 'home' })} data-testid="camera-reset" compact>
+        <RotateCcw size={15} />
       </IconButton>
       <FocusMenu />
-      <div className="mx-0.5 h-6 w-px bg-line" />
+      <div className="mx-0.5 h-5 w-px bg-line" />
       <button
         type="button"
         disabled={!hasRun}
@@ -288,11 +287,11 @@ export function SceneToolbar() {
         data-tip="Guided 3-minute sequence: fault, cascade, recovery, evidence"
         data-tip-pos="bottom-end"
         className={clsx(
-          'flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-semibold whitespace-nowrap transition-colors disabled:opacity-40',
+          'flex h-7 items-center gap-1.5 rounded-lg px-2 text-[12px] font-semibold whitespace-nowrap transition-colors disabled:opacity-40',
           demoActive ? 'bg-info-soft text-info' : 'bg-info text-white hover:bg-brand-deep',
         )}
       >
-        <Clapperboard size={15} />
+        <Clapperboard size={14} />
         Cinematic Demo
       </button>
     </div>

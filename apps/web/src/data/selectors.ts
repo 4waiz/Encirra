@@ -302,7 +302,7 @@ export interface RecoveryCardModel {
   planVisible: boolean; // the playhead has reached candidate evaluation
   metrics: {
     restoredKW: number;
-    restoredPct: number | null; // restoredShare(frame): % of the currently interrupted demand
+    restoredPct: number | null; // restoredShare(frame): % of the demand affected by the event, this frame
     criticalRecovered: number;
     criticalAtRisk: number; // run-level (summary.criticalAtRisk), shown once the fault has occurred
     pumpsOnline: number;
@@ -341,9 +341,12 @@ export function criticalProgress(run: RunResult, topology: NetworkTopology, k: n
 }
 
 /**
- * Share of the currently interrupted demand that is restored: restoredKW / (restoredKW + unservedKW).
- * Unserved demand sits on the interrupted buses (incl. any shed by the plan), so at the final frame
- * this matches the engine's summary.loadRestoredPct (restored ÷ end-of-horizon demand of those buses).
+ * Share of the demand affected by the event that is supplied again, from one frame only:
+ * restoredKW / (restoredKW + unservedKW) — both numbers are shown next to it, so it can be checked
+ * on screen. Unserved demand sits on the interrupted buses (incl. any shed by the plan), so at the
+ * final frame this equals the engine's summary.loadRestoredPct (restored ÷ end-of-horizon demand of
+ * those buses). It is deliberately not divided by the fault-time interrupted load, which changes
+ * with the time-of-day demand profile.
  */
 export function restoredShare(frame: Frame): number | null {
   const denom = frame.power.restoredKW + frame.power.unservedKW;

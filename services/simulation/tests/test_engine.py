@@ -105,3 +105,20 @@ def test_invalid_params_are_rejected():
         engine.run(RunRequest(scenario_id="feeder-fault", strategy="none", params=PartialScenarioParams(fault_line_id=35)), use_cache=False)
     with pytest.raises(ValueError):
         engine.run(RunRequest(scenario_id="feeder-fault", strategy="none", params=PartialScenarioParams(fault_time_min=500)), use_cache=False)
+
+
+@pytest.fixture(scope="module")
+def pump_runs():
+    return engine.compare("pump-power-loss", use_cache=False)[1]
+
+
+def test_pump_power_loss_tie_is_evaluated_and_decision_differs(pump_runs):
+    enc, grid = pump_runs["encirra"], pump_runs["grid-only"]
+    tie = [c for c in enc.candidates if c.label == "Close SW-18-33"]
+    assert tie, "the back-feed of B33 through SW-18-33 must be generated"
+    assert not tie[0].feasible and any("V(B33)" in r and "< 0.90 pu" in r for r in tie[0].rejected_reasons)
+    # Encirra creates voltage headroom by interrupting supplied non-critical load; grid-only (FLISR) may not
+    assert enc.plan.shed_buses and enc.frames[-1].water.pump_on[1]
+    assert not grid.frames[-1].water.pump_on[1]
+    assert grid.summary.min_critical_pressure_m < THR <= enc.summary.min_critical_pressure_m
+    assert any("Grid-only accounting" in r for r in grid.plan.rationale) or any("outside this policy" in r for r in grid.plan.rationale)

@@ -68,6 +68,25 @@ export interface CameraRequest {
 
 export type OverviewMode = 'power' | 'water' | 'combined';
 
+/** Rectangle in CSS pixels, relative to the viewport (same space as the canvas). */
+export interface ScreenRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * Screen layout published by the Live Twin overlay: `safe` is the band between the top cards and the
+ * bottom panels where the city is unobstructed; `occluders` are floating controls inside or over it
+ * (scene toolbar, playback bar, demo captions, inspector). The scene can keep 3D callouts inside
+ * `safe` and away from `occluders`. null on the other pages.
+ */
+export interface OverlayLayout {
+  safe: ScreenRect;
+  occluders: ScreenRect[];
+}
+
 export interface DemoState {
   active: boolean;
   paused: boolean;
@@ -116,6 +135,8 @@ export interface TwinState {
   camera: { mode: 'orbit' | 'cinematic'; request: CameraRequest | null };
   /** slow automatic orbit of the 3D camera (scene reads it) */
   autoOrbit: boolean;
+  /** free screen area for 3D callouts (see OverlayLayout); written by the dashboard */
+  overlayLayout: OverlayLayout | null;
   demo: DemoState;
   whyPlanOpen: boolean;
   aboutOpen: boolean;
@@ -158,6 +179,7 @@ export interface TwinState {
   requestCamera: (req: Omit<CameraRequest, 'nonce'>) => void;
   setCameraMode: (mode: 'orbit' | 'cinematic') => void;
   setAutoOrbit: (on: boolean) => void;
+  setOverlayLayout: (layout: OverlayLayout | null) => void;
   setDemo: (patch: Partial<DemoState>) => void;
   setWhyPlanOpen: (open: boolean) => void;
   setAboutOpen: (open: boolean) => void;
@@ -196,6 +218,7 @@ export const useTwin = create<TwinState>()((set, get) => ({
   overviewMode: 'power',
   camera: { mode: 'orbit', request: null },
   autoOrbit: false,
+  overlayLayout: null,
   demo: { active: false, paused: false, stepIndex: 0, stepStartedAt: 0, elapsedS: 0 },
   whyPlanOpen: false,
   aboutOpen: false,
@@ -246,6 +269,7 @@ export const useTwin = create<TwinState>()((set, get) => ({
   requestCamera: (req) => set((s) => ({ camera: { ...s.camera, request: { ...req, nonce: ++cameraNonce } } })),
   setCameraMode: (mode) => set((s) => ({ camera: { ...s.camera, mode } })),
   setAutoOrbit: (autoOrbit) => set({ autoOrbit }),
+  setOverlayLayout: (overlayLayout) => set({ overlayLayout }),
   setDemo: (patch) => set((s) => ({ demo: { ...s.demo, ...patch } })),
   setWhyPlanOpen: (whyPlanOpen) => set({ whyPlanOpen }),
   setAboutOpen: (aboutOpen) => set({ aboutOpen }),

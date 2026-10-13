@@ -198,6 +198,13 @@ function IconSvg({ icon, color }: { icon: Icon; color: string }) {
 
 const tmp = new Vector3();
 
+/**
+ * Vertical UI safe band (fractions of the viewport height) for 3D callouts: the dashboard
+ * header/top cards cover the top ~27% and the playback bar + bottom panels the bottom ~28%.
+ * `?view=scene` has no overlay but keeps the same band so screenshots match the app.
+ */
+export const SAFE = { top: 0.27, bottom: 0.72 };
+
 export function Labels() {
   const [labels, setLabels] = useState<LabelSpec[]>([]);
   const sig = useRef('');
@@ -216,36 +223,55 @@ export function Labels() {
       sig.current = s;
       setLabels(list.slice(0, 6));
     }
-    // screen-space de-overlap: lift lower-priority labels that collide with higher ones
-    const placed: { x: number; y: number; w: number; h: number }[] = [];
+    // Placement: greedy in priority order. Each pill tries a few lifts / sideways shifts and takes
+    // the first slot that overlaps no placed pill and stays inside the UI safe band (between the
+    // header + top cards and the bottom panels). Labels that cannot be placed are hidden.
+    const H = size.height;
+    const W = size.width;
+    const safeTop = H * SAFE.top;
+    const safeBottom = H * SAFE.bottom;
+    const placed: { x0: number; x1: number; y0: number; y1: number }[] = [];
     for (const l of labels) {
       const el = els.current.get(l.key);
       if (!el) continue;
       tmp.set(...l.pos).project(camera);
-      const x = (tmp.x * 0.5 + 0.5) * size.width;
-      let y = (-tmp.y * 0.5 + 0.5) * size.height;
-      const w = el.offsetWidth || 160;
-      const h = (el.offsetHeight || 40) + 6;
-      let lift = 0;
-      for (let iter = 0; iter < 6; iter++) {
-        const hit = placed.find((p) => Math.abs(p.x - x) < (p.w + w) / 2 && Math.abs(p.y - (y - lift)) < (p.h + h) / 2);
-        if (!hit) break;
-        lift += (hit.h + h) / 2 - Math.abs(hit.y - (y - lift)) + 4;
+      const ax = (tmp.x * 0.5 + 0.5) * W;
+      const ay = (-tmp.y * 0.5 + 0.5) * H;
+      const pill = el.firstElementChild as HTMLElement | null;
+      const pw = (pill?.offsetWidth || 170) + 8;
+      const ph = (pill?.offsetHeight || 38) + 6;
+      let best: { lift: number; shift: number } | null = null;
+      if (tmp.z < 1 && ay <= safeBottom && ay >= safeTop && ax > 0 && ax < W) {
+        const lifts = [0, 34, 68, 102, 136];
+        const shifts = [0, -(pw * 0.55), pw * 0.55, -(pw * 1.05), pw * 1.05];
+        outer: for (const lift of lifts) {
+          for (const shift of shifts) {
+            const cx = ax + shift;
+            const y1 = ay - 29 - lift;
+            const y0 = y1 - ph;
+            const x0 = cx - pw / 2;
+            const x1 = cx + pw / 2;
+            if (y0 < safeTop || x0 < 8 || x1 > W - 8) continue;
+            if (placed.some((p) => x0 < p.x1 && x1 > p.x0 && y0 < p.y1 && y1 > p.y0)) continue;
+            best = { lift, shift };
+            placed.push({ x0, x1, y0, y1 });
+            break outer;
+          }
+        }
       }
-      y -= lift;
-      // keep callouts inside the safe area (no clipping at the screen edges / behind the camera)
-      const inside = tmp.z < 1 && x - w / 2 > 10 && x + w / 2 < size.width - 10 && y - h > size.height * 0.04 && y < size.height * 0.98;
-      if (!inside) {
+      if (!best) {
         el.style.opacity = '0';
         continue;
       }
-      placed.push({ x, y, w, h });
-      const prev = offsets.get(l.key) ?? 0;
-      const next = prev + (lift - prev) * 0.25;
+      const prev = offsets.get(l.key) ?? best.lift;
+      const next = prev + (best.lift - prev) * 0.3;
       offsets.set(l.key, next);
+      const prevS = offsets.get(l.key + ':s') ?? best.shift;
+      const nextS = prevS + (best.shift - prevS) * 0.3;
+      offsets.set(l.key + ':s', nextS);
       el.style.setProperty('--lift', `${next.toFixed(1)}px`);
+      el.style.setProperty('--shiftx', `${nextS.toFixed(1)}px`);
       el.style.opacity = String(1 - fx.xray * 0.15);
-      el.style.visibility = 'visible';
     }
   });
 

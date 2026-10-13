@@ -219,8 +219,9 @@ export function RecoveryCard() {
           value={fmtInt(m.restoredKW)}
           unit="kW"
           label="Load restored"
-          sub={showPct ? `${fmtPct(m.restoredPct)} of interrupted` : undefined}
+          sub={showPct ? `${fmtPct(m.restoredPct)} of affected demand` : undefined}
           subShort={showPct ? fmtPct(m.restoredPct) : undefined}
+          tip="Share of the demand affected by the event that is supplied again at this time: load restored ÷ (load restored + remaining unserved demand), both shown on this card." 
           subTone={m.restoredPct != null && m.restoredPct >= 99.5 ? 'ok' : m.restoredKW > 0 ? 'progress' : 'neutral'}
           testId="m-load-restored"
         />
@@ -244,6 +245,7 @@ export function RecoveryCard() {
           label="Remaining unserved demand"
           short="Unserved demand"
           sub={showPct ? `${fmtPct(m.unservedPct, 1)} of demand` : undefined}
+          tip="Remaining unserved demand ÷ total demand (Power Network panel) at this time." 
           subShort={showPct ? fmtPct(m.unservedPct, 1) : undefined}
           subTone={m.unservedKW < 0.5 ? 'ok' : 'fault'}
         />

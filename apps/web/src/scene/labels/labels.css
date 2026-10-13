@@ -23,6 +23,7 @@
   }
 }
 .enc-lbl-pill {
+  transform: translateX(var(--shiftx, 0px));
   display: flex;
   align-items: center;
   gap: 8px;

@@ -81,8 +81,8 @@ export function Pill({ tone = 'neutral', children, className, icon }: { tone?: T
   );
 }
 
-export const IconButton = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTMLButtonElement> & { active?: boolean; tip?: string; tipPos?: string }>(
-  function IconButton({ active, tip, tipPos, className, children, ...rest }, ref) {
+export const IconButton = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTMLButtonElement> & { active?: boolean; tip?: string; tipPos?: string; compact?: boolean }>(
+  function IconButton({ active, tip, tipPos, compact, className, children, ...rest }, ref) {
     return (
       <button
         ref={ref}
@@ -92,7 +92,8 @@ export const IconButton = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTM
         data-tip={tip}
         data-tip-pos={tipPos}
         className={clsx(
-          'inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
+          'inline-flex items-center justify-center rounded-lg transition-colors',
+          compact ? 'h-7 w-7' : 'h-8 w-8',
           active ? 'bg-info-soft text-info' : 'text-ink hover:bg-wash',
           'disabled:opacity-40',
           className,
@@ -177,6 +178,7 @@ export function Metric({
   dim,
   testId,
   oneLine,
+  tip,
 }: {
   value: ReactNode;
   unit?: string;
@@ -190,10 +192,12 @@ export function Metric({
   dim?: boolean;
   testId?: string;
   oneLine?: boolean;
+  /** tooltip explaining how the number is derived */
+  tip?: string;
 }) {
   const subCls = clsx('font-semibold', subTone ? TONE_TEXT[subTone] : 'text-slate');
   return (
-    <div className={clsx('min-w-0', className)} data-testid={testId} title={short ? label : undefined}>
+    <div className={clsx('min-w-0', className)} data-testid={testId} title={!tip && short ? label : undefined} data-tip={tip} data-tip-pos={tip ? 'top' : undefined}>
       <div className={clsx('t-metric', dim && 'text-mist')}>
         {value}
         {unit && <span className="t-unit">{unit}</span>}

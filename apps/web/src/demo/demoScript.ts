@@ -166,7 +166,7 @@ export const DEMO_STEPS: DemoStep[] = [
       const at = p.appliedAtT;
       const happened = at == null ? [] : e.events.filter((ev) => ev.t === at && (ev.kind === 'restoration' || (ev.kind === 'switching' && ev.severity !== 'info'))).map((ev) => ev.title);
       const s = e.summary;
-      return `${applied ? `${applied}: ` : ''}switching executed — ${p.label}${happened.length ? ` (${happened.join(' · ')})` : ''}. By the end of the horizon ${fmtKW(s.loadRestoredKW)} is back on supply (${fmtNum(s.loadRestoredPct, 0)}% of the interrupted demand) and ${s.pumpsAvailableEnd}/${s.pumpsTotal} pumps are available.`;
+      return `${applied ? `${applied}: ` : ''}switching executed — ${p.label}${happened.length ? ` (${happened.join(' · ')})` : ''}. By the end of the horizon ${fmtKW(s.loadRestoredKW)} is back on supply (${fmtNum(s.loadRestoredPct, 0)}% of the affected demand) and ${s.pumpsAvailableEnd}/${s.pumpsTotal} pumps are available.`;
     },
     cues: [
       { at: 0, strategy: 'encirra', whyPlan: false, overview: 'power', camera: { shot: 'recovery-path', durationS: 3 } },
