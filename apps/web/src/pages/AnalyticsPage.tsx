@@ -112,7 +112,7 @@ function LineLoading({ topology, frame }: { topology: NetworkTopology; frame: Fr
         <BarChart data={data} margin={{ top: 6, right: 8, bottom: 0, left: 0 }} barCategoryGap={2}>
           <CartesianGrid vertical={false} {...GRID} />
           <XAxis dataKey="name" tick={{ ...AXIS_TICK, fontSize: 9 }} axisLine={AXIS_LINE} tickLine={false} interval={2} height={18} />
-          <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} width={34} domain={[0, (max: number) => Math.max(lim * 1.1, Math.ceil(max / 10) * 10)]} tickFormatter={(v: number) => `${v}%`} />
+          <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} width={42} domain={[0, (max: number) => Math.max(lim * 1.1, Math.ceil(max / 10) * 10)]} tickFormatter={(v: number) => `${Math.round(v)}%`} />
           <ReferenceLine y={lim} stroke="#c8281d" strokeDasharray="4 3" />
           <Bar dataKey="loading" isAnimationActive={false} radius={[3, 3, 0, 0]} maxBarSize={14}>
             {data.map((d) => (

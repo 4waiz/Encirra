@@ -33,7 +33,7 @@ export function DemoOverlay() {
             <span className="t-micro font-semibold tracking-wide text-info uppercase">
               Cinematic demo · {done ? 'complete' : `step ${demo.stepIndex + 1} of ${DEMO_STEPS.length}`}
             </span>
-            <span className="t-micro text-slate tabular">
+            <span className="t-micro text-slate tabular" data-testid="demo-time">
               {mmss(demo.elapsedS)} / {mmss(DEMO_LENGTH)}
             </span>
             {demo.paused && !done && <span className="rounded bg-warn-soft px-1.5 py-[1px] t-micro font-semibold text-warn">Paused — explore freely, then resume</span>}

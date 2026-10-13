@@ -1081,7 +1081,7 @@
         "kind": "tie",
         "feeder": "tie",
         "normallyOpen": true,
-        "ratingA": 200,
+        "ratingA": 44,
         "switch": {
           "id": "SW-21-08",
           "kind": "tie",
@@ -1095,7 +1095,7 @@
         "kind": "tie",
         "feeder": "tie",
         "normallyOpen": true,
-        "ratingA": 200,
+        "ratingA": 44,
         "switch": {
           "id": "SW-09-15",
           "kind": "tie",
@@ -1109,7 +1109,7 @@
         "kind": "tie",
         "feeder": "tie",
         "normallyOpen": true,
-        "ratingA": 200,
+        "ratingA": 44,
         "switch": {
           "id": "SW-12-22",
           "kind": "tie",
@@ -1123,7 +1123,7 @@
         "kind": "tie",
         "feeder": "tie",
         "normallyOpen": true,
-        "ratingA": 200,
+        "ratingA": 44,
         "switch": {
           "id": "SW-18-33",
           "kind": "tie",
@@ -1137,7 +1137,7 @@
         "kind": "tie",
         "feeder": "tie",
         "normallyOpen": true,
-        "ratingA": 200,
+        "ratingA": 44,
         "switch": {
           "id": "SW-25-29",
           "kind": "tie",
@@ -3132,10 +3132,10 @@
         "to": "J-PS1D",
         "stationId": "ps-1",
         "bus": 14,
-        "designFlowLps": 62.0,
-        "designHeadM": 46.0,
+        "designFlowLps": 46.0,
+        "designHeadM": 38.0,
         "efficiency": 0.74,
-        "ratedKW": 45.0
+        "ratedKW": 30.0
       },
       {
         "id": "PU-2",
@@ -3144,10 +3144,10 @@
         "to": "J-PS2D",
         "stationId": "ps-2",
         "bus": 33,
-        "designFlowLps": 50.0,
-        "designHeadM": 46.0,
+        "designFlowLps": 40.0,
+        "designHeadM": 36.0,
         "efficiency": 0.74,
-        "ratedKW": 37.0
+        "ratedKW": 22.0
       }
     ],
     "assumptions": [

@@ -1,5 +1,10 @@
 @import 'tailwindcss';
 
+/* `short:` = short viewports (laptops at 125–150% scaling, 1280–1366 × 600–800 CSS px) */
+@custom-variant short (@media (max-height: 820px));
+/* `narrow:` = header/control compaction below 1500 CSS px */
+@custom-variant narrow (@media (max-width: 1499.98px));
+
 /* ───────────── Encirra design tokens ───────────── */
 @theme {
   --font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -65,7 +70,7 @@
   :root {
     --top-h: clamp(112px, 17vh, 130px);
     --bottom-h: clamp(176px, 27vh, 210px);
-    --header-h: clamp(62px, 10vh, 76px);
+    --header-h: 78px;
   }
 }
 
@@ -313,6 +318,19 @@ input[type='range'].enc-range:disabled::-webkit-slider-thumb {
 }
 @media (max-width: 1399.98px) {
   .hide-below-1400 {
+    display: none;
+  }
+}
+
+/* metric sub-values: under the label normally, inline next to the value on short viewports */
+.sub-inline {
+  display: none;
+}
+@media (max-height: 820px) {
+  .sub-inline {
+    display: inline;
+  }
+  .sub-below {
     display: none;
   }
 }

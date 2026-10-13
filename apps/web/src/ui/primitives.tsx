@@ -166,33 +166,56 @@ export function SourceChip({ source, devFixture }: { source: string; devFixture?
   );
 }
 
+/**
+ * Headline number. `short` is shown instead of `label` when the enclosing `@container` is narrow
+ * (breakpoint `bp`); `sub` sits under the label, or next to the value on short viewports.
+ */
 export function Metric({
   value,
   unit,
   label,
+  short,
+  bp = 'md',
   sub,
+  subShort,
   subTone,
   className,
   dim,
   testId,
+  oneLine,
 }: {
   value: ReactNode;
   unit?: string;
-  label: ReactNode;
+  label: string;
+  short?: string;
+  bp?: 'sm' | 'md';
   sub?: ReactNode;
+  subShort?: ReactNode;
   subTone?: Tone;
   className?: string;
   dim?: boolean;
   testId?: string;
+  oneLine?: boolean;
 }) {
+  const subCls = clsx('font-semibold', subTone ? TONE_TEXT[subTone] : 'text-slate');
   return (
-    <div className={clsx('min-w-0', className)} data-testid={testId}>
+    <div className={clsx('min-w-0', className)} data-testid={testId} title={short ? label : undefined}>
       <div className={clsx('t-metric', dim && 'text-mist')}>
         {value}
         {unit && <span className="t-unit">{unit}</span>}
+        {sub != null && <span className={clsx('sub-inline t-micro ml-1.5', subCls)}>{subShort ?? sub}</span>}
       </div>
-      <div className="t-label mt-0.5 line-clamp-2">{label}</div>
-      {sub != null && <div className={clsx('t-label mt-0.5 font-semibold', subTone ? TONE_TEXT[subTone] : 'text-slate')}>{sub}</div>}
+      <div className={clsx('t-label mt-0.5', oneLine ? 'truncate' : 'line-clamp-2')}>
+        {short ? (
+          <>
+            <span className={bp === 'sm' ? '@max-[359px]:hidden' : '@max-[399px]:hidden'}>{label}</span>
+            <span className={bp === 'sm' ? '@min-[360px]:hidden' : '@min-[400px]:hidden'}>{short}</span>
+          </>
+        ) : (
+          label
+        )}
+      </div>
+      {sub != null && <div className={clsx('sub-below t-label mt-0.5', subCls)}>{sub}</div>}
     </div>
   );
 }

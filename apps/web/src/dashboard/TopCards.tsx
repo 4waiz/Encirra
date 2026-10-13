@@ -49,7 +49,7 @@ export function FaultCard() {
   const unsupplied = frame.power.busState.filter((st) => st !== 'energized' && st !== 'restored').length;
   const notSafe = frame.facilities.filter((f) => f.status !== 'safe' && topology.facilities.find((x) => x.id === f.id)?.critical).length;
   return (
-    <Card className="flex h-full flex-col p-[clamp(10px,0.8vw,15px)]" data-testid="fault-card" data-state={active ? 'fault' : 'normal'}>
+    <Card className="@container flex h-full flex-col p-[clamp(10px,0.8vw,15px)]" data-testid="fault-card" data-state={active ? 'fault' : 'normal'}>
       <div className="flex min-w-0 gap-[clamp(8px,0.7vw,12px)]">
         <IconBadge tone={active ? 'fault' : 'neutral'}>{active ? <TriangleAlert size={20} strokeWidth={2.4} /> : <ShieldCheck size={19} />}</IconBadge>
         <div className="min-w-0 flex-1">
@@ -78,20 +78,25 @@ export function FaultCard() {
           )}
         </div>
       </div>
-      <MetricRow>
+      <MetricRow cols="0.92fr 1.36fr 0.98fr 1.1fr">
         {active ? (
           <>
             <Metric value={fmtInt(model.metrics.loadInterruptedKW)} unit="kW" label="Load interrupted" testId="m-load-interrupted" />
-            <Metric value={fmtInt(model.metrics.connectionsAffected)} label="Service connections affected" />
-            <Metric value={fmtInt(model.metrics.pumpsOffline)} label={model.metrics.pumpsOffline === 1 ? 'Water pump offline' : 'Water pumps offline'} />
-            <Metric value={fmtInt(model.metrics.criticalAtRisk)} label="Critical facilities at risk" />
+            <Metric value={fmtInt(model.metrics.connectionsAffected)} label="Service connections affected" short="Connections affected" bp="sm" />
+            <Metric
+              value={fmtInt(model.metrics.pumpsOffline)}
+              label={model.metrics.pumpsOffline === 1 ? 'Water pump offline' : 'Water pumps offline'}
+              short={model.metrics.pumpsOffline === 1 ? 'Pump offline' : 'Pumps offline'}
+              bp="sm"
+            />
+            <Metric value={fmtInt(model.metrics.criticalAtRisk)} label="Critical facilities at risk" short="Critical at risk" bp="sm" />
           </>
         ) : (
           <>
             <Metric dim value={fmtInt(frame.power.unservedKW)} unit="kW" label="Load interrupted" testId="m-load-interrupted" />
-            <Metric dim value={fmtInt(connectionsWithoutSupply(topology, frame))} label="Service connections affected" />
-            <Metric dim value={fmtInt(pumpsOff)} label="Water pumps offline" />
-            <Metric dim value={fmtInt(notSafe)} label="Critical facilities at risk" />
+            <Metric dim value={fmtInt(connectionsWithoutSupply(topology, frame))} label="Service connections affected" short="Connections affected" bp="sm" />
+            <Metric dim value={fmtInt(pumpsOff)} label="Water pumps offline" short="Pumps offline" bp="sm" />
+            <Metric dim value={fmtInt(notSafe)} label="Critical facilities at risk" short="Critical at risk" bp="sm" />
           </>
         )}
       </MetricRow>
@@ -167,7 +172,7 @@ export function RecoveryCard() {
     );
   const showPct = ctx.frame.stage !== 'ready';
   return (
-    <Card className="flex h-full flex-col p-[clamp(10px,0.8vw,15px)]" data-testid="recovery-card" data-tone={model.tone}>
+    <Card className="@container flex h-full flex-col p-[clamp(10px,0.8vw,15px)]" data-testid="recovery-card" data-tone={model.tone}>
       <div className="flex min-w-0 gap-[clamp(8px,0.7vw,12px)]">
         <IconBadge tone={model.tone}>{icon}</IconBadge>
         <div className="min-w-0 flex-1">
@@ -204,18 +209,21 @@ export function RecoveryCard() {
           unit="kW"
           label="Load restored"
           sub={showPct ? `${fmtPct(m.restoredPct)} of interrupted` : undefined}
+          subShort={showPct ? fmtPct(m.restoredPct) : undefined}
           subTone={m.restoredPct != null && m.restoredPct >= 99.5 ? 'ok' : m.restoredKW > 0 ? 'progress' : 'neutral'}
           testId="m-load-restored"
         />
         <Metric
           value={m.criticalAffected > 0 ? `${m.criticalRecovered} / ${m.criticalAffected}` : '—'}
           label="Critical infrastructure recovered"
+          short="Critical facilities recovered"
           sub={showPct && m.criticalAffected > 0 ? fmtPct((100 * m.criticalRecovered) / m.criticalAffected) : undefined}
           subTone={m.criticalAffected > 0 && m.criticalRecovered === m.criticalAffected ? 'ok' : 'warn'}
         />
         <Metric
           value={`${m.pumpsOnline} / ${m.pumpsTotal}`}
           label="Water pumping availability"
+          short="Pumping availability"
           sub={showPct ? fmtPct((100 * m.pumpsOnline) / Math.max(1, m.pumpsTotal)) : undefined}
           subTone={m.pumpsOnline === m.pumpsTotal ? 'ok' : 'fault'}
         />
@@ -223,7 +231,9 @@ export function RecoveryCard() {
           value={fmtNum(m.unservedKW, 0)}
           unit="kW"
           label="Remaining unserved demand"
+          short="Unserved demand"
           sub={showPct ? `${fmtPct(m.unservedPct, 1)} of demand` : undefined}
+          subShort={showPct ? fmtPct(m.unservedPct, 1) : undefined}
           subTone={m.unservedKW < 0.5 ? 'ok' : 'fault'}
         />
       </MetricRow>
