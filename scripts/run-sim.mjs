@@ -18,12 +18,12 @@ const port = process.env.ENCIRRA_SIM_PORT ?? '8000';
 const host = process.env.ENCIRRA_SIM_HOST ?? '127.0.0.1';
 
 function has(cmd) {
-  const r = spawnSync(cmd, ['--version'], { stdio: 'ignore', shell: isWin });
+  const r = spawnSync(cmd, ['--version'], { stdio: 'ignore' });
   return r.status === 0;
 }
 
 function run(cmd, args, opts = {}) {
-  const r = spawnSync(cmd, args, { stdio: 'inherit', cwd: opts.cwd ?? root, shell: isWin, env: { ...process.env, ...opts.env } });
+  const r = spawnSync(cmd, args, { stdio: 'inherit', cwd: opts.cwd ?? root, env: { ...process.env, ...opts.env } });
   if (r.status !== 0) process.exit(r.status ?? 1);
 }
 

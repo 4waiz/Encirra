@@ -27,7 +27,9 @@ float encStX(int i) { ${ST.map((x, i) => `if (i == ${i}) return ${f(x)};`).join(
 float encLineAA(float d, float halfW, float aa) { return 1.0 - smoothstep(halfW - aa, halfW + aa, d); }
 
 // returns albedo (linear), roughness in .w
-vec4 encSurface(vec2 p, out float kind) {
+float encSurfKind = 0.0;
+vec4 encSurface(vec2 p) {
+  float kind = 0.0;
   float dAv = 1e9; float cAv = 0.0;
   for (int i = 0; i < ${AV.length}; i++) { float d = abs(p.y - encAvZ(i)); if (d < dAv) { dAv = d; cAv = encAvZ(i); } }
   float dSt = 1e9; float cSt = 0.0;
@@ -42,7 +44,6 @@ vec4 encSurface(vec2 p, out float kind) {
   bool inSt = dSt < ST_HALF;
   vec3 col = vec3(0.0);
   float rough = 0.85;
-  kind = 0.0;
   if (inAv || inSt) {
     kind = 1.0;
     vec3 asph = vec3(0.034, 0.036, 0.04) * (0.82 + 0.3 * n1 + 0.12 * n2);
@@ -75,6 +76,7 @@ vec4 encSurface(vec2 p, out float kind) {
     }
     col = mix(asph, vec3(0.62, 0.62, 0.6), mark * 0.85);
     col = mix(col, vec3(0.75, 0.48, 0.08), yellow * 0.9);
+    encSurfKind = kind;
     return vec4(col, rough);
   }
   // distance to the nearest road edge and to the platform rim
@@ -88,6 +90,7 @@ vec4 encSurface(vec2 p, out float kind) {
     col = vec3(0.2, 0.2, 0.2) * (0.8 + 0.35 * sp);
     float pad = step(abs(p.x), 30.0) * step(abs(p.y), 28.0);
     col = mix(col * 0.9, col, pad);
+    encSurfKind = kind;
     return vec4(col, 0.95);
   }
   if (dEdge < 4.0) {
@@ -98,6 +101,7 @@ vec4 encSurface(vec2 p, out float kind) {
     pave *= 1.0 - 0.18 * joint;
     float curb = 1.0 - smoothstep(0.25, 0.4, dEdge);
     col = mix(pave, vec3(0.5, 0.49, 0.46), curb);
+    encSurfKind = kind;
     return vec4(col, 0.86);
   }
   // landscaped block interior
@@ -114,6 +118,7 @@ vec4 encSurface(vec2 p, out float kind) {
   float hedge = encLineAA(abs(dEdge - 7.5), 0.5, aa) * 0.6;
   col = mix(paving, grass, m);
   col = mix(col, vec3(0.03, 0.07, 0.02), hedge);
+  encSurfKind = kind;
   return vec4(col, mix(0.85, 0.95, m));
 }
 `;
@@ -198,8 +203,8 @@ ${SURFACE_GLSL}`,
       .replace(
         '#include <color_fragment>',
         `#include <color_fragment>
-float surfKind;
-vec4 surf = encSurface(vSurfW.xz, surfKind);
+vec4 surf = encSurface(vSurfW.xz);
+float surfKind = encSurfKind;
 diffuseColor.rgb = surf.rgb;
 float surfRough = surf.a;
 vec2 busUv = vec2((vSurfW.x - PLAT.x) / (PLAT.y - PLAT.x), (vSurfW.z - PLAT.z) / (PLAT.w - PLAT.z));

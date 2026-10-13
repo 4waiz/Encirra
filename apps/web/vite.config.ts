@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { createReadStream, existsSync, statSync, mkdirSync, readdirSync, copyFileSync } from 'node:fs';
 import { resolve, join, extname, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 
 const webRoot = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(webRoot, '../..');
@@ -52,8 +53,45 @@ function modelsFromAssets(): Plugin {
   };
 }
 
+const apiTarget = process.env.ENCIRRA_API_URL ?? 'http://127.0.0.1:8000';
+
+/**
+ * Answers GET /api/health locally when the simulation service is not running, with
+ * `{ ok: false }` instead of a proxy 502, so the replay fallback starts without a console error.
+ * When the service is up, its own health response is passed through unchanged.
+ */
+function solverHealth(): Plugin {
+  const handler = async (req: IncomingMessage, res: ServerResponse, next: () => void) => {
+    if (req.method !== 'GET' || !req.url?.startsWith('/api/health')) return next();
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 1200);
+    try {
+      const upstream = await fetch(`${apiTarget}/api/health`, { signal: ctrl.signal });
+      res.statusCode = upstream.status;
+      res.setHeader('Content-Type', upstream.headers.get('content-type') ?? 'application/json');
+      res.end(await upstream.text());
+    } catch {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 'no-store');
+      res.end(JSON.stringify({ ok: false, reason: 'Simulation service not running; the app uses the bundled replay.' }));
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+  return {
+    name: 'encirra-solver-health',
+    configureServer(server) {
+      server.middlewares.use(handler);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(handler);
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), tailwindcss(), modelsFromAssets()],
+  plugins: [react(), tailwindcss(), modelsFromAssets(), solverHealth()],
   resolve: {
     alias: { '@': resolve(webRoot, 'src') },
   },
@@ -62,7 +100,7 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/api': {
-        target: process.env.ENCIRRA_API_URL ?? 'http://127.0.0.1:8000',
+        target: apiTarget,
         changeOrigin: true,
       },
     },
@@ -72,7 +110,7 @@ export default defineConfig({
     port: 4173,
     proxy: {
       '/api': {
-        target: process.env.ENCIRRA_API_URL ?? 'http://127.0.0.1:8000',
+        target: apiTarget,
         changeOrigin: true,
       },
     },

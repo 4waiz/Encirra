@@ -163,7 +163,7 @@ if (isWall && st > 0.5 && st < 6.5 || isWall && st > 8.5) {
   // interior depth cue (ceiling glow, darker floor) and blinds
   float interior = mix(0.55, 1.0, smoothstep(0.0, 0.8, wy));
   float blinds = mix(1.0, 0.45 + 0.35 * step(0.5, fract(wy * 9.0)), step(0.72, h3) * (1.0 - farF));
-  float intensity = (1.7 + 3.2 * h3) * interior * blinds;
+  float intensity = (0.6 + 1.3 * h3) * interior * blinds;
   // de-energized: emergency fittings in a few windows + stair cores
   float emerg = step(0.955, h2) + step(0.5, encHash13(vec3(col, faceSeed, bldId))) * step(abs(col - floor(nCols * 0.5)), 0.0);
   vec3 litCol = warm * intensity * lit * power;
