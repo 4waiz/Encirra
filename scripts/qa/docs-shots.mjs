@@ -18,11 +18,11 @@ mkdirSync(out, { recursive: true });
 
 const store = (fn) => `(() => { const s = window.__encirra.useTwin.getState(); ${fn} })()`;
 const SHOTS = [
-  { name: 'live-twin-normal', steps: [store("s.setPage('live'); s.setStrategy('encirra'); s.setPlayhead(10); s.requestCamera({ shot: 'home' });")], settle: 6000 },
+  { name: 'live-twin-normal', steps: [store("s.setPage('live'); s.switchStrategy('encirra'); s.setPlayhead(10); s.requestCamera({ shot: 'home' });")], settle: 6000 },
   { name: 'live-twin-fault', steps: [store("s.setPage('live'); s.setPlayhead(32); s.requestCamera({ shot: 'home' });")], settle: 6000 },
   { name: 'live-twin-recovery', steps: [store("s.setPage('live'); s.setPlayhead(50); s.requestCamera({ shot: 'home' });")], settle: 6000 },
-  { name: 'grid-only-hospital-water-loss', steps: [store("s.setPage('live'); s.setStrategy('grid-only');"), store('s.setPlayhead(110);')], settle: 7000, after: store("s.setStrategy('encirra');") },
-  { name: 'underground-xray', steps: [store("s.setPage('live'); s.setStrategy('encirra'); s.setPlayhead(40); s.setLayer('underground', true); s.requestCamera({ shot: 'underground-front' });")], settle: 7000, after: store("s.setLayer('underground', false); s.requestCamera({ shot: 'home' });") },
+  { name: 'grid-only-hospital-water-loss', steps: [store("s.setPage('live'); s.switchStrategy('grid-only');"), store('s.setPlayhead(110);')], settle: 7000, after: store("s.switchStrategy('encirra');") },
+  { name: 'underground-xray', steps: [store("s.setPage('live'); s.switchStrategy('encirra'); s.setPlayhead(40); s.setLayer('underground', true); s.requestCamera({ shot: 'underground-front' });")], settle: 7000, after: store("s.setLayer('underground', false); s.requestCamera({ shot: 'home' });") },
   { name: 'why-this-plan', steps: [store("s.setPage('live'); s.setPlayhead(50); s.setWhyPlanOpen(true);")], settle: 3000, after: store('s.setWhyPlanOpen(false);') },
   { name: 'analytics', steps: [store("s.setWhyPlanOpen(false); s.setPage('analytics'); s.setPlayhead(50);")], settle: 4000 },
   { name: 'scenarios', steps: [store("s.setPage('scenarios');")], settle: 3000 },
