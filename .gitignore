@@ -51,3 +51,6 @@ screenshots-tmp/
 # Logs
 *.log
 npm-debug.log*
+
+# Blender preview renders: committed as curated JPEGs at milestones only
+assets/blender/previews/*.png
