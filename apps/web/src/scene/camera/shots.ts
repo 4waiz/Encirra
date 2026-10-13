@@ -17,11 +17,12 @@ export interface ShotDef {
   xray?: boolean;
 }
 
-export const HOME_FOV = 44;
+export const HOME_FOV = 43;
 
 export const SHOTS: Record<CameraShot, ShotDef> = {
-  // reference composition: high oblique from the south-south-west, district in the middle band
-  home: { position: [-617, 80, 424], target: [-10, -37, 0], fov: HOME_FOV, duration: 2.2 },
+  // reference composition: ~30° oblique, corner-on from the south-west — the street network on top
+  // and both cut faces (west + south) visible, the district centred in the band between the cards
+  home: { position: [-420, 400, 640], target: [-20, -50, 0], fov: HOME_FOV, duration: 2.2 },
   aerial: { position: [-600, 560, 600], target: [0, 0, 0], fov: 36, duration: 2.6 },
   substation: { position: [-62, 92, 128], target: [0, 4, 0], fov: 34, duration: 2.0 },
   hospital: { position: [-150, 88, 120], target: [-80, 14, 2], fov: 34, duration: 2.0 },
