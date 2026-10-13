@@ -145,6 +145,9 @@ vec3 roofC;
 #endif
 diffuseColor.rgb = roof ? roofC : mix(wallA, glassC, m);
 vec3 tEm = warm * (0.7 + 1.4 * mix(encH13(vec3(ci, seed + 9.0)), 0.5, farF)) * lit * m;
+#ifndef ENC_LOW
+tEm *= mix(1.0, 0.4, farF);
+#endif
 // crown light band on taller towers
 float crown = smoothstep(vH - 6.0, vH - 4.0, v) * (1.0 - smoothstep(vH - 2.5, vH - 1.5, v)) * step(150.0, vH) * step(0.7, fract(seed * 1.3));
 tEm += vec3(1.0, 0.85, 0.65) * crown * 0.9 * (roof ? 0.0 : 1.0);
@@ -187,7 +190,7 @@ function buildInstances(specs: InstSpec[], geo: BoxGeometry | CylinderGeometry, 
     attr[i * 4] = s.seed;
     attr[i * 4 + 1] = low ? type : tone;
     attr[i * 4 + 2] = low ? (type === 4 ? 3.6 : 3.3) : tone < 0.55 ? 4.0 : 3.5;
-    attr[i * 4 + 3] = low ? (type === 4 ? 0.62 : 0.5) : 0.36 + ((s.seed * 3.7) % 0.24);
+    attr[i * 4 + 3] = low ? (type === 4 ? 0.62 : 0.5) : 0.24 + ((s.seed * 3.7) % 0.18);
   });
   mesh.geometry = geo.clone();
   mesh.geometry.setAttribute('aTower', new InstancedBufferAttribute(attr, 4));

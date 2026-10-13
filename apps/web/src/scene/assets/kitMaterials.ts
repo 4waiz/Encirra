@@ -130,7 +130,7 @@ float h2 = mix(kHash13(cid + 11.3), 0.5, farF);
 float h3 = mix(kHash13(cid + 27.1), 0.5, farF);
 bool lobby = g.y < 1.0;
 #ifdef ENC_SKYLINE
-float litFrac = 0.5;
+float litFrac = 0.3;
 #else
 float litFrac = lobby ? 0.85 : 0.44;
 #endif
@@ -149,7 +149,8 @@ vec3 kWinEm = (litCol + vec3(0.65, 0.85, 1.0) * 0.55 * emerg) * pane;
 vec3 frameCol = vec3(0.16, 0.17, 0.19);
 #ifdef ENC_SKYLINE
 diffuseColor.rgb = mix(frameCol * 0.6, diffuseColor.rgb * 0.45, pane);
-kWinEm *= 0.75;
+// far away the window grid averages out: keep the mean glow low so towers read dark blue-grey
+kWinEm *= mix(0.75, 0.32, farF);
 #else
 diffuseColor.rgb = mix(frameCol, diffuseColor.rgb * 0.85, pane);
 #endif

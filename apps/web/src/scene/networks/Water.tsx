@@ -47,6 +47,46 @@ float encGalleryPull(vec3 wp, vec3 camPos) {
 
 const tubeSpecs: TubeSpec[] = PIPES.map((p) => ({ id: p.index, points: p.route, radius: pipeRadius(p.diameterMM, p.kind) }));
 
+/** Soft neon halo around the exposed mains (brightest along the axis, fading to the silhouette). */
+function haloMaterial() {
+  return new ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+    fog: false,
+    uniforms: { uPipeTex: { value: pipeTex }, uOpacity: { value: 1 } },
+    vertexShader: /* glsl */ `
+      attribute float aId;
+      varying float vId; varying vec3 vN; varying vec3 vV; varying vec3 vVp; varying float vPull;
+      ${PULL_GLSL}
+      void main() {
+        vId = aId;
+        vec4 wp = modelMatrix * vec4(position, 1.0);
+        vN = normalize(mat3(modelMatrix) * normal);
+        vV = normalize(cameraPosition - wp.xyz);
+        vec4 vp = viewMatrix * wp;
+        vVp = vp.xyz;
+        vPull = encGalleryPull(wp.xyz, cameraPosition);
+        gl_Position = projectionMatrix * vp;
+      }`,
+    fragmentShader: /* glsl */ `
+      uniform sampler2D uPipeTex; uniform float uOpacity; uniform mat4 projectionMatrix;
+      varying float vId; varying vec3 vN; varying vec3 vV; varying vec3 vVp; varying float vPull;
+      void main() {
+        float dz = -vVp.z;
+        vec3 pv = vVp * ((dz - min(13.0 * vPull, dz - 1.0)) / max(dz, 1.0));
+        vec4 cp = projectionMatrix * vec4(pv, 1.0);
+        gl_FragDepth = clamp(cp.z / cp.w * 0.5 + 0.5, 0.0, 1.0);
+        int pi = int(vId + 0.5);
+        vec4 c0 = texelFetch(uPipeTex, ivec2(pi, 0), 0);
+        vec4 c1 = texelFetch(uPipeTex, ivec2(pi, 1), 0);
+        float facing = abs(dot(normalize(vN), normalize(vV)));
+        float glow = pow(facing, 2.6);
+        gl_FragColor = vec4(c0.rgb * glow * (0.05 + 0.1 * c1.g) * (1.0 + 0.5 * vPull) * uOpacity, 1.0);
+      }`,
+  });
+}
+
 function flowMaterial() {
   return new ShaderMaterial({
     transparent: true,
@@ -268,6 +308,8 @@ export function WaterNetwork() {
   const flowGeo = useMemo(() => buildTubes(tubeSpecs, 14, true, 1.12), []);
   const pipeMat = useMemo(() => new MeshStandardMaterial({ color: '#8E9AA3', metalness: 0.78, roughness: 0.32, envMapIntensity: 1.2 }), []);
   const flowMat = useMemo(() => flowMaterial(), []);
+  const haloGeo = useMemo(() => buildTubes(tubeSpecs.filter((t) => PIPES[t.id].kind !== 'distribution'), 12, false, 1.75), []);
+  const haloMat = useMemo(() => haloMaterial(), []);
   const arrowGeo = useMemo(() => arrowGeometry(), []);
   const arrowMat = useMemo(() => arrowMaterial(), []);
   const equip = useMemo(() => equipmentGeometry(), []);
@@ -282,10 +324,11 @@ export function WaterNetwork() {
 
   useEffect(
     () => () => {
-      [pipeGeo, flowGeo, arrowGeo, equip.metal, equip.dark, clearwell].forEach((g) => g.dispose());
+      [pipeGeo, flowGeo, haloGeo, arrowGeo, equip.metal, equip.dark, clearwell].forEach((g) => g.dispose());
+      haloMat.dispose();
       [pipeMat, flowMat, arrowMat, equipMetal, equipDark, clearwellMat].forEach((m) => m.dispose());
     },
-    [pipeGeo, flowGeo, arrowGeo, equip, clearwell, pipeMat, flowMat, arrowMat, equipMetal, equipDark, clearwellMat],
+    [pipeGeo, flowGeo, haloGeo, arrowGeo, equip, clearwell, pipeMat, flowMat, haloMat, arrowMat, equipMetal, equipDark, clearwellMat],
   );
 
   useFrame((state) => {
@@ -293,6 +336,7 @@ export function WaterNetwork() {
     const op = fx.water;
     flowMat.uniforms.uTime.value = t;
     flowMat.uniforms.uOpacity.value = op;
+    haloMat.uniforms.uOpacity.value = op;
     arrowMat.uniforms.uTime.value = t;
     arrowMat.uniforms.uOpacity.value = op;
     if (group.current) group.current.visible = op > 0.01;
@@ -305,6 +349,7 @@ export function WaterNetwork() {
     <group ref={group}>
       <mesh geometry={pipeGeo} material={pipeMat} castShadow receiveShadow />
       <mesh geometry={flowGeo} material={flowMat} renderOrder={4} />
+      <mesh geometry={haloGeo} material={haloMat} renderOrder={5} frustumCulled={false} />
       <mesh geometry={arrowGeo} material={arrowMat} renderOrder={9} frustumCulled={false} />
       {!kitPumps && <mesh geometry={equip.metal} material={equipMetal} castShadow receiveShadow />}
       {!kitPumps && <mesh geometry={equip.dark} material={equipDark} castShadow receiveShadow />}

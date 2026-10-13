@@ -220,11 +220,24 @@ function KitBase() {
       const src = (Array.isArray(m.material) ? m.material[0] : m.material) as MeshStandardMaterial;
       const mat = src.clone();
       mat.vertexColors = !!m.geometry.getAttribute('color');
-      if (mat.name === 'light_emissive') mat.emissiveIntensity = (src.emissiveIntensity ?? 4) * 0.6;
-      if (mat.name === 'soil') {
-        mat.envMapIntensity = 0.35;
-        mat.color.multiplyScalar(1.12);
+      if (mat.name === 'light_emissive') {
+        // gallery strip lights: cool white, bright enough to read the galleries as lit tunnels
+        mat.emissive.set('#DCEBFF');
+        mat.emissiveIntensity = (src.emissiveIntensity ?? 4) * 1.1;
       }
+      if (mat.name === 'soil') {
+        // reference look: dark charcoal-brown strata with strong contrast (the kit texture is sandy)
+        mat.envMapIntensity = 0.25;
+        mat.onBeforeCompile = (shader) => {
+          shader.fragmentShader = shader.fragmentShader.replace(
+            '#include <map_fragment>',
+            `#include <map_fragment>
+diffuseColor.rgb = pow(diffuseColor.rgb, vec3(1.6)) * vec3(1.0, 0.9, 0.84) * 1.15;`,
+          );
+        };
+        mat.customProgramCacheKey = () => 'encirra-soil-grade-v1';
+      }
+      if (mat.name === 'concrete') mat.color.multiplyScalar(0.82);
       mat.userData.baseOpacity = 1;
       const mesh = new Mesh(m.geometry, mat);
       mesh.matrixAutoUpdate = false;
