@@ -2,16 +2,16 @@
   "id": "pump-power-loss",
   "name": "Critical Pump Power Loss",
   "shortName": "Pump power loss",
-  "description": "On a warm evening (electrical demand 5% above the base scenario) a fault on the cable that feeds Pumping Station PS-2 (line B32–B33) removes supply from PS-2's bus. After isolation the electrical outage is small, but PS-2 is the only pump of the West pressure zone: the hospital's water service now depends on Tank T2 — or on back-feeding PS-2 through tie SW-18-33 from the weak end of Feeder F1.",
+  "description": "On a hot evening (electrical demand 10% above the base scenario) a fault on the cable that feeds Pumping Station PS-2 (line B32–B33) removes supply from PS-2's bus. After isolation the electrical outage is small, but PS-2 is the only pump of the West pressure zone: the hospital's water service now depends on Tank T2 — or on back-feeding PS-2 through tie SW-18-33 from the weak end of Feeder F1.",
   "narrative": [
     "17:00 — fault on the PS-2 supply cable (line B32–B33); recloser SW-06-26 trips the Feeder F3 lateral.",
     "17:02 — SW-32-33 isolates the faulted cable and the lateral is reclosed: every bus except B33 is back, including the hospital.",
     "The remaining electrical outage is about 80 kW — but it is the West zone's only pump.",
-    "PS-2 can only be re-energised through tie SW-18-33 from B18, the weakest point of the feeder; at the evening peak that route sits right at the 0.90 pu voltage limit.",
+    "PS-2 can only be re-energised through tie SW-18-33 from B18, the weakest point of the feeder; at the evening peak that route falls below the 0.90 pu voltage limit.",
     "Restoring PS-2 therefore needs voltage headroom: interrupting a few supplied customers on the F1 tail. Conventional restoration never interrupts supplied customers for one pump; the coupled planner weighs that against the hospital's water service."
   ],
   "defaults": {
-    "loadMultiplier": 1.05,
+    "loadMultiplier": 1.1,
     "waterDemandMultiplier": 1.0,
     "faultLineId": 31,
     "faultTimeMin": 30,

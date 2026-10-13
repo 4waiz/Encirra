@@ -14,14 +14,15 @@ const MSAA_OVERRIDE = params.get('msaa');
 
 export function Effects() {
   const tier = useSceneQuality((s) => s.tier);
-  const ao = AO_OVERRIDE != null ? AO_OVERRIDE === '1' : tier === 'high';
+  // N8AO costs ~4 ms at 1080p on a laptop RTX; opt-in only (?ao=1)
+  const ao = AO_OVERRIDE === '1';
   const msaa = MSAA_OVERRIDE != null ? Number(MSAA_OVERRIDE) : 0;
   return (
     <EffectComposer multisampling={msaa} frameBufferType={HalfFloatType} key={`${tier}-${ao}-${msaa}`}>
       {ao ? <N8AO aoRadius={6} distanceFalloff={0.6} intensity={1.3} aoSamples={8} denoiseSamples={4} halfRes /> : <></>}
-      <Bloom mipmapBlur intensity={tier === 'low' ? 0.6 : 0.85} luminanceThreshold={1.15} luminanceSmoothing={0.2} radius={0.68} />
+      <Bloom mipmapBlur levels={tier === 'low' ? 4 : tier === 'medium' ? 6 : 7} intensity={tier === 'low' ? 0.7 : 0.85} luminanceThreshold={1.15} luminanceSmoothing={0.2} radius={0.68} />
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
-      <SMAA />
+      {tier !== 'low' ? <SMAA /> : <></>}
       <Vignette offset={0.32} darkness={0.42} eskil={false} />
     </EffectComposer>
   );

@@ -7,7 +7,7 @@ import { fx, useSceneQuality, type QualityTier } from './runtime';
 import { useKit } from './assets/kit';
 
 const TIERS: QualityTier[] = ['low', 'medium', 'high'];
-const DPR: Record<QualityTier, [number, number]> = { high: [1, 1.5], medium: [1, 1], low: [0.75, 0.85] };
+const DPR: Record<QualityTier, [number, number]> = { high: [1, 1.5], medium: [1, 1], low: [0.6, 0.7] };
 
 /**
  * Full-screen WebGL canvas that hosts the 3D digital twin.

@@ -79,7 +79,8 @@ export function deriveLabels(): LabelSpec[] {
       key: 'fault',
       pos: [x, 30, z],
       title: faultIdx >= 0 ? `${feederName} Fault` : `${feederName} · Fault Isolated`,
-      sub: lost > 0 ? 'Supply Lost' : isolatedIdx >= 0 ? 'Section Isolated' : 'Section Open',
+      // isolated = the faulted section's own switch is open (or a feeder section is reported isolated)
+      sub: lost > 0 ? 'Supply Lost' : live.switchClosedByLine[fl] === 0 || isolatedIdx >= 0 ? 'Section Isolated' : 'Supply Lost',
       tone: 'fault',
       icon: 'bolt',
       priority: 100,

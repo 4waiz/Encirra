@@ -318,7 +318,7 @@ export function Skyline() {
     return [buildInstances(boxes, boxGeo, towerMat, false), buildInstances(cyls, cylGeo, towerMat, false)];
   }, [towers, boxGeo, cylGeo, towerMat]);
   const lowMesh = useMemo(() => {
-    const lowSel = tier === 'low' ? low.filter((_, i) => i % 2 === 0) : low;
+    const lowSel = tier === 'low' ? low.filter((_, i) => i % 3 === 0) : low;
     return buildInstances(lowSel, boxGeo, lowMat, true);
   }, [low, boxGeo, lowMat, tier]);
   const kitSky = useKitSignature(['skyline.glb']) === 'ready:skyline.glb';
