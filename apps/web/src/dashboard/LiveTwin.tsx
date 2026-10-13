@@ -69,19 +69,38 @@ function useOverlayLayout(middle: RefObject<HTMLElement | null>) {
  */
 export function LiveTwin() {
   const inspecting = useTwin((s) => s.selected != null);
+  const focus = useTwin((s) => s.focusTwin);
   const middle = useRef<HTMLElement>(null);
   useOverlayLayout(middle);
+  // Focus mode collapses both card rows (animated grid tracks) so the twin fills the view; the
+  // safe-area observer reports the larger band and the camera re-centres on it.
+  const rowStyle = (hidden: boolean, dir: 1 | -1) => ({
+    opacity: hidden ? 0 : 1,
+    transform: hidden ? `translateY(${dir * 14}px)` : 'none',
+    overflow: hidden ? ('hidden' as const) : ('visible' as const),
+    transition: 'opacity 260ms ease, transform 320ms ease',
+  });
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="pointer-events-none absolute inset-x-0 top-[var(--header-h)] bottom-[var(--footer-h)] z-10 grid gap-[var(--gap)] px-[var(--pad-x)] pb-[var(--gap)]"
-      style={{ gridTemplateRows: 'var(--top-h) minmax(0, 1fr) var(--bottom-h)' }}
+      className="pointer-events-none absolute inset-x-0 top-[var(--header-h)] bottom-[var(--footer-h)] z-10 grid px-[var(--pad-x)] pb-[var(--gap)]"
+      style={{
+        gridTemplateRows: focus ? '0px minmax(0, 1fr) 0px' : 'var(--top-h) minmax(0, 1fr) var(--bottom-h)',
+        rowGap: focus ? 0 : 'var(--gap)',
+        transition: 'grid-template-rows 360ms cubic-bezier(.4,0,.2,1), row-gap 360ms ease',
+      }}
       data-testid="live-twin"
+      data-focus={focus ? 'on' : 'off'}
     >
-      <section className="grid min-h-0 gap-[var(--gap)]" style={{ gridTemplateColumns: '1.27fr 0.98fr 1.42fr 1.06fr', gridTemplateRows: 'minmax(0, 1fr)' }} aria-label="Incident and recovery status">
+      <section
+        className="grid min-h-0 gap-[var(--gap)]"
+        style={{ gridTemplateColumns: '1.27fr 0.98fr 1.42fr 1.06fr', gridTemplateRows: 'minmax(0, 1fr)', ...rowStyle(focus, -1) }}
+        aria-label="Incident and recovery status"
+        inert={focus}
+      >
         <FaultCard />
         <FeederStatusCard />
         <RecoveryCard />
@@ -98,7 +117,12 @@ export function LiveTwin() {
           <PlaybackBar />
         </div>
       </section>
-      <section className="grid min-h-0 gap-[var(--gap)]" style={{ gridTemplateColumns: '1fr 1fr 1.21fr 1.18fr', gridTemplateRows: 'minmax(0, 1fr)' }} aria-label="Network panels">
+      <section
+        className="grid min-h-0 gap-[var(--gap)]"
+        style={{ gridTemplateColumns: '1fr 1fr 1.21fr 1.18fr', gridTemplateRows: 'minmax(0, 1fr)', ...rowStyle(focus, 1) }}
+        aria-label="Network panels"
+        inert={focus}
+      >
         <PowerPanel />
         <WaterPanel />
         <FacilitiesPanel />

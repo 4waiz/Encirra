@@ -32,6 +32,8 @@ function useKeyboard() {
       } else if (e.key === 'ArrowRight' && !e.altKey) playback.step(1);
       else if (e.key === 'ArrowLeft' && !e.altKey) playback.step(-1);
       else if (e.key === 'Escape' && s.selected) s.setSelected(null);
+      else if (e.key === 'Escape' && s.focusTwin) s.setFocusTwin(false);
+      else if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey && !e.altKey && s.page === 'live') s.setFocusTwin(!s.focusTwin);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);

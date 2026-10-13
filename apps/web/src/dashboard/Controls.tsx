@@ -5,6 +5,8 @@ import {
   Clapperboard,
   Crosshair,
   Droplet,
+  Maximize2,
+  Minimize2,
   Orbit,
   Pause,
   Play,
@@ -263,8 +265,26 @@ export function SceneToolbar() {
   const requestCamera = useTwin((s) => s.requestCamera);
   const demoActive = useTwin((s) => s.demo.active);
   const hasRun = useTwin((s) => !!s.run);
+  const focus = useTwin((s) => s.focusTwin);
+  const setFocus = useTwin((s) => s.setFocusTwin);
   return (
     <div className="enc-panel pointer-events-auto flex items-center gap-0.5 rounded-[11px] p-[3px]" data-testid="scene-toolbar">
+      <button
+        type="button"
+        onClick={() => setFocus(!focus)}
+        data-testid="focus-twin"
+        aria-pressed={focus}
+        data-tip={focus ? 'Show the dashboard cards (F)' : 'Hide the dashboard cards so the 3D twin fills the view (F)'}
+        data-tip-pos="bottom-end"
+        className={clsx(
+          'flex h-7 items-center gap-1.5 rounded-lg px-2 text-[12px] font-semibold whitespace-nowrap transition-colors',
+          focus ? 'bg-info text-white hover:bg-brand-deep' : 'text-ink hover:bg-info-soft hover:text-info',
+        )}
+      >
+        {focus ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+        {focus ? 'Show dashboard' : 'Focus twin'}
+      </button>
+      <div className="mx-0.5 h-5 w-px bg-line" />
       {LAYER_BTNS.map(({ key, label, icon: Icon }) => (
         <IconButton key={key} tip={`${label} layer`} active={layers[key]} onClick={() => toggleLayer(key)} data-testid={`layer-${key}`} compact>
           <Icon size={15} />

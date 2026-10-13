@@ -54,8 +54,8 @@
   --pad-x: clamp(10px, 0.8vw, 16px);
   --gap: clamp(8px, 0.68vw, 13px);
   --header-h: clamp(66px, 10.6vh, 104px);
-  --top-h: clamp(116px, 15.4vh, 162px);
-  --bottom-h: clamp(186px, 26.6vh, 292px);
+  --top-h: clamp(112px, 14.2vh, 150px);
+  --bottom-h: clamp(178px, 23.5vh, 254px);
   --footer-h: 24px;
 
   /* type scale */

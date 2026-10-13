@@ -146,21 +146,35 @@ export function CameraRig() {
   // (store.overlayLayout.safe) instead of the raw viewport centre. A vertical view offset keeps
   // the viewing angle (so the cut faces stay visible) and shifts everything uniformly, including
   // the 3D labels and picking.
+  // When the free band is tall (dashboard cards hidden in focus mode) the lens also zooms in, by
+  // rendering a centred sub-window of the frame, so the district fills the space instead of
+  // shrinking into the middle. Camera pose, fov and the user's dolly are untouched.
   const shift = useRef(0);
+  const zoom = useRef(1);
   const size = useThree((s) => s.size);
   useFrame(() => {
     const ol = useTwin.getState().overlayLayout;
     const H = size.height;
     const W = size.width;
     const bandCentre = ol ? ol.safe.y + ol.safe.height / 2 : H * 0.495;
-    const target = MathUtils.clamp(H / 2 - bandCentre, -H * 0.15, H * 0.15);
-    shift.current += (target - shift.current) * 0.08;
+    const bandRatio = ol ? ol.safe.height / H : 0.45;
+    const targetShift = MathUtils.clamp(H / 2 - bandCentre, -H * 0.15, H * 0.15);
+    const targetZoom = MathUtils.clamp(0.55 + 0.9 * bandRatio, 1, 1.38);
+    shift.current += (targetShift - shift.current) * 0.08;
+    zoom.current += (targetZoom - zoom.current) * 0.08;
     const s = Math.round(shift.current * 2) / 2;
+    const z = Math.round(zoom.current * 1000) / 1000;
     const v = camera.view;
-    if (Math.abs(s) < 0.5) {
+    if (Math.abs(s) < 0.5 && Math.abs(z - 1) < 0.002) {
       if (v && v.enabled) camera.clearViewOffset();
-    } else if (!v || !v.enabled || v.offsetY !== s || v.fullWidth !== W || v.fullHeight !== H) {
-      camera.setViewOffset(W, H, 0, s, W, H);
+      return;
+    }
+    const w = W / z;
+    const h = H / z;
+    const x = (W - w) / 2;
+    const y = H / 2 - (H / 2 - s) / z;
+    if (!v || !v.enabled || v.offsetX !== x || v.offsetY !== y || v.width !== w || v.fullWidth !== W || v.fullHeight !== H) {
+      camera.setViewOffset(W, H, x, y, w, h);
     }
   });
 
