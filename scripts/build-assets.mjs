@@ -132,11 +132,15 @@ const CONVENTIONS = {
   glazing:
     'Material "glazing" marks window surfaces for the scene\'s lit-window shader. UV0 on glazing encodes the window grid: v = storey coordinate (the lobby spans v 0..1, every storey above adds 1.0, aligned with the modelled slabs, so fract(v) is the position inside a storey even after non-uniform scaling); u = facade bay coordinate (1.0 per ~1.5-3 m bay, see assets[].notes). World-space window shaders also work.',
   vertexAO:
-    'Building, facility and underground meshes carry baked ambient occlusion in COLOR_0 (linear, 0.38-1.0). three.js GLTFLoader enables vertexColors automatically, which multiplies baseColor. Keep vertexColors on any replacement material to keep the grounding.',
+    'Building, facility, underground and district-base meshes carry baked ambient occlusion in COLOR_0 (linear, ~0.38-1.0; the base has hand-placed gallery occlusion). On kit buildings the facade/facade_alt faces are additionally multiplied by a subtle per-variant stone tint (assets[].stoneTint: white, cream, beige or sand) so two stone materials give four tones. three.js GLTFLoader enables vertexColors automatically, which multiplies baseColor; keep vertexColors on any replacement material to keep the grounding and the tints.',
   compression:
     'EXT_meshopt_compression (decode with GLTFLoader.setMeshoptDecoder(MeshoptDecoder) from three/examples/jsm/libs/meshopt_decoder.module.js). Normals are int16 and COLOR_0 uint8 (KHR_mesh_quantization); positions and UVs are float32.',
   emissive:
     'Emissive materials ("emissive_sign", "light_emissive", "water") carry emissive colour/strength suitable for bloom; the scene may drive their intensity (e.g. night/outage states).',
+  props:
+    'Props have their origin at the base on the ground. streetlight arms point along local +Z (layout rotation 0 = towards +Z / the road centre); palms are rotationally free and scale uniformly (layout scale 0.8-1.25); solar-array_v0 is a ~10 x 6 m rooftop rack whose modules face +Z (south).',
+  skyline:
+    'skyline.glb node transforms carry a suggested placement (assets[].placement) with the tower bases at y = 0. If the background ground/sea is lower than the district surface, offset the whole skyline group to that level (the previews use y = -59).',
   pipes:
     'Exposed mains are rendered by the scene from district.json routes. district-base gallery saddles and underground-kit flanges are sized for a visual pipe radius of 0.9 m (anchors.pipeVisualRadius).',
   provenance:

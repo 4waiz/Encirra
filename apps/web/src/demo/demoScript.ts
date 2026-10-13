@@ -22,6 +22,8 @@ export interface Cue {
   whyPlan?: boolean;
   /** jump the playhead (frame index) instantly */
   jump?: (c: DemoCtx) => number | null;
+  /** if the playhead is earlier than this frame (e.g. after skipping), move it there */
+  minFrame?: (c: DemoCtx) => number | null;
 }
 
 export interface Glide {
@@ -81,7 +83,7 @@ export const DEMO_STEPS: DemoStep[] = [
       return `${s.faultClock}: ${s.faultLabel} faults. Protection trips and ${fmtKW(s.loadInterruptedKW)} across ${fmtInt(s.connectionsAffected)} service connections lose supply${st.length ? ` — including ${st.join(' and ')}` : ''}. The faulted section is isolated.`;
     },
     cues: [
-      { at: 0, camera: { shot: 'west-district', durationS: 3 }, overview: 'power' },
+      { at: 0, camera: { shot: 'west-district', durationS: 3 }, overview: 'power', strategy: 'encirra', minFrame: (c) => idxAt(c, 'encirra', runMarks(run(c)!).faultT, -2) },
       { at: 16, camera: { shot: 'substation', durationS: 3.5 } },
     ],
     glides: [
@@ -106,7 +108,14 @@ export const DEMO_STEPS: DemoStep[] = [
         : `Underground, the pumps on the lost feeder have stopped and the elevated tank carries the zone alone (baseline replay: ${fmtNum(base.summary.minCriticalPressureM, 1)} m minimum critical pressure).`;
     },
     cues: [
-      { at: 0, strategy: 'none', layers: { underground: true }, overview: 'water', camera: { shot: 'underground-west', durationS: 3.5 } },
+      {
+        at: 0,
+        strategy: 'none',
+        layers: { underground: true },
+        overview: 'water',
+        camera: { shot: 'underground-west', durationS: 3.5 },
+        minFrame: (c) => idxAt(c, 'encirra', runMarks(run(c)!).isolatedT ?? runMarks(run(c)!).faultT),
+      },
       { at: 15, camera: { shot: 'tank-t2', durationS: 3.5 } },
     ],
     glides: [

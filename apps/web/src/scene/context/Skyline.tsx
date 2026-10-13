@@ -7,6 +7,8 @@
 import { useEffect, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import {
+  type BufferGeometry,
+  type Material,
   BoxGeometry,
   CylinderGeometry,
   InstancedBufferAttribute,
@@ -17,7 +19,10 @@ import {
   Vector3,
 } from 'three';
 import { bendShader } from './bend';
-import { GROUND_Y, lowerCity, skylineTowers } from './layout';
+import { CONTEXT_ROT, GROUND_Y, lowerCity, skylineTowers } from './layout';
+import { useKitFile, useKitSignature, kitManifest } from '../assets/kit';
+import { collectMeshes, mergeItems, type MergeItem } from '../assets/merge';
+import { createKitMaterial, type KitUniforms } from '../assets/kitMaterials';
 import { GeoBuilder, STYLE, lin } from '../lib/GeoBuilder';
 import { createFacadeMaterial, createStateTexture } from '../buildings/facadeMaterial';
 import { useSceneQuality } from '../runtime';
@@ -190,6 +195,87 @@ function landmarks() {
   return g.build();
 }
 
+/** skyline.glb landmarks at their suggested placements (context frame), batched per material. */
+function KitSkyline() {
+  const gltf = useKitFile('skyline.glb');
+  const state = useMemo(() => createStateTexture(1), []);
+  const uniforms = useMemo<KitUniforms>(() => ({ uState: { value: state }, uTime: { value: 0 }, uFade: { value: 1 } }), [state]);
+  const batches = useMemo(() => {
+    if (!gltf) return [];
+    const m = kitManifest();
+    const groups = new Map<string, { items: MergeItem[]; src: Material }>();
+    gltf.scene.updateMatrixWorld(true);
+    for (const root of gltf.scene.children) {
+      for (const mm of collectMeshes(root, gltf.scene)) {
+        if (!groups.has(mm.name)) groups.set(mm.name, { items: [], src: mm.material });
+        groups.get(mm.name)!.items.push({ geometry: mm.geometry, matrix: mm.matrix, bld: 0, tint: [1, 1, 1] });
+      }
+    }
+    const out: { geometry: BufferGeometry; material: Material }[] = [];
+    for (const [name, g] of groups) {
+      const geometry = mergeItems(g.items);
+      if (!geometry) continue;
+      const material = createKitMaterial(name, g.src, m, uniforms, { darkenOutage: false });
+      const prev = material.onBeforeCompile;
+      material.onBeforeCompile = (shader, r) => {
+        prev.call(material, shader, r);
+        bendShader(shader);
+      };
+      const key = material.customProgramCacheKey.bind(material);
+      material.customProgramCacheKey = () => key() + '|bend';
+      out.push({ geometry, material });
+    }
+    return out;
+  }, [gltf, uniforms]);
+  useEffect(
+    () => () => {
+      batches.forEach((b) => {
+        b.geometry.dispose();
+        b.material.dispose();
+      });
+    },
+    [batches],
+  );
+  useEffect(() => () => state.dispose(), [state]);
+  useFrame((st) => {
+    uniforms.uTime.value = st.clock.elapsedTime;
+  });
+  return (
+    <group position={[0, GROUND_Y, 0]}>
+      {batches.map((b, i) => (
+        <mesh key={i} geometry={b.geometry} material={b.material} frustumCulled={false} />
+      ))}
+    </group>
+  );
+}
+
+function ProceduralLandmarks() {
+  const landmarkGeo = useMemo(() => landmarks(), []);
+  const landmarkState = useMemo(() => createStateTexture(1), []);
+  const landmarkMat = useMemo(() => {
+    const m = createFacadeMaterial(landmarkState);
+    const prev = m.onBeforeCompile;
+    m.onBeforeCompile = (shader, r) => {
+      prev.call(m, shader, r);
+      bendShader(shader);
+    };
+    m.customProgramCacheKey = () => 'encirra-facade-v3|bend';
+    return m;
+  }, [landmarkState]);
+  useFrame((state) => {
+    landmarkMat.userData.uniforms.uTime.value = state.clock.elapsedTime;
+  });
+  useEffect(
+    () => () => {
+      landmarkMat.dispose();
+      landmarkGeo.dispose();
+      landmarkState.dispose();
+    },
+    [landmarkMat, landmarkGeo, landmarkState],
+  );
+  return <mesh geometry={landmarkGeo} material={landmarkMat} frustumCulled={false} />;
+}
+
 export function Skyline() {
   const tier = useSceneQuality((s) => s.tier);
   const towerMat = useMemo(() => createTowerMaterial('tower'), []);
@@ -206,55 +292,36 @@ export function Skyline() {
     c.translate(0, 0.5, 0);
     return c;
   }, []);
-  const meshes = useMemo(() => {
+  const towerMeshes = useMemo(() => {
     const boxes = towers.filter((t) => t.kind === 0);
     const cyls = towers.filter((t) => t.kind === 1);
+    return [buildInstances(boxes, boxGeo, towerMat, false), buildInstances(cyls, cylGeo, towerMat, false)];
+  }, [towers, boxGeo, cylGeo, towerMat]);
+  const lowMesh = useMemo(() => {
     const lowSel = tier === 'low' ? low.filter((_, i) => i % 2 === 0) : low;
-    return [
-      buildInstances(boxes, boxGeo, towerMat, false),
-      buildInstances(cyls, cylGeo, towerMat, false),
-      buildInstances(lowSel, boxGeo, lowMat, true),
-    ];
-  }, [towers, low, boxGeo, cylGeo, towerMat, lowMat, tier]);
+    return buildInstances(lowSel, boxGeo, lowMat, true);
+  }, [low, boxGeo, lowMat, tier]);
+  const kitSky = useKitSignature(['skyline.glb']) === 'ready:skyline.glb';
 
-  const landmarkGeo = useMemo(() => landmarks(), []);
-  const landmarkState = useMemo(() => createStateTexture(1), []);
-  const landmarkMat = useMemo(() => {
-    const m = createFacadeMaterial(landmarkState);
-    const prev = m.onBeforeCompile;
-    m.onBeforeCompile = (shader, r) => {
-      prev.call(m, shader, r);
-      bendShader(shader);
-    };
-    m.customProgramCacheKey = () => 'encirra-facade-v3|bend';
-    return m;
-  }, [landmarkState]);
-
-  useFrame((state) => {
-    landmarkMat.userData.uniforms.uTime.value = state.clock.elapsedTime;
-  });
-
+  useEffect(() => () => towerMeshes.forEach((m) => m.geometry.dispose()), [towerMeshes]);
+  useEffect(() => () => lowMesh.geometry.dispose(), [lowMesh]);
   useEffect(
     () => () => {
-      for (const m of meshes) m.geometry.dispose();
+      [towerMat, lowMat].forEach((m) => m.dispose());
+      [boxGeo, cylGeo].forEach((g) => g.dispose());
     },
-    [meshes],
-  );
-  useEffect(
-    () => () => {
-      [towerMat, lowMat, landmarkMat].forEach((m) => m.dispose());
-      [boxGeo, cylGeo, landmarkGeo].forEach((g) => g.dispose());
-      landmarkState.dispose();
-    },
-    [towerMat, lowMat, landmarkMat, boxGeo, cylGeo, landmarkGeo, landmarkState],
+    [towerMat, lowMat, boxGeo, cylGeo],
   );
 
   return (
     <group>
-      {meshes.map((m, i) => (
-        <primitive key={i} object={m} />
-      ))}
-      <mesh geometry={landmarkGeo} material={landmarkMat} frustumCulled={false} />
+      <primitive object={lowMesh} />
+      <group rotation-y={CONTEXT_ROT}>
+        {towerMeshes.map((m, i) => (
+          <primitive key={i} object={m} />
+        ))}
+        {kitSky ? <KitSkyline /> : <ProceduralLandmarks />}
+      </group>
     </group>
   );
 }

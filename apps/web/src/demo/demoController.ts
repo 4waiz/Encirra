@@ -34,6 +34,10 @@ function fireCues(stepIdx: number, localT: number, c: DemoCtx) {
       const f = cue.jump(c);
       if (f != null) s.setPlayhead(f);
     }
+    if (cue.minFrame) {
+      const f = cue.minFrame(c);
+      if (f != null && useTwin.getState().playhead < f) s.setPlayhead(f);
+    }
     if (cue.camera) s.requestCamera({ shot: cue.camera.shot, durationS: cue.camera.durationS });
   });
 }

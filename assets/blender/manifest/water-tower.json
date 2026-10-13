@@ -43,7 +43,7 @@
         "metal",
         "light_emissive"
       ],
-      "vertexAO": false
+      "vertexAO": true
     },
     {
       "id": "water-tower_v1",
@@ -86,7 +86,7 @@
         "metal",
         "light_emissive"
       ],
-      "vertexAO": false
+      "vertexAO": true
     }
   ]
 }

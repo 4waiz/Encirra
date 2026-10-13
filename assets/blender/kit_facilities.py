@@ -163,12 +163,13 @@ def hospital(mb):
     info["redCross"] = (0.0, cr[2] - 0.5, cz)
     # large rooftop lettering on the tower parapet (west half; the helipad is on the east half)
     sz = t_top + 1.6
-    tw2 = parts.facade_text(mb, "HOSPITAL", -11.2, tr[2] + 0.35, sz + 0.25, 2.5, "emissive_sign", depth=0.3, facing=(0, -1, 0))
-    mb.box(-11.2 - tw2 / 2 - 0.4, tr[2] + 0.35, sz, -11.2 + tw2 / 2 + 0.4, tr[2] + 0.6, sz + 0.25, "steel_dark")
+    sx = -12.6
+    tw2 = parts.facade_text(mb, "HOSPITAL", sx, tr[2] + 0.35, sz + 0.25, 2.3, "emissive_sign", depth=0.3, facing=(0, -1, 0))
+    mb.box(sx - tw2 / 2 - 0.4, tr[2] + 0.35, sz, sx + tw2 / 2 + 0.4, tr[2] + 0.6, sz + 0.25, "steel_dark")
     for k in range(5):
-        x = -11.2 - tw2 / 2 + tw2 * k / 4
-        mb.box(x - 0.06, tr[2] + 0.62, sz, x + 0.06, tr[2] + 0.75, sz + 2.6, "steel_dark")
-    info["roofSign"] = (-11.2, tr[2], sz + 1.5)
+        x = sx - tw2 / 2 + tw2 * k / 4
+        mb.box(x - 0.06, tr[2] + 0.62, sz, x + 0.06, tr[2] + 0.75, sz + 2.4, "steel_dark")
+    info["roofSign"] = (sx, tr[2], sz + 1.4)
     # "HOSPITAL" lettering above the entrance canopy on the podium fascia
     tw = parts.facade_text(mb, "HOSPITAL", 0.0, pr[2] - 0.0, pod_top - 1.75, 1.7, "emissive_sign", depth=0.22, facing=(0, -1, 0))
     # sign backing band

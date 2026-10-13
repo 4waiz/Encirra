@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generatedAt": "2026-10-13T10:54:33.926Z",
+  "generatedAt": "2026-10-13T10:57:43.283Z",
   "units": "m",
   "up": "+Y",
   "front": "+Z",
@@ -10,9 +10,11 @@
     "nodeLookup": "Layout buildings map to node `${kind}_v${variant}`. Facilities that exist twice with different footprints (pump-station, water-tower) have one node per facility: resolve by assets[].facilityId first, then by kind + variant.",
     "kitScaling": "Kit buildings (tower-residential, tower-office, midrise-residential, lowrise-residential, villa, commercial-podium) are modelled at nominalSize [w, d, h] and tolerate non-uniform scaling of about +/-30% to the layout footprint/height. Facility, prop and underground assets are modelled at real size and placed unscaled.",
     "glazing": "Material \"glazing\" marks window surfaces for the scene's lit-window shader. UV0 on glazing encodes the window grid: v = storey coordinate (the lobby spans v 0..1, every storey above adds 1.0, aligned with the modelled slabs, so fract(v) is the position inside a storey even after non-uniform scaling); u = facade bay coordinate (1.0 per ~1.5-3 m bay, see assets[].notes). World-space window shaders also work.",
-    "vertexAO": "Building, facility and underground meshes carry baked ambient occlusion in COLOR_0 (linear, 0.38-1.0). three.js GLTFLoader enables vertexColors automatically, which multiplies baseColor. Keep vertexColors on any replacement material to keep the grounding.",
+    "vertexAO": "Building, facility, underground and district-base meshes carry baked ambient occlusion in COLOR_0 (linear, ~0.38-1.0; the base has hand-placed gallery occlusion). On kit buildings the facade/facade_alt faces are additionally multiplied by a subtle per-variant stone tint (assets[].stoneTint: white, cream, beige or sand) so two stone materials give four tones. three.js GLTFLoader enables vertexColors automatically, which multiplies baseColor; keep vertexColors on any replacement material to keep the grounding and the tints.",
     "compression": "EXT_meshopt_compression (decode with GLTFLoader.setMeshoptDecoder(MeshoptDecoder) from three/examples/jsm/libs/meshopt_decoder.module.js). Normals are int16 and COLOR_0 uint8 (KHR_mesh_quantization); positions and UVs are float32.",
     "emissive": "Emissive materials (\"emissive_sign\", \"light_emissive\", \"water\") carry emissive colour/strength suitable for bloom; the scene may drive their intensity (e.g. night/outage states).",
+    "props": "Props have their origin at the base on the ground. streetlight arms point along local +Z (layout rotation 0 = towards +Z / the road centre); palms are rotationally free and scale uniformly (layout scale 0.8-1.25); solar-array_v0 is a ~10 x 6 m rooftop rack whose modules face +Z (south).",
+    "skyline": "skyline.glb node transforms carry a suggested placement (assets[].placement) with the tower bases at y = 0. If the background ground/sea is lower than the district surface, offset the whole skyline group to that level (the previews use y = -59).",
     "pipes": "Exposed mains are rendered by the scene from district.json routes. district-base gallery saddles and underground-kit flanges are sized for a visual pipe radius of 0.9 m (anchors.pipeVisualRadius).",
     "provenance": "All assets are original procedural geometry and textures generated for Encirra by the scripts in assets/blender/. No third-party models, textures or HDRIs are used."
   },
@@ -195,7 +197,7 @@
       ]
     },
     "hospital.glb": {
-      "bytes": 128180,
+      "bytes": 138332,
       "group": "facilities",
       "nodes": [
         "hospital_v0"
@@ -235,7 +237,7 @@
       ]
     },
     "palm.glb": {
-      "bytes": 64648,
+      "bytes": 90860,
       "group": "props",
       "nodes": [
         "palm_v0",
@@ -349,7 +351,7 @@
       ]
     }
   },
-  "totalBytes": 5276856,
+  "totalBytes": 5313220,
   "assets": [
     {
       "id": "tower-residential_v0",
@@ -1231,12 +1233,17 @@
           0,
           8.2,
           13.3
+        ],
+        "roofSign": [
+          -12.6,
+          37.4,
+          9
         ]
       },
       "notes": "City Hospital: podium + ward tower, red cross and HOSPITAL lettering (emissive_sign), drop-off canopy, emergency canopy, rooftop helipad.",
       "facilityId": "hospital",
       "file": "hospital.glb",
-      "tris": 3876,
+      "tris": 4308,
       "materials": [
         "concrete",
         "glazing",
@@ -1244,11 +1251,11 @@
         "roof",
         "trim",
         "emissive_sign",
+        "steel_dark",
         "glass_clear",
         "metal",
         "light_emissive",
         "valve_red",
-        "steel_dark",
         "asphalt",
         "rock",
         "foliage"
@@ -1832,11 +1839,11 @@
       "variant": 0,
       "node": "palm_v0",
       "nominalSize": [
-        9.8,
-        9.26,
-        12.76
+        9.79,
+        9.4,
+        12.65
       ],
-      "tris": 835,
+      "tris": 1267,
       "materials": [
         "trunk",
         "foliage"
@@ -1850,11 +1857,11 @@
       "variant": 1,
       "node": "palm_v1",
       "nominalSize": [
-        8.58,
-        7.72,
-        9.57
+        8.8,
+        7.91,
+        9.49
       ],
-      "tris": 931,
+      "tris": 1267,
       "materials": [
         "trunk",
         "foliage"
@@ -1868,11 +1875,11 @@
       "variant": 2,
       "node": "palm_v2",
       "nominalSize": [
-        9.06,
-        9.5,
-        15.65
+        10.44,
+        9.26,
+        15.52
       ],
-      "tris": 835,
+      "tris": 1267,
       "materials": [
         "trunk",
         "foliage"

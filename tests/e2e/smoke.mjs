@@ -125,6 +125,20 @@ export async function runSmoke({ baseUrl = BASE_URL, viewport = { width: 1600, h
       return verified ? 'Simulation Verified badge shown' : 'opened (plan not verified)';
     });
 
+    await check('scenario switch loads all three strategies of the new scenario', async () => {
+      const options = await sel('scenario-select').locator('option').evaluateAll((els) => els.map((e) => e.value));
+      const target = options.find((v) => v !== 'feeder-fault');
+      if (!target) throw new Error(`only one scenario: ${options.join(',')}`);
+      await sel('scenario-select').selectOption(target);
+      await page.waitForFunction((t) => document.querySelector('[data-testid="scenario-select"]')?.value === t && !document.querySelector('[data-testid="busy"]'), target, { timeout: 30_000 });
+      await page.waitForFunction(() => /Awaiting disturbance/.test(document.querySelector('[data-testid="recovery-title"]')?.textContent ?? ''), null, { timeout: 5_000 });
+      const enabled = await page.locator('[data-testid="strategy-select"] button:not([disabled])').count();
+      if (enabled !== 3) throw new Error(`${enabled} strategies available`);
+      await sel('scenario-select').selectOption('feeder-fault');
+      await page.waitForFunction(() => document.querySelector('[data-testid="scenario-select"]')?.value === 'feeder-fault' && !document.querySelector('[data-testid="busy"]'), null, { timeout: 30_000 });
+      return `${target}: 3 strategies loaded, playhead rewound; back to feeder-fault`;
+    });
+
     await check('all five tabs render', async () => {
       const out = [];
       for (const id of ['analytics', 'scenarios', 'assets', 'reports', 'live']) {

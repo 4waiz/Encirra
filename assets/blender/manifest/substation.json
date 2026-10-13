@@ -50,7 +50,7 @@
         "rock",
         "valve_red"
       ],
-      "vertexAO": false
+      "vertexAO": true
     }
   ]
 }

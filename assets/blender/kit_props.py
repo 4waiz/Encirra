@@ -39,10 +39,10 @@ def palm(mb, height=10.0, lean=0.9, fronds=12, seed=1, frond_len=4.4, crown_r=0.
         age = f / max(1, fronds - 1)
         elev = math.radians(48 - 62 * age + r.uniform(-6, 6))
         L = frond_len * (0.85 + 0.3 * r.random()) * (0.92 + 0.16 * age)
-        droop = (0.55 + 0.6 * age) * L * 0.42
+        droop = (0.6 + 0.7 * age) * L * 0.45
         d = Vector((math.cos(az) * math.cos(elev), math.sin(az) * math.cos(elev), math.sin(elev)))
         side = Vector((-math.sin(az), math.cos(az), 0.0))
-        samples = 22
+        samples = 18
         spine, left, right = [], [], []
         for s in range(samples + 1):
             u = s / samples
@@ -144,9 +144,9 @@ def bench(mb):
 def build_all(coll_for):
     out = {}
     specs = [
-        ("palm", 0, lambda mb: palm(mb, height=10.0, lean=1.1, fronds=12, seed=3, frond_len=4.5)),
-        ("palm", 1, lambda mb: palm(mb, height=7.0, lean=0.5, fronds=14, seed=8, frond_len=4.0)),
-        ("palm", 2, lambda mb: palm(mb, height=12.5, lean=1.8, fronds=12, seed=13, frond_len=4.7)),
+        ("palm", 0, lambda mb: palm(mb, height=10.0, lean=1.1, fronds=14, seed=3, frond_len=4.6)),
+        ("palm", 1, lambda mb: palm(mb, height=7.0, lean=0.5, fronds=14, seed=8, frond_len=4.1)),
+        ("palm", 2, lambda mb: palm(mb, height=12.5, lean=1.8, fronds=14, seed=13, frond_len=4.8)),
         ("streetlight", 0, lambda mb: streetlight(mb, 9.0, arms=1)),
         ("streetlight", 1, lambda mb: streetlight(mb, 10.0, arms=2)),
         ("solar-array", 0, lambda mb: solar_array(mb)),

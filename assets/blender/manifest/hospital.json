@@ -35,8 +35,8 @@
           13.3
         ],
         "roofSign": [
-          -11.2,
-          37.5,
+          -12.6,
+          37.4,
           9.0
         ]
       },
@@ -60,7 +60,7 @@
         "rock",
         "foliage"
       ],
-      "vertexAO": false
+      "vertexAO": true
     }
   ]
 }
