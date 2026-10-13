@@ -31,7 +31,7 @@ export function LiveTwin() {
         <div className="pointer-events-none absolute top-0 left-0 flex max-w-[calc(100%-420px)] min-w-[360px]">
           <DemoOverlay />
         </div>
-        <div className="pointer-events-none absolute top-0 flex justify-end transition-[right] duration-200" style={{ right: inspecting ? 'min(372px, calc(100vw - 24px))' : 0 }}>
+        <div className="pointer-events-none absolute top-0 z-30 flex justify-end transition-[right] duration-200" style={{ right: inspecting ? 'min(372px, calc(100vw - 24px))' : 0 }}>
           <SceneToolbar />
         </div>
         <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center">

@@ -4,6 +4,7 @@ import { PerformanceMonitor } from '@react-three/drei';
 import { useTwin } from '@/state/store';
 import { Scene } from './Scene';
 import { fx, useSceneQuality, type QualityTier } from './runtime';
+import { useKit } from './assets/kit';
 
 const TIERS: QualityTier[] = ['low', 'medium', 'high'];
 const DPR: Record<QualityTier, [number, number]> = { high: [1, 1.5], medium: [1, 1], low: [0.75, 0.85] };
@@ -21,7 +22,7 @@ export function TwinCanvas() {
   useEffect(() => {
     if (!import.meta.env.DEV) return;
     const w = window as unknown as Record<string, Record<string, unknown> | undefined>;
-    w.__encirra = { ...(w.__encirra ?? {}), useTwin, fx, useSceneQuality };
+    w.__encirra = { ...(w.__encirra ?? {}), useTwin, fx, useSceneQuality, useKit };
   }, []);
   const forced = typeof window !== 'undefined' && !!new URLSearchParams(window.location.search).get('quality');
 
@@ -37,7 +38,7 @@ export function TwinCanvas() {
           state.gl.toneMappingExposure = 1.0;
           if (import.meta.env.DEV) {
             const w = window as unknown as Record<string, Record<string, unknown> | undefined>;
-            w.__encirra = { ...(w.__encirra ?? {}), gl: state.gl, r3f: state.get, useTwin, fx, useSceneQuality };
+            w.__encirra = { ...(w.__encirra ?? {}), gl: state.gl, r3f: state.get, useTwin, fx, useSceneQuality, useKit };
           }
         }}
       >

@@ -19,6 +19,9 @@ import { Props } from './district/Props';
 import { BuildingsLayer } from './buildings/BuildingsLayer';
 import { startKitLoading } from './assets/kit';
 import { Labels } from './labels/Labels';
+import { GpuTimer } from './GpuTimer';
+
+const GPU_TIMER = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('gputime') === '1';
 
 /** Runs first every frame: store → `live` typed arrays → shared state textures. */
 function LiveSampler() {
@@ -71,6 +74,7 @@ export function Scene() {
       <Labels />
       <CameraRig />
       <Effects />
+      {GPU_TIMER && <GpuTimer />}
     </>
   );
 }

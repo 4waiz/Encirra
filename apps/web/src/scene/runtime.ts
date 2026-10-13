@@ -34,4 +34,6 @@ export const fx = {
   frames: 0,
   ready: false,
   stats: null as null | { calls: number; triangles: number },
+  gpuMs: 0,
+  cpuMs: 0,
 };

@@ -46,6 +46,7 @@ let url = opt('url', 'http://127.0.0.1:5173/?view=scene');
 if (url === 'qa') url = 'http://127.0.0.1:5173/src/scene/qa/index.html';
 const quality = opt('quality', null);
 if (quality) url += (url.includes('?') ? '&' : '?') + `quality=${quality}`;
+if (opt('gputime', false)) url += (url.includes('?') ? '&' : '?') + 'gputime=1';
 const sizes = String(opt('sizes', '1600x900,1920x1080'))
   .split(',')
   .map((s) => s.split('x').map(Number));
@@ -92,6 +93,21 @@ for (const [w, h] of sizes) {
     logs.push('[qa] scene never reached 20 frames');
     failed = true;
   }
+  // wait for the asset kit (all files loaded or failed) so measurements exclude streaming/compiles
+  await page
+    .waitForFunction(
+      () => {
+        const k = window.__encirra?.useKit?.getState();
+        if (!k) return true;
+        if (k.manifest === 'missing') return true;
+        if (!k.manifest) return false;
+        const files = Object.keys(k.manifest.files ?? {});
+        return files.every((f) => k.files[f] && k.files[f] !== 'loading');
+      },
+      null,
+      { timeout: 60000 },
+    )
+    .catch(() => logs.push('[qa] kit did not finish loading'));
   const loadMs = Date.now() - t0;
 
   // ── state setup
@@ -154,6 +170,8 @@ for (const [w, h] of sizes) {
               calls: info.calls,
               triangles: info.triangles,
               tier: api.useSceneQuality?.getState().tier,
+              gpuMs: api.fx.gpuMs,
+              cpuMs: api.fx.cpuMs,
               dpr: api.gl?.getPixelRatio?.(),
             });
           }
@@ -166,7 +184,7 @@ for (const [w, h] of sizes) {
   const file = join(outDir, `${name}-${w}x${h}.png`);
   await page.screenshot({ path: file });
   console.log(`\n▶ ${file}`);
-  console.log(`  load ${loadMs} ms · fps ${perf.fps.toFixed(1)} · p95 frame ${perf.p95FrameMs.toFixed(1)} ms · tier ${perf.tier} · dpr ${perf.dpr} · draw calls ${perf.calls} · tris ${perf.triangles}`);
+  console.log(`  load ${loadMs} ms · fps ${perf.fps.toFixed(1)} · p95 frame ${perf.p95FrameMs.toFixed(1)} ms · gpu ${perf.gpuMs?.toFixed?.(2)} ms · cpu ${perf.cpuMs?.toFixed?.(2)} ms · tier ${perf.tier} · dpr ${perf.dpr} · draw calls ${perf.calls} · tris ${perf.triangles}`);
   const uniq = [...new Set(logs)];
   if (uniq.length) {
     console.log(`  console (${uniq.length}):`);

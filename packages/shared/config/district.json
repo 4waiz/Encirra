@@ -1081,7 +1081,7 @@
         "kind": "tie",
         "feeder": "tie",
         "normallyOpen": true,
-        "ratingA": 44,
+        "ratingA": 46,
         "switch": {
           "id": "SW-21-08",
           "kind": "tie",
@@ -1095,7 +1095,7 @@
         "kind": "tie",
         "feeder": "tie",
         "normallyOpen": true,
-        "ratingA": 44,
+        "ratingA": 46,
         "switch": {
           "id": "SW-09-15",
           "kind": "tie",
@@ -1109,7 +1109,7 @@
         "kind": "tie",
         "feeder": "tie",
         "normallyOpen": true,
-        "ratingA": 44,
+        "ratingA": 46,
         "switch": {
           "id": "SW-12-22",
           "kind": "tie",
@@ -1123,7 +1123,7 @@
         "kind": "tie",
         "feeder": "tie",
         "normallyOpen": true,
-        "ratingA": 44,
+        "ratingA": 46,
         "switch": {
           "id": "SW-18-33",
           "kind": "tie",
@@ -1137,7 +1137,7 @@
         "kind": "tie",
         "feeder": "tie",
         "normallyOpen": true,
-        "ratingA": 44,
+        "ratingA": 46,
         "switch": {
           "id": "SW-25-29",
           "kind": "tie",

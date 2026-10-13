@@ -8,6 +8,8 @@ import { Environment, Lightformer } from '@react-three/drei';
 import { BackSide, Color, FogExp2, type DirectionalLight, type Mesh, Object3D, ShaderMaterial, Vector3 } from 'three';
 import { bendDrop } from '../context/bend';
 import { GROUND_Y } from '../context/layout';
+import { useKit } from '../assets/kit';
+import { useTwin } from '@/state/store';
 import { SKY_GLSL, NOISE_GLSL, installHazeFog } from './skyShader';
 import { SUN, sunDirection, WORLD } from '../config';
 import { useSceneQuality } from '../runtime';
@@ -163,6 +165,36 @@ export function Lights() {
       scene.fog = null;
     };
   }, [scene]);
+
+  // The sun and every shadow caster are static, so the shadow map is re-rendered only when the
+  // scene content changes (kit assets streamed in, layers toggled, quality tier) — plus a slow
+  // safety refresh — instead of every frame.
+  const gl = useThree((s) => s.gl);
+  const dirty = useRef(8);
+  useEffect(() => {
+    gl.shadowMap.autoUpdate = false;
+    gl.shadowMap.needsUpdate = true;
+    const u1 = useKit.subscribe(() => (dirty.current = 6));
+    const u2 = useTwin.subscribe((s, p) => {
+      if (s.layers !== p.layers) dirty.current = 40; // fades run for a while
+    });
+    return () => {
+      u1();
+      u2();
+      gl.shadowMap.autoUpdate = true;
+    };
+  }, [gl]);
+  useEffect(() => {
+    dirty.current = 6;
+  }, [tier]);
+  const frame = useRef(0);
+  useFrame(() => {
+    frame.current++;
+    if (dirty.current > 0 || frame.current % 120 === 0) {
+      gl.shadowMap.needsUpdate = true;
+      if (dirty.current > 0) dirty.current--;
+    }
+  });
 
   return (
     <>

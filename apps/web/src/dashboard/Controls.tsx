@@ -213,8 +213,15 @@ function FocusMenu() {
     const close = (e: MouseEvent) => {
       if (!ref.current?.contains(e.target as Node)) setOpen(false);
     };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
     window.addEventListener('mousedown', close);
-    return () => window.removeEventListener('mousedown', close);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('mousedown', close);
+      window.removeEventListener('keydown', onKey);
+    };
   }, [open]);
   return (
     <div ref={ref} className="relative">
@@ -222,8 +229,12 @@ function FocusMenu() {
         <Crosshair size={16} />
       </IconButton>
       {open && (
-        <div className="enc-panel enc-panel-strong absolute top-[calc(100%+8px)] right-0 z-30 w-[220px] rounded-[10px] p-1" role="menu">
-          <div className="px-2 pt-1 pb-1 t-micro font-semibold tracking-wide text-slate uppercase">Camera focus</div>
+        <div
+          className="enc-panel enc-panel-strong enc-scroll absolute top-[calc(100%+8px)] right-0 z-40 grid max-h-[calc(100vh-var(--header-h)-var(--top-h)-90px)] w-[380px] grid-cols-2 gap-x-1 overflow-y-auto rounded-[10px] p-1"
+          role="menu"
+          data-testid="focus-menu"
+        >
+          <div className="col-span-2 px-2 pt-1 pb-1 t-micro font-semibold tracking-wide text-slate uppercase">Camera focus</div>
           {SHOTS.map((s) => (
             <button
               key={s.shot}

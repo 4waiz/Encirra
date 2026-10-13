@@ -88,6 +88,22 @@ export async function runSmoke({ baseUrl = BASE_URL, viewport = { width: 1600, h
       return statuses.join(',');
     });
 
+    await check('scene toolbar: layer toggles and camera presets', async () => {
+      const layer = sel('layer-underground');
+      const before = await layer.getAttribute('aria-pressed');
+      await layer.click();
+      const after = await layer.getAttribute('aria-pressed');
+      await layer.click();
+      if (before === after) throw new Error('layer toggle did not change state');
+      await sel('focus-menu-btn').click();
+      const items = page.locator('[data-testid="focus-menu"] [role="menuitem"]');
+      const n = await items.count();
+      await items.nth(n - 1).click({ timeout: 3_000 }); // the lowest item must not be covered by the panels
+      await sel('focus-menu').waitFor({ state: 'hidden', timeout: 2_000 });
+      await sel('camera-reset').click();
+      return `underground ${before}→${after}; ${n} camera presets, last one clickable`;
+    });
+
     await check('step and reset controls', async () => {
       const c0 = await sel('playback-clock').innerText();
       await sel('pb-fwd').click();
