@@ -188,7 +188,7 @@ export function Metric({
   unit?: string;
   label: string;
   short?: string;
-  bp?: 'sm' | 'md';
+  bp?: 'xs' | 'sm' | 'md';
   sub?: ReactNode;
   subShort?: ReactNode;
   subTone?: Tone;
@@ -208,8 +208,8 @@ export function Metric({
       <div className={clsx('t-label mt-0.5', oneLine ? 'truncate' : 'line-clamp-2')}>
         {short ? (
           <>
-            <span className={bp === 'sm' ? '@max-[359px]:hidden' : '@max-[399px]:hidden'}>{label}</span>
-            <span className={bp === 'sm' ? '@min-[360px]:hidden' : '@min-[400px]:hidden'}>{short}</span>
+            <span className={bp === 'xs' ? '@max-[299px]:hidden' : bp === 'sm' ? '@max-[359px]:hidden' : '@max-[399px]:hidden'}>{label}</span>
+            <span className={bp === 'xs' ? '@min-[300px]:hidden' : bp === 'sm' ? '@min-[360px]:hidden' : '@min-[400px]:hidden'}>{short}</span>
           </>
         ) : (
           label

@@ -1,0 +1,50 @@
+{
+  "file": "desalination-inlet.glb",
+  "group": "facilities",
+  "assets": [
+    {
+      "id": "desalination-inlet_v0",
+      "kind": "desalination-inlet",
+      "variant": 0,
+      "node": "desalination-inlet_v0",
+      "nominalSize": [
+        44.0,
+        24.7,
+        12.3
+      ],
+      "anchors": {
+        "label": [
+          0.0,
+          18.3,
+          0.0
+        ],
+        "roofY": 11.8,
+        "suctionOrigin": [
+          0.0,
+          -24.0,
+          6.0
+        ],
+        "intakeCutawayNode": "intake_cutaway"
+      },
+      "notes": "Desalination supply R1: three ground storage tanks, header and valves, pump/control building. Child 'intake_cutaway' drops the outlet riser into the base's R1 chamber and tees onto the suction main at (local) x=0, y=-24, z=+6.",
+      "facilityId": "desal-r1",
+      "file": "desalination-inlet.glb",
+      "tris": 11184,
+      "materials": [
+        "concrete",
+        "rock",
+        "facade",
+        "facade_alt",
+        "metal",
+        "steel_dark",
+        "pipe",
+        "valve_red",
+        "roof",
+        "glazing",
+        "trim",
+        "light_emissive"
+      ],
+      "vertexAO": true
+    }
+  ]
+}

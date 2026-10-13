@@ -1,0 +1,45 @@
+{
+  "file": "mall.glb",
+  "group": "facilities",
+  "assets": [
+    {
+      "id": "mall_v0",
+      "kind": "mall",
+      "variant": 0,
+      "node": "mall_v0",
+      "nominalSize": [
+        56.0,
+        44.1,
+        22.4
+      ],
+      "anchors": {
+        "label": [
+          0.0,
+          28.4,
+          0.0
+        ],
+        "roofY": 18.5
+      },
+      "notes": "Retail mall: shopfront arcade, mashrabiya-screen upper mass, glass atrium with cantilevered canopy, barrel skylight.",
+      "facilityId": "mall",
+      "file": "mall.glb",
+      "tris": 4674,
+      "materials": [
+        "concrete",
+        "glazing",
+        "facade_alt",
+        "trim",
+        "roof",
+        "facade",
+        "accent",
+        "light_emissive",
+        "glass_clear",
+        "metal",
+        "steel_dark",
+        "rock",
+        "foliage"
+      ],
+      "vertexAO": true
+    }
+  ]
+}

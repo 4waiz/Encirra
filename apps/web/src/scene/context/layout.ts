@@ -60,11 +60,11 @@ function cluster(out: TowerSpec[], rnd: () => number, cx: number, cz: number, rx
     const x = cx + Math.cos(a) * rx * r;
     const z = cz + Math.sin(a) * rz * r;
     if (isWater(x, z, 30) || nearDistrict(x, z, 120)) continue;
-    const w = 26 + rnd() * 34;
-    const d = 24 + rnd() * 30;
+    const w = 24 + rnd() * 26;
+    const d = 22 + rnd() * 24;
     if (out.some((t) => Math.abs(t.x - x) < (t.w + w) * 0.6 && Math.abs(t.z - z) < (t.d + d) * 0.6)) continue;
     const h = hMin + (hMax - hMin) * Math.pow(rnd(), skew);
-    out.push({ x, z, w, d, h, rot: rnd() < 0.7 ? 0 : rnd() * Math.PI, kind: rnd() < 0.22 ? 1 : 0, seed: rnd() * 1000, tone: rnd(), base: GROUND_Y });
+    out.push({ x, z, w, d, h, rot: rnd() < 0.7 ? 0 : rnd() * Math.PI, kind: rnd() < 0.1 ? 1 : 0, seed: rnd() * 1000, tone: rnd() < 0.68 ? rnd() * 0.45 : 0.5 + rnd() * 0.5, base: GROUND_Y });
     n--;
   }
 }
@@ -72,16 +72,16 @@ function cluster(out: TowerSpec[], rnd: () => number, cx: number, cz: number, rx
 export function skylineTowers(): TowerSpec[] {
   const rnd = mulberry32(2026);
   const out: TowerSpec[] = [];
-  // downtown behind the district
-  cluster(out, rnd, 80, -980, 560, 330, 46, 120, 400, 1.8);
-  // west marina across the creek
-  cluster(out, rnd, -1000, -520, 260, 640, 40, 110, 340, 1.9);
-  // east waterfront
-  cluster(out, rnd, 620, -560, 170, 520, 30, 100, 320, 1.9);
-  // far ring (silhouettes)
-  cluster(out, rnd, -150, -1650, 1300, 300, 46, 90, 300, 2.2);
-  cluster(out, rnd, 1250, 150, 230, 700, 22, 80, 260, 2.2);
-  cluster(out, rnd, -1350, 700, 260, 420, 18, 70, 220, 2.2);
+  // downtown behind the district (kept lower so the dusk sky stays visible above it)
+  cluster(out, rnd, 120, -1050, 650, 300, 34, 90, 260, 2.4);
+  // west marina across the creek (tall, frames the left side)
+  cluster(out, rnd, -1080, -560, 280, 640, 34, 140, 380, 1.6);
+  // east waterfront (frames the right side)
+  cluster(out, rnd, 680, -620, 170, 520, 26, 130, 340, 1.6);
+  // far silhouettes
+  cluster(out, rnd, -150, -1550, 1300, 250, 24, 120, 320, 2.0);
+  cluster(out, rnd, 1180, 120, 200, 640, 16, 90, 260, 2.0);
+  cluster(out, rnd, -1350, 600, 240, 380, 14, 80, 220, 2.2);
   // base is the flat-world height; the curved-world drop is applied in the vertex shader
   for (const t of out) t.base = GROUND_Y;
   return out;
@@ -113,7 +113,7 @@ export function lowerCity(): LowSpec[] {
         if (r > R) continue;
         if (isWater(x, z, 25) || nearDistrict(x, z, 40)) continue;
         // keep the foreground in front of the cut-away low
-        const front = z > 160 && z < 1100 && x > -900 && x < 600;
+        const front = z > 160 && z < 1100 && x > -900 && x < 200;
         const w = 18 + rnd() * 26;
         const d = 16 + rnd() * 26;
         const cap = front ? 14 : r < 650 ? 20 : r < 1100 ? 42 : 75;

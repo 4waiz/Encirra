@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generatedAt": "2026-10-13T10:30:32.850Z",
+  "generatedAt": "2026-10-13T10:45:22.021Z",
   "units": "m",
   "up": "+Y",
   "front": "+Z",
@@ -166,11 +166,39 @@
         "commercial-podium_v2"
       ]
     },
+    "cooling-plant.glb": {
+      "bytes": 221048,
+      "group": "facilities",
+      "nodes": [
+        "cooling-plant_v0"
+      ]
+    },
+    "desalination-inlet.glb": {
+      "bytes": 324716,
+      "group": "facilities",
+      "nodes": [
+        "desalination-inlet_v0"
+      ]
+    },
     "district-base.glb": {
       "bytes": 781768,
       "group": "base",
       "nodes": [
         "district-base"
+      ]
+    },
+    "emergency-ops.glb": {
+      "bytes": 154116,
+      "group": "facilities",
+      "nodes": [
+        "emergency-ops_v0"
+      ]
+    },
+    "hospital.glb": {
+      "bytes": 128148,
+      "group": "facilities",
+      "nodes": [
+        "hospital_v0"
       ]
     },
     "lowrise-residential.glb": {
@@ -180,6 +208,13 @@
         "lowrise-residential_v0",
         "lowrise-residential_v1",
         "lowrise-residential_v2"
+      ]
+    },
+    "mall.glb": {
+      "bytes": 166972,
+      "group": "facilities",
+      "nodes": [
+        "mall_v0"
       ]
     },
     "midrise-residential.glb": {
@@ -192,6 +227,13 @@
         "midrise-residential_v3"
       ]
     },
+    "office-complex.glb": {
+      "bytes": 102300,
+      "group": "facilities",
+      "nodes": [
+        "office-complex_v0"
+      ]
+    },
     "palm.glb": {
       "bytes": 64648,
       "group": "props",
@@ -199,6 +241,33 @@
         "palm_v0",
         "palm_v1",
         "palm_v2"
+      ]
+    },
+    "pump-station.glb": {
+      "bytes": 473036,
+      "group": "facilities",
+      "nodes": [
+        "pump-station_v0",
+        "pump-station_v1"
+      ]
+    },
+    "skyline.glb": {
+      "bytes": 415184,
+      "group": "skyline",
+      "nodes": [
+        "skyline_spire",
+        "skyline_twist",
+        "skyline_sail",
+        "skyline_twin_a",
+        "skyline_twin_b",
+        "skyline_stepped",
+        "skyline_glass_a",
+        "skyline_glass_b",
+        "skyline_glass_c",
+        "skyline_marina_a",
+        "skyline_marina_b",
+        "skyline_marina_c",
+        "skyline_twist_b"
       ]
     },
     "solar-array.glb": {
@@ -217,11 +286,18 @@
       ]
     },
     "streetlight.glb": {
-      "bytes": 19380,
+      "bytes": 19376,
       "group": "props",
       "nodes": [
         "streetlight_v0",
         "streetlight_v1"
+      ]
+    },
+    "substation.glb": {
+      "bytes": 861404,
+      "group": "facilities",
+      "nodes": [
+        "substation_v0"
       ]
     },
     "tower-office.glb": {
@@ -244,6 +320,18 @@
         "tower-residential_v3"
       ]
     },
+    "underground-kit.glb": {
+      "bytes": 167792,
+      "group": "underground",
+      "nodes": [
+        "pump-unit_v0",
+        "gate-valve_v0",
+        "check-valve_v0",
+        "pipe-saddle_v0",
+        "chamber_v0",
+        "cable-duct_v0"
+      ]
+    },
     "villa.glb": {
       "bytes": 60980,
       "group": "buildings",
@@ -251,9 +339,17 @@
         "villa_v0",
         "villa_v1"
       ]
+    },
+    "water-tower.glb": {
+      "bytes": 190440,
+      "group": "facilities",
+      "nodes": [
+        "water-tower_v0",
+        "water-tower_v1"
+      ]
     }
   },
-  "totalBytes": 2045460,
+  "totalBytes": 5250612,
   "assets": [
     {
       "id": "tower-residential_v0",
@@ -1086,6 +1182,491 @@
       "vertexAO": true
     },
     {
+      "id": "hospital_v0",
+      "kind": "hospital",
+      "variant": 0,
+      "node": "hospital_v0",
+      "nominalSize": [
+        52,
+        40.01,
+        39.8
+      ],
+      "anchors": {
+        "label": [
+          0,
+          45.8,
+          0
+        ],
+        "roofY": 35.1,
+        "helipad": [
+          9.5,
+          36.7,
+          -1
+        ],
+        "redCross": [
+          0,
+          35.2,
+          11.1
+        ],
+        "sign": [
+          0,
+          8.2,
+          13.3
+        ]
+      },
+      "notes": "City Hospital: podium + ward tower, red cross and HOSPITAL lettering (emissive_sign), drop-off canopy, emergency canopy, rooftop helipad.",
+      "facilityId": "hospital",
+      "file": "hospital.glb",
+      "tris": 3876,
+      "materials": [
+        "concrete",
+        "glazing",
+        "facade",
+        "roof",
+        "trim",
+        "emissive_sign",
+        "glass_clear",
+        "metal",
+        "light_emissive",
+        "valve_red",
+        "steel_dark",
+        "asphalt",
+        "rock",
+        "foliage"
+      ],
+      "vertexAO": true
+    },
+    {
+      "id": "substation_v0",
+      "kind": "substation",
+      "variant": 0,
+      "node": "substation_v0",
+      "nominalSize": [
+        61.32,
+        60.86,
+        18.5
+      ],
+      "anchors": {
+        "label": [
+          0,
+          24.5,
+          0
+        ],
+        "roofY": 6.6,
+        "transformers": [
+          [
+            -12.5,
+            4.85,
+            8
+          ],
+          [
+            12.5,
+            4.85,
+            8
+          ]
+        ]
+      },
+      "notes": "Substation S1 compound: two power transformers with radiator banks/conservators/bushings, firewalls, busbar gantries with insulator strings, breakers and disconnectors, control building, palisade fence and gate.",
+      "facilityId": "substation-s1",
+      "file": "substation.glb",
+      "tris": 31792,
+      "materials": [
+        "concrete",
+        "asphalt",
+        "metal",
+        "steel_dark",
+        "facade",
+        "facade_alt",
+        "roof",
+        "glazing",
+        "trim",
+        "light_emissive",
+        "rock",
+        "valve_red"
+      ],
+      "vertexAO": true
+    },
+    {
+      "id": "pump-station_v0",
+      "kind": "pump-station",
+      "variant": 0,
+      "node": "pump-station_v0",
+      "nominalSize": [
+        26,
+        18,
+        11.65
+      ],
+      "anchors": {
+        "label": [
+          0,
+          17.65,
+          0
+        ],
+        "roofY": 10.1,
+        "suctionFlange": [
+          0,
+          -24,
+          6
+        ],
+        "dischargeFlange": [
+          0,
+          -15,
+          6
+        ],
+        "pumpCutawayNode": "pump_cutaway",
+        "pumpCutawayMinY": -27.6,
+        "pumpCutawayMaxY": -11.5
+      },
+      "notes": "Pumping station PS-1. Child node 'pump_cutaway' sits below grade (y -27.6..-11.5, z +1..+12 local) in the district-base chamber: suction gate valve, end-suction pump + motor, check and gate valves, discharge riser. The suction main (y=-24) ends at the suction flange; the transmission main (y=-15) starts at the discharge flange (local x=0, z=+6).",
+      "facilityId": "ps-1",
+      "file": "pump-station.glb",
+      "tris": 8660,
+      "materials": [
+        "concrete",
+        "facade_alt",
+        "glazing",
+        "facade",
+        "trim",
+        "metal",
+        "light_emissive",
+        "pipe",
+        "steel_dark",
+        "valve_red",
+        "accent"
+      ],
+      "vertexAO": true
+    },
+    {
+      "id": "pump-station_v1",
+      "kind": "pump-station",
+      "variant": 1,
+      "node": "pump-station_v1",
+      "nominalSize": [
+        28,
+        18,
+        11.65
+      ],
+      "anchors": {
+        "label": [
+          0,
+          17.65,
+          0
+        ],
+        "roofY": 10.1,
+        "suctionFlange": [
+          0,
+          -24,
+          6
+        ],
+        "dischargeFlange": [
+          0,
+          -15,
+          6
+        ],
+        "pumpCutawayNode": "pump_cutaway_v1",
+        "pumpCutawayMinY": -27.6,
+        "pumpCutawayMaxY": -11.5
+      },
+      "notes": "Pumping station PS-2. Child node 'pump_cutaway_v1' sits below grade (y -27.6..-11.5, z +1..+12 local) in the district-base chamber: suction gate valve, end-suction pump + motor, check and gate valves, discharge riser. The suction main (y=-24) ends at the suction flange; the transmission main (y=-15) starts at the discharge flange (local x=0, z=+6).",
+      "facilityId": "ps-2",
+      "file": "pump-station.glb",
+      "tris": 8684,
+      "materials": [
+        "concrete",
+        "facade_alt",
+        "glazing",
+        "facade",
+        "trim",
+        "metal",
+        "light_emissive",
+        "pipe",
+        "steel_dark",
+        "valve_red",
+        "accent"
+      ],
+      "vertexAO": true
+    },
+    {
+      "id": "water-tower_v0",
+      "kind": "water-tower",
+      "variant": 0,
+      "node": "water-tower_v0",
+      "nominalSize": [
+        15.52,
+        15.52,
+        49.97
+      ],
+      "anchors": {
+        "label": [
+          0,
+          55.97,
+          0
+        ],
+        "waterLevelNode": "water_level",
+        "waterLevelMinY": 36,
+        "waterLevelMaxY": 45,
+        "tankMaxLevelM": 9,
+        "beacon": [
+          0,
+          50,
+          0
+        ]
+      },
+      "notes": "Elevated tank TANK-T1. Child 'water_level' is the water column: origin at waterLevelMinY, height = waterLevelMaxY - waterLevelMinY at scale.y = 1; set scale.y = clamp(levelM / tankMaxLevelM, 0.001, 1). It is visible through the glass_clear band of the vessel.",
+      "facilityId": "tank-t1",
+      "file": "water-tower.glb",
+      "tris": 3482,
+      "materials": [
+        "concrete",
+        "facade",
+        "water",
+        "glazing",
+        "trim",
+        "glass_clear",
+        "steel_dark",
+        "metal",
+        "light_emissive"
+      ],
+      "vertexAO": true
+    },
+    {
+      "id": "water-tower_v1",
+      "kind": "water-tower",
+      "variant": 1,
+      "node": "water-tower_v1",
+      "nominalSize": [
+        13.53,
+        13.53,
+        48.97
+      ],
+      "anchors": {
+        "label": [
+          0,
+          54.97,
+          0
+        ],
+        "waterLevelNode": "water_level_v1",
+        "waterLevelMinY": 37,
+        "waterLevelMaxY": 44,
+        "tankMaxLevelM": 7,
+        "beacon": [
+          0,
+          49,
+          0
+        ]
+      },
+      "notes": "Elevated tank TANK-T2. Child 'water_level_v1' is the water column: origin at waterLevelMinY, height = waterLevelMaxY - waterLevelMinY at scale.y = 1; set scale.y = clamp(levelM / tankMaxLevelM, 0.001, 1). It is visible through the glass_clear band of the vessel.",
+      "facilityId": "tank-t2",
+      "file": "water-tower.glb",
+      "tris": 3482,
+      "materials": [
+        "concrete",
+        "facade",
+        "water",
+        "glazing",
+        "trim",
+        "glass_clear",
+        "steel_dark",
+        "metal",
+        "light_emissive"
+      ],
+      "vertexAO": true
+    },
+    {
+      "id": "desalination-inlet_v0",
+      "kind": "desalination-inlet",
+      "variant": 0,
+      "node": "desalination-inlet_v0",
+      "nominalSize": [
+        44,
+        24.7,
+        12.3
+      ],
+      "anchors": {
+        "label": [
+          0,
+          18.3,
+          0
+        ],
+        "roofY": 11.8,
+        "suctionOrigin": [
+          0,
+          -24,
+          6
+        ],
+        "intakeCutawayNode": "intake_cutaway"
+      },
+      "notes": "Desalination supply R1: three ground storage tanks, header and valves, pump/control building. Child 'intake_cutaway' drops the outlet riser into the base's R1 chamber and tees onto the suction main at (local) x=0, y=-24, z=+6.",
+      "facilityId": "desal-r1",
+      "file": "desalination-inlet.glb",
+      "tris": 11184,
+      "materials": [
+        "concrete",
+        "rock",
+        "facade",
+        "facade_alt",
+        "metal",
+        "steel_dark",
+        "pipe",
+        "valve_red",
+        "roof",
+        "glazing",
+        "trim",
+        "light_emissive"
+      ],
+      "vertexAO": true
+    },
+    {
+      "id": "cooling-plant_v0",
+      "kind": "cooling-plant",
+      "variant": 0,
+      "node": "cooling-plant_v0",
+      "nominalSize": [
+        36,
+        30,
+        17.9
+      ],
+      "anchors": {
+        "label": [
+          0,
+          23.9,
+          0
+        ],
+        "roofY": 11
+      },
+      "notes": "District cooling plant DC-1: chiller hall with louvres, six rooftop cooling-tower cells with fan stacks, thermal storage tank and chilled-water pipework.",
+      "facilityId": "cooling-dc1",
+      "file": "cooling-plant.glb",
+      "tris": 7968,
+      "materials": [
+        "concrete",
+        "facade_alt",
+        "roof",
+        "facade",
+        "trim",
+        "steel_dark",
+        "glazing",
+        "metal",
+        "pipe",
+        "valve_red"
+      ],
+      "vertexAO": true
+    },
+    {
+      "id": "emergency-ops_v0",
+      "kind": "emergency-ops",
+      "variant": 0,
+      "node": "emergency-ops_v0",
+      "nominalSize": [
+        40,
+        30,
+        39.56
+      ],
+      "anchors": {
+        "label": [
+          0,
+          45.56,
+          0
+        ],
+        "roofY": 22.3,
+        "mastTop": [
+          -9,
+          39.4,
+          -5
+        ]
+      },
+      "notes": "Emergency Operations Centre: robust stone civic block, glazed operations room, antenna mast with aviation light, satellite dishes, standby generator.",
+      "facilityId": "eoc",
+      "file": "emergency-ops.glb",
+      "tris": 5110,
+      "materials": [
+        "concrete",
+        "roof",
+        "glazing",
+        "facade_alt",
+        "facade",
+        "trim",
+        "light_emissive",
+        "metal",
+        "steel_dark"
+      ],
+      "vertexAO": true
+    },
+    {
+      "id": "mall_v0",
+      "kind": "mall",
+      "variant": 0,
+      "node": "mall_v0",
+      "nominalSize": [
+        56,
+        44.1,
+        22.4
+      ],
+      "anchors": {
+        "label": [
+          0,
+          28.4,
+          0
+        ],
+        "roofY": 18.5
+      },
+      "notes": "Retail mall: shopfront arcade, mashrabiya-screen upper mass, glass atrium with cantilevered canopy, barrel skylight.",
+      "facilityId": "mall",
+      "file": "mall.glb",
+      "tris": 4674,
+      "materials": [
+        "concrete",
+        "glazing",
+        "facade_alt",
+        "trim",
+        "roof",
+        "facade",
+        "accent",
+        "light_emissive",
+        "glass_clear",
+        "metal",
+        "steel_dark",
+        "rock",
+        "foliage"
+      ],
+      "vertexAO": true
+    },
+    {
+      "id": "office-complex_v0",
+      "kind": "office-complex",
+      "variant": 0,
+      "node": "office-complex_v0",
+      "nominalSize": [
+        48,
+        40.1,
+        66.1
+      ],
+      "anchors": {
+        "label": [
+          0,
+          72.1,
+          0
+        ],
+        "roofY": 62.65
+      },
+      "notes": "Office complex: three-storey podium with two curtain-wall towers (62 m / 47 m) linked by a sky bridge.",
+      "facilityId": "office-complex",
+      "file": "office-complex.glb",
+      "tris": 2988,
+      "materials": [
+        "concrete",
+        "glazing",
+        "facade",
+        "trim",
+        "metal",
+        "glass_clear",
+        "roof",
+        "steel_dark",
+        "accent"
+      ],
+      "vertexAO": true
+    },
+    {
       "id": "district-base",
       "kind": "district-base",
       "variant": 0,
@@ -1281,6 +1862,472 @@
       "vertexAO": false
     },
     {
+      "id": "skyline_glass_a",
+      "kind": "skyline",
+      "variant": 6,
+      "node": "skyline_glass_a",
+      "nominalSize": [
+        30.6,
+        24.5,
+        242.4
+      ],
+      "placement": {
+        "position": [
+          -320,
+          0,
+          -720
+        ],
+        "rotationY": 0.3
+      },
+      "anchors": {
+        "top": [
+          0,
+          242,
+          0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 316,
+      "materials": [
+        "glazing",
+        "trim",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_glass_b",
+      "kind": "skyline",
+      "variant": 7,
+      "node": "skyline_glass_b",
+      "nominalSize": [
+        26.5,
+        26.5,
+        216.4
+      ],
+      "placement": {
+        "position": [
+          700,
+          0,
+          -1060
+        ],
+        "rotationY": -0.2
+      },
+      "anchors": {
+        "top": [
+          0,
+          216,
+          0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 316,
+      "materials": [
+        "glazing",
+        "trim",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_glass_c",
+      "kind": "skyline",
+      "variant": 8,
+      "node": "skyline_glass_c",
+      "nominalSize": [
+        31.4,
+        25.4,
+        229.4
+      ],
+      "placement": {
+        "position": [
+          -1080,
+          0,
+          -470
+        ],
+        "rotationY": 0.4
+      },
+      "anchors": {
+        "top": [
+          0,
+          229,
+          0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 430,
+      "materials": [
+        "glazing",
+        "facade",
+        "trim",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_marina_a",
+      "kind": "skyline",
+      "variant": 9,
+      "node": "skyline_marina_a",
+      "nominalSize": [
+        32.4,
+        25.9,
+        199.4
+      ],
+      "placement": {
+        "position": [
+          1130,
+          0,
+          -160
+        ],
+        "rotationY": -0.4
+      },
+      "anchors": {
+        "top": [
+          0,
+          199,
+          0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 1922,
+      "materials": [
+        "glazing",
+        "facade",
+        "trim",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_marina_b",
+      "kind": "skyline",
+      "variant": 10,
+      "node": "skyline_marina_b",
+      "nominalSize": [
+        30.2,
+        28.1,
+        179.4
+      ],
+      "placement": {
+        "position": [
+          -1220,
+          0,
+          -150
+        ],
+        "rotationY": 0.5
+      },
+      "anchors": {
+        "top": [
+          0,
+          179,
+          0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 1746,
+      "materials": [
+        "glazing",
+        "facade",
+        "trim",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_marina_c",
+      "kind": "skyline",
+      "variant": 11,
+      "node": "skyline_marina_c",
+      "nominalSize": [
+        28.1,
+        23.8,
+        159.4
+      ],
+      "placement": {
+        "position": [
+          320,
+          0,
+          -1320
+        ],
+        "rotationY": 0
+      },
+      "anchors": {
+        "top": [
+          0,
+          159,
+          0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 1570,
+      "materials": [
+        "glazing",
+        "facade",
+        "trim",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_sail",
+      "kind": "skyline",
+      "variant": 2,
+      "node": "skyline_sail",
+      "nominalSize": [
+        66.5,
+        48,
+        361.7
+      ],
+      "placement": {
+        "position": [
+          960,
+          0,
+          -420
+        ],
+        "rotationY": -0.6
+      },
+      "anchors": {
+        "top": [
+          0,
+          361,
+          0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 708,
+      "materials": [
+        "glazing",
+        "trim",
+        "facade",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_spire",
+      "kind": "skyline",
+      "variant": 0,
+      "node": "skyline_spire",
+      "nominalSize": [
+        99.6,
+        90.7,
+        775
+      ],
+      "placement": {
+        "position": [
+          -560,
+          0,
+          -1150
+        ],
+        "rotationY": 0.35
+      },
+      "anchors": {
+        "top": [
+          0,
+          776,
+          0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 2149,
+      "materials": [
+        "glazing",
+        "facade",
+        "trim",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_stepped",
+      "kind": "skyline",
+      "variant": 5,
+      "node": "skyline_stepped",
+      "nominalSize": [
+        41.2,
+        35.2,
+        286.4
+      ],
+      "placement": {
+        "position": [
+          150,
+          0,
+          -1020
+        ],
+        "rotationY": 0.1
+      },
+      "anchors": {
+        "top": [
+          0,
+          286,
+          0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 828,
+      "materials": [
+        "trim",
+        "glazing",
+        "facade",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_twin_a",
+      "kind": "skyline",
+      "variant": 3,
+      "node": "skyline_twin_a",
+      "nominalSize": [
+        37.7,
+        37.7,
+        368.6
+      ],
+      "placement": {
+        "position": [
+          -860,
+          0,
+          -690
+        ],
+        "rotationY": 0
+      },
+      "anchors": {
+        "top": [
+          0,
+          368.2,
+          0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 516,
+      "materials": [
+        "glazing",
+        "facade",
+        "trim",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_twin_b",
+      "kind": "skyline",
+      "variant": 4,
+      "node": "skyline_twin_b",
+      "nominalSize": [
+        35.5,
+        35.5,
+        337
+      ],
+      "placement": {
+        "position": [
+          -790,
+          0,
+          -760
+        ],
+        "rotationY": 0
+      },
+      "anchors": {
+        "top": [
+          0,
+          336.6,
+          0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 488,
+      "materials": [
+        "glazing",
+        "facade",
+        "trim",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_twist",
+      "kind": "skyline",
+      "variant": 1,
+      "node": "skyline_twist",
+      "nominalSize": [
+        39,
+        39,
+        342.3
+      ],
+      "placement": {
+        "position": [
+          430,
+          0,
+          -760
+        ],
+        "rotationY": 0.2
+      },
+      "anchors": {
+        "top": [
+          0,
+          341,
+          0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 938,
+      "materials": [
+        "glazing",
+        "trim",
+        "facade",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_twist_b",
+      "kind": "skyline",
+      "variant": 12,
+      "node": "skyline_twist_b",
+      "nominalSize": [
+        30.8,
+        30.8,
+        272.3
+      ],
+      "placement": {
+        "position": [
+          -150,
+          0,
+          -1450
+        ],
+        "rotationY": 0
+      },
+      "anchors": {
+        "top": [
+          0,
+          271,
+          0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 938,
+      "materials": [
+        "glazing",
+        "trim",
+        "facade",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
       "id": "solar-array_v0",
       "kind": "solar-array",
       "variant": 0,
@@ -1374,6 +2421,181 @@
       ],
       "file": "streetlight.glb",
       "vertexAO": false
+    },
+    {
+      "id": "cable-duct_v0",
+      "kind": "cable-duct",
+      "variant": 0,
+      "node": "cable-duct_v0",
+      "nominalSize": [
+        10.06,
+        1.8,
+        2.04
+      ],
+      "anchors": {
+        "length": 10,
+        "pipeVisualRadius": 0.9
+      },
+      "notes": "10 m concrete duct-bank section along X with six conduits and a cable tray on brackets.",
+      "file": "underground-kit.glb",
+      "tris": 972,
+      "materials": [
+        "concrete",
+        "steel_dark",
+        "valve_red",
+        "trim",
+        "metal"
+      ],
+      "vertexAO": true
+    },
+    {
+      "id": "chamber_v0",
+      "kind": "chamber",
+      "variant": 0,
+      "node": "chamber_v0",
+      "nominalSize": [
+        8.1,
+        6,
+        6.98
+      ],
+      "anchors": {
+        "pipeAxis": [
+          0,
+          2.6,
+          0
+        ],
+        "pipeAxisDirection": "x",
+        "pipeVisualRadius": 0.9
+      },
+      "notes": "Open-front concrete valve chamber (8 x 6 x 6 m) with manhole collar, ladder and wall sleeves; front (+Z) cut away for the cutaway view.",
+      "file": "underground-kit.glb",
+      "tris": 624,
+      "materials": [
+        "concrete",
+        "steel_dark",
+        "metal"
+      ],
+      "vertexAO": true
+    },
+    {
+      "id": "check-valve_v0",
+      "kind": "check-valve",
+      "variant": 0,
+      "node": "check-valve_v0",
+      "nominalSize": [
+        3.12,
+        2.43,
+        2.85
+      ],
+      "anchors": {
+        "pipeAxis": [
+          0,
+          0,
+          0
+        ],
+        "pipeVisualRadius": 0.9
+      },
+      "notes": "Inline swing check valve with red cover and counterweight; origin on the pipe axis, pipe along X.",
+      "file": "underground-kit.glb",
+      "tris": 690,
+      "materials": [
+        "pipe",
+        "steel_dark",
+        "valve_red"
+      ],
+      "vertexAO": true
+    },
+    {
+      "id": "gate-valve_v0",
+      "kind": "gate-valve",
+      "variant": 0,
+      "node": "gate-valve_v0",
+      "nominalSize": [
+        2.5,
+        2.33,
+        4.14
+      ],
+      "anchors": {
+        "pipeAxis": [
+          0,
+          0,
+          0
+        ],
+        "pipeVisualRadius": 0.9
+      },
+      "notes": "Inline flanged gate valve with handwheel; origin on the pipe axis, pipe along X, stem +Y.",
+      "file": "underground-kit.glb",
+      "tris": 920,
+      "materials": [
+        "pipe",
+        "steel_dark",
+        "metal",
+        "valve_red"
+      ],
+      "vertexAO": true
+    },
+    {
+      "id": "pipe-saddle_v0",
+      "kind": "pipe-saddle",
+      "variant": 0,
+      "node": "pipe-saddle_v0",
+      "nominalSize": [
+        1.8,
+        3.1,
+        3.5
+      ],
+      "anchors": {
+        "pipeAxis": [
+          0,
+          2.5,
+          0
+        ],
+        "topY": 1.6,
+        "pipeVisualRadius": 0.9
+      },
+      "notes": "Concrete pipe saddle with steel strap; origin on the floor, pipe along X, pipe axis at anchors.pipeAxis.",
+      "file": "underground-kit.glb",
+      "tris": 220,
+      "materials": [
+        "concrete",
+        "steel_dark"
+      ],
+      "vertexAO": true
+    },
+    {
+      "id": "pump-unit_v0",
+      "kind": "pump-unit",
+      "variant": 0,
+      "node": "pump-unit_v0",
+      "nominalSize": [
+        9.32,
+        3.51,
+        4.89
+      ],
+      "anchors": {
+        "suctionFlange": [
+          0,
+          2.34,
+          0
+        ],
+        "dischargeNozzle": [
+          2.15,
+          4.815,
+          0.495
+        ],
+        "pipeVisualRadius": 0.9
+      },
+      "notes": "Horizontal end-suction pump set (suction flange on the origin side, body along +X, discharge nozzle up). Origin on the floor below the suction flange.",
+      "file": "underground-kit.glb",
+      "tris": 1524,
+      "materials": [
+        "concrete",
+        "steel_dark",
+        "pipe",
+        "accent",
+        "metal"
+      ],
+      "vertexAO": true
     }
   ]
 }

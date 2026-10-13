@@ -1,0 +1,38 @@
+{
+  "id": "high-demand",
+  "name": "High-Demand Conditions",
+  "shortName": "High demand",
+  "description": "A hot evening pushes electrical demand to 125% and water demand to 115% of the base scenario, then the same Feeder F3 fault strikes. Voltage and thermal margins are tight, so fewer restoration options satisfy every hard limit and the West zone drains faster without PS-2.",
+  "narrative": [
+    "Evening heat: electrical demand ×1.25 and water demand ×1.15 relative to the base scenario.",
+    "17:00 — the same fault on Feeder F3 (line B27–B28) trips recloser SW-06-26.",
+    "Tank T2 drains faster than in the base case while PS-2 is without supply.",
+    "Tighter voltage and thermal margins reject more restoration candidates; full restoration is not achievable within the hard limits.",
+    "The comparison shows which loads each strategy restores and what that means for hospital water pressure."
+  ],
+  "defaults": {
+    "loadMultiplier": 1.25,
+    "waterDemandMultiplier": 1.15,
+    "faultLineId": 26,
+    "faultTimeMin": 30,
+    "isolationDelayMin": 2,
+    "analysisDelayMin": 3,
+    "switchingDelayMin": 5,
+    "tankInitPct": 50,
+    "horizonMin": 180,
+    "stepMin": 1,
+    "repairTimeMin": null,
+    "seed": 2026
+  },
+  "faultOptions": [
+    { "lineId": 24, "label": "Feeder F3 · line B6–B26 (lateral head)" },
+    { "lineId": 25, "label": "Feeder F3 · line B26–B27" },
+    { "lineId": 26, "label": "Feeder F3 · line B27–B28" },
+    { "lineId": 27, "label": "Feeder F3 · line B28–B29" },
+    { "lineId": 28, "label": "Feeder F3 · line B29–B30" },
+    { "lineId": 29, "label": "Feeder F3 · line B30–B31" },
+    { "lineId": 30, "label": "Feeder F3 · line B31–B32" },
+    { "lineId": 31, "label": "Feeder F3 · line B32–B33" }
+  ],
+  "editable": ["loadMultiplier", "waterDemandMultiplier", "faultLineId", "faultTimeMin", "tankInitPct", "isolationDelayMin", "analysisDelayMin", "switchingDelayMin", "repairTimeMin"]
+}

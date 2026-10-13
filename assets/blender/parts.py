@@ -252,7 +252,7 @@ def railing(mb, pts, h=1.1, mat="metal", post_every=1.6, closed=False):
 
 def palisade(mb, pts, h=2.6, mat="metal", pale_every=0.55, post_every=3.0, gaps=()):
     """Palisade fence along a polyline.  Pales are thin flat strips."""
-    P = [Vector(p) for p in pts]
+    P = [Vector((p[0], p[1], 0.0)) for p in pts]
     for i in range(len(P) - 1):
         a, b = P[i], P[i + 1]
         d = b - a

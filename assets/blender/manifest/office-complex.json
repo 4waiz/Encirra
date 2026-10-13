@@ -1,0 +1,41 @@
+{
+  "file": "office-complex.glb",
+  "group": "facilities",
+  "assets": [
+    {
+      "id": "office-complex_v0",
+      "kind": "office-complex",
+      "variant": 0,
+      "node": "office-complex_v0",
+      "nominalSize": [
+        48.0,
+        40.1,
+        66.1
+      ],
+      "anchors": {
+        "label": [
+          0.0,
+          72.1,
+          0.0
+        ],
+        "roofY": 62.65
+      },
+      "notes": "Office complex: three-storey podium with two curtain-wall towers (62 m / 47 m) linked by a sky bridge.",
+      "facilityId": "office-complex",
+      "file": "office-complex.glb",
+      "tris": 2988,
+      "materials": [
+        "concrete",
+        "glazing",
+        "facade",
+        "trim",
+        "metal",
+        "glass_clear",
+        "roof",
+        "steel_dark",
+        "accent"
+      ],
+      "vertexAO": true
+    }
+  ]
+}

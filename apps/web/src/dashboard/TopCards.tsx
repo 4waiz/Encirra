@@ -214,11 +214,11 @@ export function RecoveryCard() {
           testId="m-load-restored"
         />
         <Metric
-          value={m.criticalAffected > 0 ? `${m.criticalRecovered} / ${m.criticalAffected}` : '—'}
+          value={m.criticalAtRisk > 0 ? `${m.criticalRecovered} / ${m.criticalAtRisk}` : '—'}
           label="Critical infrastructure recovered"
           short="Critical facilities recovered"
-          sub={showPct && m.criticalAffected > 0 ? fmtPct((100 * m.criticalRecovered) / m.criticalAffected) : undefined}
-          subTone={m.criticalAffected > 0 && m.criticalRecovered === m.criticalAffected ? 'ok' : 'warn'}
+          sub={showPct && m.criticalAtRisk > 0 ? fmtPct((100 * m.criticalRecovered) / m.criticalAtRisk) : undefined}
+          subTone={m.criticalAtRisk > 0 && m.criticalRecovered === m.criticalAtRisk ? 'ok' : 'warn'}
         />
         <Metric
           value={`${m.pumpsOnline} / ${m.pumpsTotal}`}
@@ -242,6 +242,15 @@ export function RecoveryCard() {
 }
 
 // ───────────────────────────────────────────────────────────── 4. Recovery timeline
+/** Compact step names for narrow timeline cards (full labels come from the run data). */
+const STEP_SHORT: Record<string, string> = {
+  'fault-detected': 'Fault',
+  'fault-isolated': 'Isolated',
+  'recovery-evaluated': 'Evaluated',
+  'constraints-verified': 'Verified',
+  'service-restored': 'Restored',
+};
+
 const STEP_STYLE: Record<StepStatus, string> = {
   done: 'bg-ok text-white border-ok',
   partial: 'bg-warn text-white border-warn',
@@ -256,7 +265,7 @@ export function TimelineCard() {
   const { dataSource, devFixture } = useSource();
   const items = useMemo(() => (ctx ? timelineStatus(ctx.run.timeline, ctx.frame.t) : []), [ctx?.run, ctx?.frame]);
   return (
-    <Card className="flex h-full flex-col p-[clamp(10px,0.8vw,15px)]" data-testid="timeline-card">
+    <Card className="@container flex h-full flex-col p-[clamp(10px,0.8vw,15px)]" data-testid="timeline-card">
       <div className="flex items-center justify-between gap-2">
         <h3 className="t-title">Recovery Timeline</h3>
         <SourceChip source={dataSource} devFixture={devFixture} />
@@ -284,7 +293,10 @@ export function TimelineCard() {
                   <span className="h-2 w-2 rounded-full bg-info" />
                 ) : null}
               </span>
-              <span className={clsx('mt-1.5 line-clamp-2 t-label leading-tight', status === 'pending' || status === 'skipped' ? 'text-mist' : 'text-navy')}>{step.label}</span>
+              <span className={clsx('mt-1.5 line-clamp-2 px-0.5 t-label leading-tight', status === 'pending' || status === 'skipped' ? 'text-mist' : 'text-navy')} title={step.label}>
+                <span className="@max-[319px]:hidden">{step.label}</span>
+                <span className="@min-[320px]:hidden">{STEP_SHORT[step.id] ?? step.label}</span>
+              </span>
               <span className={clsx('mt-0.5 t-micro tabular', status === 'active' ? 'font-semibold text-info' : status === 'failed' ? 'text-fault' : 'text-slate')}>
                 {status === 'pending' ? '—' : status === 'active' ? 'in progress' : status === 'skipped' ? 'not attempted' : (step.clock ?? '—')}
               </span>

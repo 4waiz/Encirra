@@ -89,14 +89,14 @@ float gn2 = encNoise(gp * 0.11);
 float sx = encGridLine(gp.x, ${LOW_GRID.toFixed(1)}, 5.0, gaa);
 float sz = encGridLine(gp.y, ${LOW_GRID.toFixed(1)}, 5.0, gaa);
 float street = max(sx, sz);
-vec3 block = mix(vec3(0.16, 0.13, 0.1), vec3(0.24, 0.2, 0.15), gn) * (0.85 + 0.25 * gn2);
+vec3 block = mix(vec3(0.075, 0.065, 0.055), vec3(0.12, 0.1, 0.08), gn) * (0.85 + 0.25 * gn2);
 // patches of park
-block = mix(block, vec3(0.05, 0.1, 0.03), smoothstep(0.62, 0.7, encNoise(gp * 0.004 + 3.0)) * 0.8);
-vec3 asphalt = vec3(0.035, 0.036, 0.04);
+block = mix(block, vec3(0.025, 0.05, 0.018), smoothstep(0.6, 0.68, encNoise(gp * 0.004 + 3.0)) * 0.85);
+vec3 asphalt = vec3(0.018, 0.019, 0.022);
 vec3 gcol = mix(block, asphalt, street);
 // quay edge along the water
 float quay = (1.0 - smoothstep(0.0, 10.0, wsd)) * (1.0 - isW);
-gcol = mix(gcol, vec3(0.42, 0.4, 0.36), quay * 0.8);
+gcol = mix(gcol, vec3(0.3, 0.28, 0.25), quay * 0.8);
 diffuseColor.rgb = mix(gcol, vec3(0.012, 0.03, 0.04), isW);
 // streetlight dots along streets (fade with distance to avoid shimmer)
 float lfade = 1.0 - smoothstep(0.35, 1.2, gaa);

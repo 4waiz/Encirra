@@ -316,9 +316,15 @@ input[type='range'].enc-range:disabled::-webkit-slider-thumb {
     display: inline;
   }
 }
+.show-below-1400 {
+  display: none;
+}
 @media (max-width: 1399.98px) {
   .hide-below-1400 {
     display: none;
+  }
+  .show-below-1400 {
+    display: inline;
   }
 }
 

@@ -209,9 +209,9 @@ vec3 tintEm = vec3(0.0);
 if (busIdx >= 0.0) {
   vec4 bs = texelFetch(uBusState, ivec2(int(busIdx), 0), 0);
   float pulse = 0.85 + 0.15 * sin(uTime * 2.2);
-  tintEm += vec3(1.0, 0.12, 0.08) * bs.r * busW * 0.32 * pulse;
+  tintEm += vec3(1.0, 0.1, 0.07) * bs.r * busW * busW * 0.13 * pulse;
   tintEm += vec3(0.1, 0.9, 0.35) * bs.g * busW * 0.35;
-  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.15, 0.7, 0.68), bs.r * busW * 0.6);
+  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.12, 0.72, 0.7), bs.r * busW * 0.45);
 }
 tintEm *= uTint;`,
       )

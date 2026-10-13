@@ -1,0 +1,61 @@
+{
+  "file": "hospital.glb",
+  "group": "facilities",
+  "assets": [
+    {
+      "id": "hospital_v0",
+      "kind": "hospital",
+      "variant": 0,
+      "node": "hospital_v0",
+      "nominalSize": [
+        52.0,
+        40.01,
+        39.8
+      ],
+      "anchors": {
+        "label": [
+          0.0,
+          45.8,
+          0.0
+        ],
+        "roofY": 35.1,
+        "helipad": [
+          9.5,
+          36.7,
+          -1.0
+        ],
+        "redCross": [
+          0.0,
+          35.2,
+          11.1
+        ],
+        "sign": [
+          0.0,
+          8.2,
+          13.3
+        ]
+      },
+      "notes": "City Hospital: podium + ward tower, red cross and HOSPITAL lettering (emissive_sign), drop-off canopy, emergency canopy, rooftop helipad.",
+      "facilityId": "hospital",
+      "file": "hospital.glb",
+      "tris": 3876,
+      "materials": [
+        "concrete",
+        "glazing",
+        "facade",
+        "roof",
+        "trim",
+        "emissive_sign",
+        "glass_clear",
+        "metal",
+        "light_emissive",
+        "valve_red",
+        "steel_dark",
+        "asphalt",
+        "rock",
+        "foliage"
+      ],
+      "vertexAO": true
+    }
+  ]
+}

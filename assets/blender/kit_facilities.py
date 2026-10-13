@@ -156,8 +156,6 @@ def hospital(mb):
     mb.box(-0.9, cr[2] - 0.02, pod_top + 1.0, 0.9, cr[2] + 0.4, t_top - 5.5, "glazing", skip=("back",))
     # red cross (emissive) on a white disc panel, facing the front and the back
     cz = core_top - 3.4
-    for fy, sgn in ((cr[2], -1), (cr[3], 1)):
-        mb.cylinder(0, fy + sgn * 0.1, cz - 2.9, cz + 2.9, 0.01, "facade", seg=4)  # (invisible helper - replaced below)
     with mb.xform(parts.frame_from_axis(Vector((0, cr[2] - 0.05, cz)), (0, -1, 0))):
         mb.cylinder(0, 0, 0, 0.25, 3.2, "facade", seg=24)
         mb.box(-0.75, -2.5, 0.25, 0.75, 2.5, 0.45, "emissive_sign")
@@ -304,9 +302,9 @@ def substation(mb):
     info = {}
     fx0, fx1, fy0, fy1 = -30.6, 30.6, -28.6, 28.6
     # gravel yard and internal roads
-    mb.box(fx0, fy0, 0, fx1, fy1, 0.1, "rock")
-    mb.box(-3.5, fy0, 0.1, 3.5, 12.0, 0.16, "concrete")
-    mb.box(-27.0, 8.6, 0.1, 27.0, 11.6, 0.16, "concrete")
+    mb.box(fx0, fy0, 0, fx1, fy1, 0.1, "concrete")
+    mb.box(-3.5, fy0, 0.1, 3.5, 12.0, 0.16, "asphalt")
+    mb.box(-27.0, 8.6, 0.1, 27.0, 11.6, 0.16, "asphalt")
     # perimeter palisade with front gate opening
     gaps = [(0.0, fy0, 7.4)]
     parts.palisade(mb, [(fx0, fy0), (fx1, fy0), (fx1, fy1), (fx0, fy1), (fx0, fy0)], h=2.6, mat="metal", gaps=gaps)
@@ -365,8 +363,8 @@ def substation(mb):
         mb.cylinder(x, gy, gh, gh + 3.0, 0.06, "metal", seg=6, r_top=0.02)
     # bay equipment between gantries and transformers: disconnectors + breakers, droppers
     for tx, bush in ((-12.5, t_left), (12.5, t_right)):
-        disconnector(mb, tx, -0.5, 3.0, 2.6)
-        breaker(mb, tx + 0.5, -3.6 + 0.3 if False else 5.6, 2.4)
+        disconnector(mb, tx, 1.2, 3.0, 2.6)
+        breaker(mb, tx + 0.5, -1.6, 2.4)
         for i, (bx, by, bz) in enumerate(bush):
             top = Vector((tx - 3.2 + i * 3.2, gy, gh - 3.35))
             mid = Vector((bx, by - 2.5, bz + 1.6))
@@ -435,7 +433,6 @@ def pump_station(mb, W):
     ym = (hy0 + hy1) / 2
     for i, x in enumerate((hx0 + 3.0, 0.0, hx1 - 3.0)):
         mb.cylinder(x, ym, eave + 1.9, eave + 2.6, 0.45, "metal", seg=10)
-        mb.lathe([(0.62, 0.0), (0.66, 0.35), (0.4, 0.75), (0.0, 0.85)], "metal", seg=10, cx=x, cy=ym) if False else None
         with mb.T(0, 0, eave + 2.6):
             mb.lathe([(0.62, 0.0), (0.66, 0.35), (0.4, 0.75), (0.0, 0.85)], "metal", seg=10, cx=x, cy=ym)
     # --- external manifold at the front (towards the platform edge / galleries) ---
@@ -451,7 +448,7 @@ def pump_station(mb, W):
     mb.cyl_between((fxm, hy0 - 2.6, 1.4), (fxm, hy0 - 1.8, 1.4), r * 1.35, "pipe", seg=12)
     mb.box(fxm - 0.25, hy0 - 2.45, 1.4 + r * 1.3, fxm + 0.25, hy0 - 1.95, 1.4 + r * 1.3 + 0.4, "steel_dark")
     # surge vessel (back corner)
-    sx, sy = hx1 + 0.2 - 1.6, hy1 + 0.2 if False else D / 2 - 1.3
+    sy = D / 2 - 1.3
     mb.cylinder(W / 2 - 1.3, sy, 0.15, 0.6, 1.0, "concrete", seg=12)
     mb.lathe([(0.0, 0.6), (0.9, 0.75), (1.0, 1.0), (1.0, 4.2), (0.9, 4.45), (0.0, 4.6)], "pipe", seg=16, cx=W / 2 - 1.3, cy=sy)
     # electrical kiosk + pad-mounted transformer (supply bus)
@@ -699,7 +696,7 @@ def cooling_plant(mb):
             a = b * math.pi / 3 + 0.3
             mb.beam((cx, cy, c0 + 6.3), (cx + math.cos(a) * 2.45, cy + math.sin(a) * 2.45, c0 + 6.35), 0.5, 0.06, "metal")
     # thermal storage tank (front left) and chilled water pipes
-    tx, ty = -10.0, -10.4
+    tx, ty = -10.0, -10.0
     mb.cylinder(tx, ty, 0.12, 0.6, 4.9, "concrete", seg=32)
     mb.cylinder(tx, ty, 0.6, 14.0, 4.5, "facade", seg=32, top=False, bottom=False)
     mb.lathe([(4.6, 14.0), (0.6, 14.9), (0.0, 15.0)], "facade", seg=32, cx=tx, cy=ty)
@@ -841,7 +838,7 @@ def mall(mb):
         p0 = (rad * math.cos(a0), rad * 0.55 * math.sin(a0))
         p1 = (rad * math.cos(a1), rad * 0.55 * math.sin(a1))
         mb.face([(p0[0], vy0, top + p0[1]), (p0[0], vy1, top + p0[1]), (p1[0], vy1, top + p1[1]), (p1[0], vy0, top + p1[1])],
-                "glazing", inside=(0, (vy0 + vy1) / 2, top - 5))
+                "glass_clear", inside=(0, (vy0 + vy1) / 2, top - 5))
     for y in (vy0, vy1):
         pts = [(rad * math.cos(math.pi * i / segs), y, top + rad * 0.55 * math.sin(math.pi * i / segs)) for i in range(segs + 1)]
         mb.face(pts, "trim", inside=(0, y + (5 if y == vy0 else -5), top + 1))
@@ -854,8 +851,9 @@ def mall(mb):
     edge_parapet(mb, (mr[0], mr[1], mr[2], mr[3]), top, 1.0, 0.3, "facade")
     roof_plant(mb, -17.0, 8.0, top, 14.0, 14.0, 71, tanks=0, units=6, overrun=False)
     roof_plant(mb, 17.0, 8.0, top, 14.0, 14.0, 72, tanks=0, units=6, overrun=True)
+    mb.box(vx0, vy0, top - 0.3, vx1, vy1, top + 0.05, "light_emissive", skip=("bottom",))
     for x in (-16.0, 16.0):
-        mb.box(x - 5.0, -10.0, top, x + 5.0, -2.0, top + 0.6, "glazing", skip=("bottom",))
+        mb.box(x - 5.0, -10.0, top, x + 5.0, -2.0, top + 0.6, "glass_clear", skip=("bottom",))
     # forecourt planters
     planter_box(mb, -26.0, -21.5, -16.0, -19.6, seed=7, shrubs=4)
     planter_box(mb, 16.0, -21.5, 26.0, -19.6, seed=8, shrubs=4)
@@ -921,8 +919,6 @@ def office_complex(mb):
     mb.box(tb[0] + 0.4, tb[2] + 0.4, zb1, tb[1] - 0.4, tb[3] - 0.4, zb1 + 0.4, "roof")
     edge_parapet(mb, tb, zb1 + 0.4, 1.1, 0.2, "trim", glass=True)
     pergola(mb, tb[0] + 2.0, tb[1] - 7.0, tb[2] + 2.0, tb[3] - 2.0, zb1 + 0.4, 2.8, "accent", post_mat="facade")
-    for i in range(4):
-        planter_box(mb, tb[0] + 2.0 + i * 3.0, tb[3] - 1.8, tb[0] + 4.2 + i * 3.0, tb[3] - 0.6, h=0.6, seed=90 + i, shrubs=1) if False else None
     roof_plant(mb, tb[1] - 4.0, (tb[2] + tb[3]) / 2, zb1 + 0.4, 6.0, 10.0, 82, tanks=0, units=2, overrun=True)
     # sky bridge
     bz = fr.z(9)

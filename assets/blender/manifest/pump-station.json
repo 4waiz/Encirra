@@ -1,0 +1,106 @@
+{
+  "file": "pump-station.glb",
+  "group": "facilities",
+  "assets": [
+    {
+      "id": "pump-station_v0",
+      "kind": "pump-station",
+      "variant": 0,
+      "node": "pump-station_v0",
+      "nominalSize": [
+        26.0,
+        18.0,
+        11.65
+      ],
+      "anchors": {
+        "label": [
+          0.0,
+          17.65,
+          0.0
+        ],
+        "roofY": 10.1,
+        "suctionFlange": [
+          0.0,
+          -24.0,
+          6.0
+        ],
+        "dischargeFlange": [
+          0.0,
+          -15.0,
+          6.0
+        ],
+        "pumpCutawayNode": "pump_cutaway",
+        "pumpCutawayMinY": -27.6,
+        "pumpCutawayMaxY": -11.5
+      },
+      "notes": "Pumping station PS-1. Child node 'pump_cutaway' sits below grade (y -27.6..-11.5, z +1..+12 local) in the district-base chamber: suction gate valve, end-suction pump + motor, check and gate valves, discharge riser. The suction main (y=-24) ends at the suction flange; the transmission main (y=-15) starts at the discharge flange (local x=0, z=+6).",
+      "facilityId": "ps-1",
+      "file": "pump-station.glb",
+      "tris": 8660,
+      "materials": [
+        "concrete",
+        "facade_alt",
+        "glazing",
+        "facade",
+        "trim",
+        "metal",
+        "light_emissive",
+        "pipe",
+        "steel_dark",
+        "valve_red",
+        "accent"
+      ],
+      "vertexAO": true
+    },
+    {
+      "id": "pump-station_v1",
+      "kind": "pump-station",
+      "variant": 1,
+      "node": "pump-station_v1",
+      "nominalSize": [
+        28.0,
+        18.0,
+        11.65
+      ],
+      "anchors": {
+        "label": [
+          0.0,
+          17.65,
+          0.0
+        ],
+        "roofY": 10.1,
+        "suctionFlange": [
+          0.0,
+          -24.0,
+          6.0
+        ],
+        "dischargeFlange": [
+          0.0,
+          -15.0,
+          6.0
+        ],
+        "pumpCutawayNode": "pump_cutaway_v1",
+        "pumpCutawayMinY": -27.6,
+        "pumpCutawayMaxY": -11.5
+      },
+      "notes": "Pumping station PS-2. Child node 'pump_cutaway_v1' sits below grade (y -27.6..-11.5, z +1..+12 local) in the district-base chamber: suction gate valve, end-suction pump + motor, check and gate valves, discharge riser. The suction main (y=-24) ends at the suction flange; the transmission main (y=-15) starts at the discharge flange (local x=0, z=+6).",
+      "facilityId": "ps-2",
+      "file": "pump-station.glb",
+      "tris": 8684,
+      "materials": [
+        "concrete",
+        "facade_alt",
+        "glazing",
+        "facade",
+        "trim",
+        "metal",
+        "light_emissive",
+        "pipe",
+        "steel_dark",
+        "valve_red",
+        "accent"
+      ],
+      "vertexAO": true
+    }
+  ]
+}

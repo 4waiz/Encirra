@@ -108,6 +108,7 @@ export const WaterCharts = memo(function WaterCharts({ run, topology, playMin }:
   const recMin = marks.pumpRecoveredT != null ? marks.pumpRecoveredT / 60 : marks.pressureRecoveredT != null ? marks.pressureRecoveredT / 60 : null;
   const belowMin = marks.pressureBelowT != null ? marks.pressureBelowT / 60 : null;
   const pMax = Math.max(thr * 1.5, ...data.map((d) => d.criticalPressureM));
+  const pTop = Math.ceil(pMax / 10) * 10;
 
   const markers = (withLabels: boolean) => (
     <>
@@ -128,9 +129,16 @@ export const WaterCharts = memo(function WaterCharts({ run, topology, playMin }:
           <ComposedChart data={data} margin={{ top: 14, right: 10, bottom: 0, left: 0 }} syncId="water">
             <CartesianGrid vertical={false} {...GRID} />
             <XAxis dataKey="min" type="number" domain={[0, maxMin]} ticks={ticks} tick={false} axisLine={AXIS_LINE} tickLine={false} height={2} />
-            <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} width={36} domain={[0, Math.ceil(pMax / 10) * 10]} tickCount={4} />
+            <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} width={36} domain={[0, pTop]} ticks={[0, thr, pTop]} />
             {tripMin != null && belowMin != null && belowMin > tripMin && <ReferenceArea x1={tripMin} x2={belowMin} fill="#00BFEA" fillOpacity={0.08} ifOverflow="hidden" />}
-            <ReferenceLine y={thr} stroke={SERIES.threshold} strokeDasharray="4 3" strokeWidth={1} strokeOpacity={0.7} />
+            <ReferenceLine
+              y={thr}
+              stroke={SERIES.threshold}
+              strokeDasharray="4 3"
+              strokeWidth={1}
+              strokeOpacity={0.7}
+              label={{ value: `${thr} m service`, position: 'insideBottomRight', fontSize: 9.5, fill: '#c8281d', fontWeight: 600 }}
+            />
             <Area dataKey="criticalPressureM" type="linear" stroke={SERIES.pressure} strokeWidth={2} fill={SERIES.pressure} fillOpacity={0.1} isAnimationActive={false} dot={false} activeDot={{ r: 4, strokeWidth: 2, stroke: '#fff' }} />
             {markers(true)}
             <Tooltip
@@ -162,6 +170,7 @@ export const WaterCharts = memo(function WaterCharts({ run, topology, playMin }:
             <XAxis dataKey="min" type="number" domain={[0, maxMin]} ticks={ticks} tickFormatter={fmtX} tick={AXIS_TICK} axisLine={AXIS_LINE} tickLine={false} height={16} />
             <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} width={36} domain={[0, 100]} ticks={[0, 50, 100]} tickFormatter={(v: number) => `${v}%`} />
             <Area dataKey="level" type="linear" stroke={SERIES.tank} strokeWidth={2} fill={SERIES.tank} fillOpacity={0.1} isAnimationActive={false} dot={false} activeDot={{ r: 3.5, strokeWidth: 2, stroke: '#fff' }} />
+            <ReferenceLine y={100} stroke="none" label={{ value: `Tank ${tank?.id ?? ''} level`, position: 'insideTopRight', fontSize: 9.5, fill: '#1d7fa6', fontWeight: 600 }} />
             {markers(false)}
             <Tooltip
               isAnimationActive={false}

@@ -11,7 +11,7 @@ import { PowerChart, WaterCharts, focusTank } from '@/charts/TimeCharts';
 import { LegendKey, SERIES } from '@/charts/common';
 import { MAP_COLORS, MAP_LEGEND, OverviewMap } from '@/maps/OverviewMap';
 
-const PANEL = 'flex h-full flex-col p-[clamp(10px,0.8vw,15px)] pb-[clamp(6px,0.6vw,10px)]';
+const PANEL = '@container flex h-full flex-col p-[clamp(10px,0.8vw,15px)] pb-[clamp(6px,0.6vw,10px)]';
 
 function PanelHeader({ icon, title, right }: { icon: React.ReactNode; title: string; right?: React.ReactNode }) {
   return (
@@ -31,6 +31,23 @@ function StatLine({ children, className }: { children: React.ReactNode; classNam
 const B = ({ children }: { children: React.ReactNode }) => <b className="font-semibold text-navy tabular">{children}</b>;
 
 // ───────────────────────────────────────────────────────────── Power network
+/** Chart legend: its own row on tall viewports, overlaid inside the plot on short ones. */
+function ChartLegend({ items, extra }: { items: Parameters<typeof LegendKey>[0]['items']; extra?: React.ReactNode }) {
+  return (
+    <div className="mt-1 flex items-center justify-between gap-2 short:hidden">
+      <LegendKey items={items} />
+      {extra}
+    </div>
+  );
+}
+function OverlayLegend({ items, className }: { items: Parameters<typeof LegendKey>[0]['items']; className?: string }) {
+  return (
+    <div className={clsx('pointer-events-none absolute right-2.5 hidden rounded bg-white/85 px-1.5 py-[1px] short:block', className)}>
+      <LegendKey items={items} />
+    </div>
+  );
+}
+
 export function PowerPanel() {
   const ctx = useRunCtx();
   const { dataSource, devFixture } = useSource();
@@ -39,37 +56,34 @@ export function PowerPanel() {
   const p = frame.power;
   const limits = ctx.topology.electrical.limits;
   const playMin = frame.t / 60;
+  const legend = [
+    { label: 'Served', color: SERIES.served, area: true },
+    { label: 'Demand', color: SERIES.demand },
+  ];
   return (
     <Card className={PANEL} data-testid="power-panel">
       <PanelHeader icon={<Zap size={18} className="fill-power text-power" />} title="Power Network" right={<SourceChip source={dataSource} devFixture={devFixture} />} />
-      <div className="mt-[clamp(4px,0.8vh,8px)] grid grid-cols-4 gap-2">
-        <Metric value={fmtInt(p.demandKW)} unit="kW" label="Total demand" />
+      <div className="mt-[clamp(4px,0.8vh,8px)] grid grid-cols-4 gap-2 short:[&_.t-label]:line-clamp-1">
+        <Metric value={fmtInt(p.demandKW)} unit="kW" label="Total demand" short="Demand" bp="xs" />
         <Metric value={fmtInt(p.servedKW)} unit="kW" label="Served" testId="m-served" />
         <Metric value={fmtInt(p.restoredKW)} unit="kW" label="Restored" />
         <Metric value={fmtInt(p.unservedKW)} unit="kW" label="Unserved" />
       </div>
       <StatLine className="mt-[clamp(2px,0.5vh,6px)]">
-        <span data-tip={`Lowest energized bus voltage (hard band ${limits.vMinPu}–${limits.vMaxPu} pu)`}>
+        <span data-tip={`Lowest energized bus voltage (hard band ${limits.vMinPu}–${limits.vMaxPu} pu)`} data-tip-pos="top">
           V<sub>min</sub> <B>{p.vMinPu == null ? '—' : fmtNum(p.vMinPu, 3)}</B> pu @ <B>{busName(p.vMinBus)}</B>
         </span>
-        <span data-tip={`Hard: buses outside ${limits.vMinPu}–${limits.vMaxPu} pu. Soft: energized buses below ${limits.vSoftMinPu} pu.`}>
+        <span data-tip={`Hard: buses outside ${limits.vMinPu}–${limits.vMaxPu} pu. Soft: energized buses below ${limits.vSoftMinPu} pu.`} data-tip-pos="top">
           Violations <B>{p.voltageViolations}</B> hard · <B>{p.voltageAdvisories}</B> soft
         </span>
         <span>
           Losses <B>{fmtInt(p.lossesKW)}</B> kW
         </span>
       </StatLine>
-      <div className="mt-1 flex items-center justify-between">
-        <LegendKey
-          items={[
-            { label: 'Served', color: SERIES.served, area: true },
-            { label: 'Demand', color: SERIES.demand },
-          ]}
-        />
-        <span className="t-micro text-mist">kW</span>
-      </div>
-      <div className="min-h-0 flex-1">
+      <ChartLegend items={legend} extra={<span className="t-micro text-mist">kW</span>} />
+      <div className="relative min-h-0 flex-1">
         <PowerChart run={run} playMin={playMin} />
+        <OverlayLegend items={legend} className="bottom-[22px]" />
       </div>
     </Card>
   );
@@ -90,48 +104,50 @@ export function WaterPanel() {
   const delay = run.summary.hydraulicDelayMin;
   const marks = runMarks(run);
   const showDelay = delay != null && marks.pumpTripT != null && frame.t >= marks.pumpTripT;
+  const legend = [
+    { label: 'Critical pressure (m)', color: SERIES.pressure, area: true },
+    { label: `${thr} m service`, color: SERIES.threshold, dashed: true },
+    { label: `Tank ${topology.water.tanks[ti]?.id ?? ''} (%)`, color: SERIES.tank, area: true },
+  ];
   return (
     <Card className={PANEL} data-testid="water-panel">
       <PanelHeader icon={<Droplet size={18} className="fill-water text-water" />} title="Water Network" right={<SourceChip source={dataSource} devFixture={devFixture} />} />
-      <div className="mt-[clamp(4px,0.8vh,8px)] grid grid-cols-4 gap-2">
-        <Metric value={fmtInt(lpsToM3h(w.deliveredLps))} unit="m³/h" label={`Delivered · ${fmtNum(w.deliveredLps, 1)} L/s`} />
-        <Metric value={fmtNum(w.minPressureM, 1)} unit="m" label={`Min pressure · ${w.minPressureNode}`} />
-        <Metric
-          value={fmtNum(hospP ?? w.criticalPressureM, 1)}
-          unit="m"
-          label={hospP != null ? 'Hospital pressure' : 'Critical pressure'}
-          testId="m-critical-pressure"
-        />
-        <Metric value={`${w.pumpsOnline}/${w.pumpsTotal}`} label="Pumps operational" />
+      <div className="mt-[clamp(4px,0.8vh,8px)] grid grid-cols-4 gap-2 short:[&_.t-label]:line-clamp-1">
+        <Metric value={fmtInt(lpsToM3h(w.deliveredLps))} unit="m³/h" label="Delivered" />
+        <Metric value={fmtNum(w.minPressureM, 1)} unit="m" label={`Min · ${w.minPressureNode}`} />
+        <Metric value={fmtNum(hospP ?? w.criticalPressureM, 1)} unit="m" label={hospP != null ? 'Hospital' : 'Critical min'} testId="m-critical-pressure" />
+        <Metric value={`${w.pumpsOnline}/${w.pumpsTotal}`} label="Pumps online" short="Pumps" bp="xs" />
       </div>
       <StatLine className="mt-[clamp(2px,0.5vh,6px)]">
-        {topology.water.tanks.map((t, i) => (
-          <span key={t.id}>
-            Tank {t.id} <B>{fmtPct(w.tankPct[i])}</B>
-          </span>
-        ))}
+        <span>
+          <B>{fmtNum(w.deliveredLps, 1)}</B> L/s · <B>{fmtPct(w.deliveredPct, 0)}</B> of demand
+        </span>
+        <span>
+          Tanks{' '}
+          {topology.water.tanks.map((t, i) => (
+            <span key={t.id} className="mr-1">
+              {t.id} <B>{fmtPct(w.tankPct[i])}</B>
+            </span>
+          ))}
+        </span>
         <span>
           Critical min <B>{fmtNum(w.criticalPressureM, 1)}</B> m
         </span>
         <span>
           <B>{fmtInt(w.connectionsInterrupted)}</B> connections interrupted
         </span>
-      </StatLine>
-      <div className="mt-1 flex items-center justify-between gap-2">
-        <LegendKey
-          items={[
-            { label: 'Critical pressure (m)', color: SERIES.pressure, area: true },
-            { label: `${thr} m service`, color: SERIES.threshold, dashed: true },
-            { label: `Tank ${topology.water.tanks[ti]?.id ?? ''} (%)`, color: SERIES.tank, area: true },
-          ]}
-        />
         {showDelay && (
-          <span className="shrink-0 rounded bg-water-soft px-1.5 py-[1px] t-micro font-semibold text-water-deep" data-tip="Pump trip → first critical node below the service threshold (summary.hydraulicDelayMin)">
+          <span
+            className="rounded bg-water-soft px-1 font-semibold text-water-deep"
+            data-tip="Pump trip → first critical node below the service threshold (summary.hydraulicDelayMin)"
+            data-tip-pos="top"
+          >
             Hydraulic delay {fmtDuration(delay)}
           </span>
         )}
-      </div>
-      <div className="min-h-0 flex-1">
+      </StatLine>
+      <ChartLegend items={legend} />
+      <div className="relative min-h-0 flex-1">
         <WaterCharts run={run} topology={topology} playMin={playMin} />
       </div>
     </Card>
@@ -169,19 +185,13 @@ export function FacilitiesPanel() {
     <Card className={clsx(PANEL, 'pb-[clamp(8px,0.6vw,12px)]')} data-testid="facilities-panel">
       <PanelHeader icon={<Building2 size={18} className="text-info" />} title="Critical Facilities" right={<SourceChip source={dataSource} devFixture={devFixture} />} />
       <div className="enc-scroll mt-[clamp(4px,0.8vh,8px)] min-h-0 flex-1 overflow-y-auto rounded-md border border-line/70">
-        <table className="w-full table-fixed border-collapse text-left t-micro">
-          <colgroup>
-            <col className="w-[40%]" />
-            <col className="w-[19%]" />
-            <col className="w-[20%]" />
-            <col className="w-[21%]" />
-          </colgroup>
+        <table className="w-full border-collapse text-left t-micro">
           <thead className="sticky top-0 z-[1] bg-[#f3f6f9]">
             <tr className="text-ink">
-              <th className="px-2 py-1.5 font-semibold">Facility</th>
-              <th className="px-1 py-1.5 font-semibold">Power</th>
-              <th className="px-1 py-1.5 font-semibold">Water</th>
-              <th className="px-1 py-1.5 font-semibold">Status</th>
+              <th className="w-full px-2 py-1.5 font-semibold">Facility</th>
+              <th className="px-1.5 py-1.5 font-semibold whitespace-nowrap">Power</th>
+              <th className="px-1.5 py-1.5 font-semibold whitespace-nowrap">Water</th>
+              <th className="px-1.5 py-1.5 pr-2 font-semibold whitespace-nowrap">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -200,25 +210,25 @@ export function FacilitiesPanel() {
                   data-testid={`fac-row-${r.id}`}
                   data-status={r.status}
                 >
-                  <td className="px-2 py-[clamp(3px,0.45vh,6px)]">
+                  <td className="max-w-0 px-2 py-[clamp(3px,0.45vh,6px)]">
                     <span className="flex min-w-0 items-center gap-1.5">
                       <Icon size={14} className={clsx('shrink-0', KIND_COLOR[r.kind] ?? 'text-slate')} />
                       <span className={clsx('truncate', r.critical ? 'text-navy' : 'text-slate')}>{r.name}</span>
                     </span>
                   </td>
-                  <td className="px-1">
+                  <td className="px-1.5">
                     <span className="flex items-center gap-1 whitespace-nowrap text-ink">
                       <Dot color={TONE_DOT[POWER_TONE[r.power]]} size={7} />
                       <span className="truncate">{POWER_LABEL[r.power]}</span>
                     </span>
                   </td>
-                  <td className="px-1">
+                  <td className="px-1.5">
                     <span className="flex items-center gap-1 whitespace-nowrap text-ink">
                       {r.water === 'n/a' ? <span className="text-mist">—</span> : <Droplet size={11} style={{ color: TONE_DOT[WATER_TONE[r.water]], fill: TONE_DOT[WATER_TONE[r.water]] }} />}
                       {r.water !== 'n/a' && <span className="truncate">{WATER_LABEL[r.water]}</span>}
                     </span>
                   </td>
-                  <td className="px-1">
+                  <td className="px-1.5 pr-2">
                     <StatusPill status={r.status} />
                   </td>
                 </tr>

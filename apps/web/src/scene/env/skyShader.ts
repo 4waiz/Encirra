@@ -45,7 +45,7 @@ vec3 encSkyBase(vec3 d, float withSun) {
 }
 vec3 encHaze(vec3 d) {
   vec3 dd = normalize(vec3(d.x, 0.004, d.z) + vec3(1e-5, 0.0, 0.0));
-  return encSkyBase(dd, 0.35) * 0.95;
+  return encSkyBase(dd, 0.35) * 0.8;
 }
 #endif
 `;
@@ -102,7 +102,7 @@ export function installHazeFog() {
   ShaderChunk.fog_fragment = /* glsl */ `
 #ifdef USE_FOG
   #ifdef FOG_EXP2
-    float encFogD = max(vFogDepth - 250.0, 0.0);
+    float encFogD = max(vFogDepth - 420.0, 0.0);
     float fogFactor = 1.0 - exp( - fogDensity * fogDensity * encFogD * encFogD );
   #else
     float fogFactor = smoothstep( fogNear, fogFar, vFogDepth );

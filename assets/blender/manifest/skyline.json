@@ -1,0 +1,472 @@
+{
+  "file": "skyline.glb",
+  "group": "skyline",
+  "assets": [
+    {
+      "id": "skyline_spire",
+      "kind": "skyline",
+      "variant": 0,
+      "node": "skyline_spire",
+      "nominalSize": [
+        99.6,
+        90.7,
+        775.0
+      ],
+      "placement": {
+        "position": [
+          -560.0,
+          0.0,
+          -1150.0
+        ],
+        "rotationY": 0.35
+      },
+      "anchors": {
+        "top": [
+          0.0,
+          776.0,
+          0.0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 2149,
+      "materials": [
+        "glazing",
+        "facade",
+        "trim",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_twist",
+      "kind": "skyline",
+      "variant": 1,
+      "node": "skyline_twist",
+      "nominalSize": [
+        39.0,
+        39.0,
+        342.3
+      ],
+      "placement": {
+        "position": [
+          430.0,
+          0.0,
+          -760.0
+        ],
+        "rotationY": 0.2
+      },
+      "anchors": {
+        "top": [
+          0.0,
+          341.0,
+          0.0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 938,
+      "materials": [
+        "glazing",
+        "trim",
+        "facade",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_sail",
+      "kind": "skyline",
+      "variant": 2,
+      "node": "skyline_sail",
+      "nominalSize": [
+        66.5,
+        48.0,
+        361.7
+      ],
+      "placement": {
+        "position": [
+          960.0,
+          0.0,
+          -420.0
+        ],
+        "rotationY": -0.6
+      },
+      "anchors": {
+        "top": [
+          0.0,
+          361.0,
+          0.0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 708,
+      "materials": [
+        "glazing",
+        "trim",
+        "facade",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_twin_a",
+      "kind": "skyline",
+      "variant": 3,
+      "node": "skyline_twin_a",
+      "nominalSize": [
+        37.7,
+        37.7,
+        368.6
+      ],
+      "placement": {
+        "position": [
+          -860.0,
+          0.0,
+          -690.0
+        ],
+        "rotationY": 0.0
+      },
+      "anchors": {
+        "top": [
+          0.0,
+          368.2,
+          0.0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 516,
+      "materials": [
+        "glazing",
+        "facade",
+        "trim",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_twin_b",
+      "kind": "skyline",
+      "variant": 4,
+      "node": "skyline_twin_b",
+      "nominalSize": [
+        35.5,
+        35.5,
+        337.0
+      ],
+      "placement": {
+        "position": [
+          -790.0,
+          0.0,
+          -760.0
+        ],
+        "rotationY": 0.0
+      },
+      "anchors": {
+        "top": [
+          0.0,
+          336.6,
+          0.0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 488,
+      "materials": [
+        "glazing",
+        "facade",
+        "trim",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_stepped",
+      "kind": "skyline",
+      "variant": 5,
+      "node": "skyline_stepped",
+      "nominalSize": [
+        41.2,
+        35.2,
+        286.4
+      ],
+      "placement": {
+        "position": [
+          150.0,
+          0.0,
+          -1020.0
+        ],
+        "rotationY": 0.1
+      },
+      "anchors": {
+        "top": [
+          0.0,
+          286.0,
+          0.0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 828,
+      "materials": [
+        "trim",
+        "glazing",
+        "facade",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_glass_a",
+      "kind": "skyline",
+      "variant": 6,
+      "node": "skyline_glass_a",
+      "nominalSize": [
+        30.6,
+        24.5,
+        242.4
+      ],
+      "placement": {
+        "position": [
+          -320.0,
+          0.0,
+          -720.0
+        ],
+        "rotationY": 0.3
+      },
+      "anchors": {
+        "top": [
+          0.0,
+          242.0,
+          0.0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 316,
+      "materials": [
+        "glazing",
+        "trim",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_glass_b",
+      "kind": "skyline",
+      "variant": 7,
+      "node": "skyline_glass_b",
+      "nominalSize": [
+        26.5,
+        26.5,
+        216.4
+      ],
+      "placement": {
+        "position": [
+          700.0,
+          0.0,
+          -1060.0
+        ],
+        "rotationY": -0.2
+      },
+      "anchors": {
+        "top": [
+          0.0,
+          216.0,
+          0.0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 316,
+      "materials": [
+        "glazing",
+        "trim",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_glass_c",
+      "kind": "skyline",
+      "variant": 8,
+      "node": "skyline_glass_c",
+      "nominalSize": [
+        31.4,
+        25.4,
+        229.4
+      ],
+      "placement": {
+        "position": [
+          -1080.0,
+          0.0,
+          -470.0
+        ],
+        "rotationY": 0.4
+      },
+      "anchors": {
+        "top": [
+          0.0,
+          229.0,
+          0.0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 430,
+      "materials": [
+        "glazing",
+        "facade",
+        "trim",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_marina_a",
+      "kind": "skyline",
+      "variant": 9,
+      "node": "skyline_marina_a",
+      "nominalSize": [
+        32.4,
+        25.9,
+        199.4
+      ],
+      "placement": {
+        "position": [
+          1130.0,
+          0.0,
+          -160.0
+        ],
+        "rotationY": -0.4
+      },
+      "anchors": {
+        "top": [
+          0.0,
+          199.0,
+          0.0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 1922,
+      "materials": [
+        "glazing",
+        "facade",
+        "trim",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_marina_b",
+      "kind": "skyline",
+      "variant": 10,
+      "node": "skyline_marina_b",
+      "nominalSize": [
+        30.2,
+        28.1,
+        179.4
+      ],
+      "placement": {
+        "position": [
+          -1220.0,
+          0.0,
+          -150.0
+        ],
+        "rotationY": 0.5
+      },
+      "anchors": {
+        "top": [
+          0.0,
+          179.0,
+          0.0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 1746,
+      "materials": [
+        "glazing",
+        "facade",
+        "trim",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_marina_c",
+      "kind": "skyline",
+      "variant": 11,
+      "node": "skyline_marina_c",
+      "nominalSize": [
+        28.1,
+        23.8,
+        159.4
+      ],
+      "placement": {
+        "position": [
+          320.0,
+          0.0,
+          -1320.0
+        ],
+        "rotationY": 0.0
+      },
+      "anchors": {
+        "top": [
+          0.0,
+          159.0,
+          0.0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 1570,
+      "materials": [
+        "glazing",
+        "facade",
+        "trim",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    },
+    {
+      "id": "skyline_twist_b",
+      "kind": "skyline",
+      "variant": 12,
+      "node": "skyline_twist_b",
+      "nominalSize": [
+        30.8,
+        30.8,
+        272.3
+      ],
+      "placement": {
+        "position": [
+          -150.0,
+          0.0,
+          -1450.0
+        ],
+        "rotationY": 0.0
+      },
+      "anchors": {
+        "top": [
+          0.0,
+          271.0,
+          0.0
+        ]
+      },
+      "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
+      "file": "skyline.glb",
+      "tris": 938,
+      "materials": [
+        "glazing",
+        "trim",
+        "facade",
+        "light_emissive"
+      ],
+      "vertexAO": false
+    }
+  ]
+}

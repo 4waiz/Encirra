@@ -69,7 +69,7 @@ function ClockAndContext() {
   const live = dataSource === 'live';
   return (
     <div className="pointer-events-auto flex min-w-0 flex-col items-end gap-[6px]">
-      <div className="enc-panel flex min-w-0 items-center rounded-[12px] py-[5px] pr-[6px] pl-[4px]">
+      <div className="enc-panel flex min-w-0 items-center rounded-[12px] py-[5px] pr-[6px] pl-[4px] short:py-[3px]">
         <div
           className="flex min-w-0 items-center gap-1.5 px-[clamp(6px,0.6vw,12px)] py-[5px] text-[clamp(11px,0.72vw,13px)] text-navy"
           data-tip={`${district.district.label} (${district.district.id}). ${district.district.disclaimer}`}
@@ -91,6 +91,7 @@ function ClockAndContext() {
         >
           <span className="whitespace-nowrap text-[clamp(11px,0.72vw,13px)] text-navy tabular">
             <span className="hide-below-1400">{date}</span>
+            <span className="show-below-1400">{date.replace(/^[A-Za-z]{3}, /, '').replace(/, \d{4}$/, '')}</span>
             <span className="ml-2 font-semibold">{frame?.clock ?? '—'}</span>
           </span>
           <span className="mt-[3px] text-[9px] font-semibold uppercase tracking-[0.08em] text-slate">simulated</span>
@@ -105,7 +106,7 @@ function ClockAndContext() {
           <Sun size={22} className="text-power" strokeWidth={2} />
           <div className="leading-none">
             <div className="text-[clamp(12px,0.82vw,15px)] font-semibold whitespace-nowrap text-navy">{amb.temperatureC}°C</div>
-            <div className="mt-[3px] text-[10px] whitespace-nowrap text-slate">{amb.condition.split(',')[0]}</div>
+            <div className="hide-below-1400 mt-[3px] text-[10px] whitespace-nowrap text-slate">{amb.condition.split(',')[0]}</div>
           </div>
         </div>
       </div>
@@ -120,12 +121,12 @@ function ClockAndContext() {
         data-tip-pos="bottom-end"
       >
         <Dot color={dataSource === 'error' ? '#F04438' : live ? '#17A769' : '#2A6CB5'} size={7} className={dataSource === 'loading' ? 'enc-blink' : ''} />
-        <span className="truncate font-medium">
+        <span className="shrink-0 font-medium whitespace-nowrap">
           {dataSource === 'loading' ? 'Loading simulation data' : dataSource === 'error' ? 'Data unavailable' : live ? 'Live solver' : 'Replay · precomputed solver output'}
         </span>
-        {devFixture && <span className="rounded bg-fault px-1.5 py-[1px] text-[10px] font-bold tracking-wide text-white">DEV FIXTURE</span>}
-        <span className="text-mist">·</span>
-        <span className="truncate font-semibold text-navy" data-testid="sim-stage">
+        {devFixture && <span className="shrink-0 rounded bg-fault px-1.5 py-[1px] text-[10px] font-bold tracking-wide whitespace-nowrap text-white">DEV FIXTURE</span>}
+        <span className="text-mist narrow:hidden">·</span>
+        <span className="truncate font-semibold text-navy narrow:sr-only" data-testid="sim-stage">
           {stage}
         </span>
       </div>

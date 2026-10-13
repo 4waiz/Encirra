@@ -8,12 +8,12 @@ import { BUILDINGS, type BuildingDef } from '../data/twin';
 import { GeoBuilder, STYLE, lin, mulberry32 } from '../lib/GeoBuilder';
 
 const PALETTE = {
-  white: lin('#EDE7DC'),
-  ivory: lin('#E6DCC8'),
-  sand: lin('#D9C6A2'),
-  sandDark: lin('#C4AC84'),
-  stone: lin('#CFC3AE'),
-  cream: lin('#F1E9D8'),
+  white: lin('#F1EFEA'),
+  ivory: lin('#ECE5D8'),
+  sand: lin('#E0D2B6'),
+  sandDark: lin('#CDB894'),
+  stone: lin('#D8D0C2'),
+  cream: lin('#F4EFE4'),
   greyFrame: lin('#59636C'),
   darkFrame: lin('#2E3740'),
   roof: lin('#A9A39A'),

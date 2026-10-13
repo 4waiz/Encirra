@@ -72,16 +72,16 @@ float litF = vTw.w;
 bool roof = abs(vLN.y) > 0.5;
 float u = abs(vLN.x) > 0.5 ? vLoc.z : vLoc.x;
 float v = vLoc.y;
-bool glassy = tone < 0.55;
+bool glassy = tone < 0.5;
 float bay = glassy ? 1.8 : 3.2;
 vec2 c = vec2(u / bay, v / floorH);
 vec2 cw = max(fwidth(c), vec2(1e-4));
 vec2 cf = fract(c);
 vec2 ci = floor(c);
-vec4 r = glassy ? vec4(0.05, 0.95, 0.1, 0.92) : vec4(0.2, 0.8, 0.28, 0.82);
+vec4 r = glassy ? vec4(0.06, 0.94, 0.12, 0.9) : vec4(0.22, 0.78, 0.3, 0.8);
 float m = encAAB(cf.x, r.x, r.y, cw.x) * encAAB(cf.y, r.z, r.w, cw.y);
 float cov = (r.y - r.x) * (r.w - r.z);
-float farF = smoothstep(0.25, 0.6, max(cw.x, cw.y));
+float farF = smoothstep(0.1, 0.3, max(cw.x, cw.y));
 m = mix(m, cov, farF);
 m *= step(4.0, v) * (1.0 - step(vH - 3.0, v));
 if (roof) m = 0.0;
@@ -91,15 +91,15 @@ if (glassy) lit = step(encH13(vec3(ci.y, seed, 1.0)) * 0.75 + h1 * 0.25, litF);
 lit = mix(lit, litF, farF);
 vec3 warm = mix(vec3(1.0, 0.56, 0.25), vec3(1.0, 0.8, 0.55), encH13(vec3(ci, seed + 5.0)));
 if (glassy) warm = mix(warm, vec3(0.85, 0.92, 1.0), 0.35);
-vec3 wallA = glassy ? mix(vec3(0.16, 0.22, 0.26), vec3(0.32, 0.36, 0.38), fract(seed * 0.37)) : mix(vec3(0.62, 0.55, 0.45), vec3(0.78, 0.74, 0.68), fract(seed * 0.71));
-vec3 glassC = glassy ? vec3(0.03, 0.055, 0.07) : vec3(0.03, 0.03, 0.035);
+vec3 wallA = glassy ? mix(vec3(0.05, 0.07, 0.085), vec3(0.14, 0.16, 0.17), fract(seed * 0.37)) : (tone < 0.75 ? mix(vec3(0.42, 0.4, 0.37), vec3(0.6, 0.58, 0.55), fract(seed * 0.71)) : mix(vec3(0.36, 0.28, 0.2), vec3(0.52, 0.42, 0.31), fract(seed * 0.71)));
+vec3 glassC = glassy ? vec3(0.02, 0.035, 0.05) : vec3(0.025, 0.027, 0.03);
 diffuseColor.rgb = roof ? vec3(0.35, 0.34, 0.33) : mix(wallA, glassC, m);
-vec3 tEm = warm * (0.9 + 1.6 * encH13(vec3(ci, seed + 9.0))) * lit * m;
+vec3 tEm = warm * (0.6 + 1.1 * encH13(vec3(ci, seed + 9.0))) * lit * m;
 // crown light band on taller towers
 float crown = smoothstep(vH - 6.0, vH - 4.0, v) * (1.0 - smoothstep(vH - 2.5, vH - 1.5, v)) * step(90.0, vH) * step(0.5, fract(seed * 1.3));
 tEm += vec3(1.0, 0.85, 0.65) * crown * 2.5 * (roof ? 0.0 : 1.0);
-float tRough = roof ? 0.9 : mix(0.75, 0.08, m);
-float tMetal = roof ? 0.0 : mix(glassy ? 0.3 : 0.0, 0.8, m);`,
+float tRough = roof ? 0.9 : mix(glassy ? 0.3 : 0.75, 0.07, m);
+float tMetal = roof ? 0.0 : mix(glassy ? 0.6 : 0.0, 0.9, m);`,
       )
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>\nroughnessFactor = tRough;`)
       .replace('#include <metalnessmap_fragment>', `#include <metalnessmap_fragment>\nmetalnessFactor = tMetal;`)
@@ -120,9 +120,9 @@ function buildInstances(specs: { x: number; z: number; w: number; d: number; h: 
     mesh.setMatrixAt(i, m);
     const tone = s.tone ?? 0.8;
     attr[i * 4] = s.seed;
-    attr[i * 4 + 1] = low ? 0.6 + (s.seed % 1) * 0.4 : tone;
+    attr[i * 4 + 1] = low ? 0.5 + ((s.seed * 7.13) % 1) * 0.5 : tone;
     attr[i * 4 + 2] = low ? 3.4 : tone < 0.55 ? 4.0 : 3.5;
-    attr[i * 4 + 3] = low ? 0.42 : 0.3 + (s.seed % 0.25);
+    attr[i * 4 + 3] = low ? 0.3 : 0.22 + ((s.seed * 3.7) % 0.25);
   });
   mesh.geometry = geo.clone();
   mesh.geometry.setAttribute('aTower', new InstancedBufferAttribute(attr, 4));

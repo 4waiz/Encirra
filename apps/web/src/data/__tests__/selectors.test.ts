@@ -8,6 +8,7 @@ import {
   frameIndexAtT,
   lostPumpStations,
   recoveryCardModel,
+  restoredShare,
   runMarks,
   sortedCandidates,
   summariesByStrategy,
@@ -149,12 +150,32 @@ describe('system recovery card', () => {
     const mid = recoveryCardModel(run, topo, 3).metrics;
     expect(mid.restoredPct).toBe(0);
     expect(mid.unservedPct).toBeCloseTo((100 * 200) / 300, 6);
+    expect(recoveryCardModel(run, topo, 0).metrics.restoredPct).toBeNull();
   });
-  it('counts critical facilities affected since the fault and how many are recovered', () => {
+  it('counts critical facilities at risk (run-level) and how many have recovered so far', () => {
     const run = makeRun();
-    expect(criticalProgress(run, topo, 1)).toEqual({ affected: 0, recovered: 0 });
-    expect(criticalProgress(run, topo, 3)).toEqual({ affected: 2, recovered: 0 });
-    expect(criticalProgress(run, topo, 7)).toEqual({ affected: 2, recovered: 2 });
+    expect(criticalProgress(run, topo, 1)).toEqual({ atRisk: 2, affected: 0, recovered: 0 });
+    expect(criticalProgress(run, topo, 3)).toEqual({ atRisk: 2, affected: 2, recovered: 0 });
+    expect(criticalProgress(run, topo, 7)).toEqual({ atRisk: 2, affected: 2, recovered: 2 });
+    // the card hides the run-level denominator until the fault has happened
+    expect(recoveryCardModel(run, topo, 1).metrics.criticalAtRisk).toBe(0);
+    expect(recoveryCardModel(run, topo, 7).metrics).toMatchObject({ criticalRecovered: 2, criticalAtRisk: 2 });
+  });
+  it('does not count a facility as recovered before it was ever affected', () => {
+    // hospital water only drops later in the run: at k=2 it is still safe → not "recovered"
+    const run = makeRun();
+    const frames = run.frames.map((f, i) => ({
+      ...f,
+      facilities: f.facilities.map((x) => (x.id === 'hosp' ? { ...x, status: (i >= 5 && i < 6 ? 'at-risk' : i >= 6 ? 'restored' : 'safe') as 'safe' } : x)),
+    }));
+    const r2 = { ...run, frames };
+    expect(criticalProgress(r2, topo, 3)).toMatchObject({ atRisk: 2, recovered: 0 });
+    expect(criticalProgress(r2, topo, 6).recovered).toBe(2);
+  });
+  it('restored share matches restored ÷ (restored + unserved)', () => {
+    const f = makeFrame({ min: 7, stage: 'recovery-complete', lost: true, restored: true });
+    expect(restoredShare(f)).toBe(100);
+    expect(restoredShare(makeFrame({ min: 0, stage: 'ready' }))).toBeNull();
   });
 });
 

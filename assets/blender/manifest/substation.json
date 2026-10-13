@@ -1,0 +1,56 @@
+{
+  "file": "substation.glb",
+  "group": "facilities",
+  "assets": [
+    {
+      "id": "substation_v0",
+      "kind": "substation",
+      "variant": 0,
+      "node": "substation_v0",
+      "nominalSize": [
+        61.32,
+        60.86,
+        18.5
+      ],
+      "anchors": {
+        "label": [
+          0.0,
+          24.5,
+          0.0
+        ],
+        "roofY": 6.6,
+        "transformers": [
+          [
+            -12.5,
+            4.85,
+            8.0
+          ],
+          [
+            12.5,
+            4.85,
+            8.0
+          ]
+        ]
+      },
+      "notes": "Substation S1 compound: two power transformers with radiator banks/conservators/bushings, firewalls, busbar gantries with insulator strings, breakers and disconnectors, control building, palisade fence and gate.",
+      "facilityId": "substation-s1",
+      "file": "substation.glb",
+      "tris": 31792,
+      "materials": [
+        "concrete",
+        "asphalt",
+        "metal",
+        "steel_dark",
+        "facade",
+        "facade_alt",
+        "roof",
+        "glazing",
+        "trim",
+        "light_emissive",
+        "rock",
+        "valve_red"
+      ],
+      "vertexAO": true
+    }
+  ]
+}

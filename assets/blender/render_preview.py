@@ -229,7 +229,7 @@ def apply_preview_materials():
         ao_multiply(get_material(name))
     g = get_material("glazing")
     glazing_preview(g)
-    for name, k in (("light_emissive", 14.0), ("emissive_sign", 9.0), ("water", 2.0)):
+    for name, k in (("light_emissive", 8.0), ("emissive_sign", 2.5), ("water", 1.5)):
         m = get_material(name)
         b = _principled(m)
         b.inputs["Emission Strength"].default_value = k

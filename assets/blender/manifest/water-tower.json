@@ -1,0 +1,92 @@
+{
+  "file": "water-tower.glb",
+  "group": "facilities",
+  "assets": [
+    {
+      "id": "water-tower_v0",
+      "kind": "water-tower",
+      "variant": 0,
+      "node": "water-tower_v0",
+      "nominalSize": [
+        15.52,
+        15.52,
+        49.97
+      ],
+      "anchors": {
+        "label": [
+          0.0,
+          55.97,
+          0.0
+        ],
+        "waterLevelNode": "water_level",
+        "waterLevelMinY": 36.0,
+        "waterLevelMaxY": 45.0,
+        "tankMaxLevelM": 9.0,
+        "beacon": [
+          0.0,
+          50.0,
+          0.0
+        ]
+      },
+      "notes": "Elevated tank TANK-T1. Child 'water_level' is the water column: origin at waterLevelMinY, height = waterLevelMaxY - waterLevelMinY at scale.y = 1; set scale.y = clamp(levelM / tankMaxLevelM, 0.001, 1). It is visible through the glass_clear band of the vessel.",
+      "facilityId": "tank-t1",
+      "file": "water-tower.glb",
+      "tris": 3482,
+      "materials": [
+        "concrete",
+        "facade",
+        "water",
+        "glazing",
+        "trim",
+        "glass_clear",
+        "steel_dark",
+        "metal",
+        "light_emissive"
+      ],
+      "vertexAO": true
+    },
+    {
+      "id": "water-tower_v1",
+      "kind": "water-tower",
+      "variant": 1,
+      "node": "water-tower_v1",
+      "nominalSize": [
+        13.53,
+        13.53,
+        48.97
+      ],
+      "anchors": {
+        "label": [
+          0.0,
+          54.97,
+          0.0
+        ],
+        "waterLevelNode": "water_level_v1",
+        "waterLevelMinY": 37.0,
+        "waterLevelMaxY": 44.0,
+        "tankMaxLevelM": 7.0,
+        "beacon": [
+          0.0,
+          49.0,
+          0.0
+        ]
+      },
+      "notes": "Elevated tank TANK-T2. Child 'water_level_v1' is the water column: origin at waterLevelMinY, height = waterLevelMaxY - waterLevelMinY at scale.y = 1; set scale.y = clamp(levelM / tankMaxLevelM, 0.001, 1). It is visible through the glass_clear band of the vessel.",
+      "facilityId": "tank-t2",
+      "file": "water-tower.glb",
+      "tris": 3482,
+      "materials": [
+        "concrete",
+        "facade",
+        "water",
+        "glazing",
+        "trim",
+        "glass_clear",
+        "steel_dark",
+        "metal",
+        "light_emissive"
+      ],
+      "vertexAO": true
+    }
+  ]
+}

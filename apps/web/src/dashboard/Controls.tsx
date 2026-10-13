@@ -81,7 +81,7 @@ function Scrubber() {
           data-testid="scrubber"
         />
       </div>
-      <span className="w-[38px] shrink-0 text-[11px] text-slate tabular">{run?.frames[n - 1]?.clock ?? '—'}</span>
+      <span className="w-[38px] shrink-0 text-[11px] text-slate tabular narrow:hidden">{run?.frames[n - 1]?.clock ?? '—'}</span>
     </div>
   );
 }
@@ -98,7 +98,7 @@ export function PlaybackBar() {
   const hasRun = useTwin((s) => !!s.run);
   return (
     <div
-      className="enc-panel pointer-events-auto flex w-[min(100%,clamp(720px,60vw,1040px))] items-center gap-[clamp(6px,0.7vw,12px)] rounded-[12px] px-2.5 py-1.5"
+      className="enc-panel pointer-events-auto flex w-[min(100%,clamp(800px,64vw,1040px))] items-center gap-[clamp(6px,0.7vw,12px)] rounded-[12px] px-2.5 py-1.5"
       data-testid="playback-bar"
     >
       <label className="relative flex shrink-0 items-center" data-tip="Scenario" data-tip-pos="top">

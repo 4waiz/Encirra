@@ -302,9 +302,9 @@ export interface RecoveryCardModel {
   planVisible: boolean; // the playhead has reached candidate evaluation
   metrics: {
     restoredKW: number;
-    restoredPct: number | null; // of summary.loadInterruptedKW
+    restoredPct: number | null; // restoredShare(frame): % of the currently interrupted demand
     criticalRecovered: number;
-    criticalAffected: number;
+    criticalAtRisk: number; // run-level (summary.criticalAtRisk), shown once the fault has occurred
     pumpsOnline: number;
     pumpsTotal: number;
     unservedKW: number;
@@ -313,23 +313,41 @@ export interface RecoveryCardModel {
 }
 
 /**
- * Critical facilities affected by the disturbance up to frame index k (status ≠ safe at any frame
- * from the fault onwards), and how many of those are currently safe or restored.
+ * Critical-facility recovery at frame k, using the engine's run-level definitions:
+ *  - atRisk: critical facilities whose status is not "safe" at any frame from the fault onwards
+ *    (= summary.criticalAtRisk);
+ *  - recovered: those that have already been affected (status ≠ safe at some frame between the
+ *    fault and k) and are safe or restored at k (at the last frame = summary.criticalRecovered).
  */
-export function criticalProgress(run: RunResult, topology: NetworkTopology, k: number): { affected: number; recovered: number } {
+export function criticalProgress(run: RunResult, topology: NetworkTopology, k: number): { atRisk: number; affected: number; recovered: number } {
   const ix = indexTopology(topology);
-  const affected = new Set<string>();
   const frames = run.frames;
+  const marks = runMarks(run);
+  const kf = marks.faultT != null ? frameIndexAtT(run, marks.faultT) : frames.length;
   const last = Math.min(k, frames.length - 1);
-  for (let i = 0; i <= last; i++) {
+  const atRisk = new Set<string>();
+  const affectedSoFar = new Set<string>();
+  for (let i = kf; i < frames.length; i++) {
     for (const fs of frames[i].facilities) {
-      if (fs.status !== 'safe' && ix.facility.get(fs.id)?.critical) affected.add(fs.id);
+      if (fs.status === 'safe' || !ix.facility.get(fs.id)?.critical) continue;
+      atRisk.add(fs.id);
+      if (i <= last) affectedSoFar.add(fs.id);
     }
   }
-  const now = frames[last];
   let recovered = 0;
-  if (now) for (const fs of now.facilities) if (affected.has(fs.id) && (fs.status === 'safe' || fs.status === 'restored')) recovered++;
-  return { affected: affected.size, recovered };
+  const now = frames[last];
+  if (now && last >= kf) for (const fs of now.facilities) if (affectedSoFar.has(fs.id) && (fs.status === 'safe' || fs.status === 'restored')) recovered++;
+  return { atRisk: atRisk.size, affected: affectedSoFar.size, recovered };
+}
+
+/**
+ * Share of the currently interrupted demand that is restored: restoredKW / (restoredKW + unservedKW).
+ * Unserved demand sits on the interrupted buses (incl. any shed by the plan), so at the final frame
+ * this matches the engine's summary.loadRestoredPct (restored ÷ end-of-horizon demand of those buses).
+ */
+export function restoredShare(frame: Frame): number | null {
+  const denom = frame.power.restoredKW + frame.power.unservedKW;
+  return denom > 1e-6 ? (100 * frame.power.restoredKW) / denom : null;
 }
 
 export function recoveryCardModel(run: RunResult, topology: NetworkTopology, k: number): RecoveryCardModel {
@@ -366,6 +384,10 @@ export function recoveryCardModel(run: RunResult, topology: NetworkTopology, k: 
       if (verified && applied) {
         tone = 'ok';
         title = 'Recovery complete · Simulation Verified';
+      } else if (!plan || !applied) {
+        // the engine also reports recovery-complete after a permanent repair (params.repairTimeMin)
+        tone = 'neutral';
+        title = 'Service restored by repair';
       } else {
         tone = 'warn';
         title = 'Recovery complete (not verified)';
@@ -387,6 +409,7 @@ export function recoveryCardModel(run: RunResult, topology: NetworkTopology, k: 
 
   let subtitle: string;
   if (frame.stage === 'ready') subtitle = run.strategy === 'none' ? 'Baseline run: no recovery actions will be taken' : 'Recovery planner on standby';
+  else if (frame.stage === 'recovery-complete' && (!plan || !applied)) subtitle = 'Faulted section repaired within the horizon';
   else if (frame.stage === 'no-intervention' || run.strategy === 'none') subtitle = 'Outage persists by design (comparison baseline)';
   else if (frame.stage === 'recovery-infeasible') subtitle = plan?.label ?? `${run.summary.candidatesRejected} of ${run.summary.candidatesEvaluated} candidates rejected`;
   else if (planVisible && plan) subtitle = plan.label;
@@ -397,7 +420,7 @@ export function recoveryCardModel(run: RunResult, topology: NetworkTopology, k: 
   for (const e of run.events) if (e.t <= t) clock = e.clock;
 
   const crit = criticalProgress(run, topology, k);
-  const interrupted = run.summary.loadInterruptedKW;
+  const faultSeen = marks.faultT != null && t >= marks.faultT;
   return {
     tone,
     title,
@@ -407,9 +430,9 @@ export function recoveryCardModel(run: RunResult, topology: NetworkTopology, k: 
     planVisible,
     metrics: {
       restoredKW: frame.power.restoredKW,
-      restoredPct: interrupted > 0 ? (100 * frame.power.restoredKW) / interrupted : null,
+      restoredPct: faultSeen ? restoredShare(frame) : null,
       criticalRecovered: crit.recovered,
-      criticalAffected: crit.affected,
+      criticalAtRisk: faultSeen ? crit.atRisk : 0,
       pumpsOnline: frame.water.pumpsOnline,
       pumpsTotal: frame.water.pumpsTotal,
       unservedKW: frame.power.unservedKW,

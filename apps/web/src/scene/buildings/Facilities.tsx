@@ -6,7 +6,7 @@
  */
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, type ThreeEvent } from '@react-three/fiber';
-import { Color, DoubleSide, type Mesh, MeshBasicMaterial, MeshStandardMaterial, CylinderGeometry, TorusGeometry, CircleGeometry, RingGeometry } from 'three';
+import { Color, DoubleSide, type Mesh, MeshBasicMaterial, MeshStandardMaterial, CylinderGeometry, TorusGeometry } from 'three';
 import { useTwin } from '@/state/store';
 import { BUILDING_BY_FACILITY, FACILITY_BY_ID, SURFACE_ELEV, TANKS } from '../data/twin';
 import { isPowered, live } from '../data/live';
@@ -324,6 +324,3 @@ export function Facilities() {
   );
 }
 
-// unused geometry helpers kept tree-shakeable
-void CircleGeometry;
-void RingGeometry;

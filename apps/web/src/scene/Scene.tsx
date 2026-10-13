@@ -13,6 +13,11 @@ import { Buildings } from './buildings/Buildings';
 import { CameraRig } from './camera/CameraRig';
 import { LowerGround } from './context/LowerGround';
 import { Skyline } from './context/Skyline';
+import { Electrical } from './networks/Electrical';
+import { WaterNetwork } from './networks/Water';
+import { Props } from './district/Props';
+import { Facilities } from './buildings/Facilities';
+import { Labels } from './labels/Labels';
 
 /** Runs first every frame: store → `live` typed arrays → shared state textures. */
 function LiveSampler() {
@@ -55,7 +60,12 @@ export function Scene() {
       <Platform />
       <group visible={surface}>
         <Buildings />
+        <Facilities />
+        <Props />
       </group>
+      <Electrical />
+      <WaterNetwork />
+      <Labels />
       <CameraRig />
       <Effects />
     </>

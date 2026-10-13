@@ -1,0 +1,42 @@
+{
+  "file": "cooling-plant.glb",
+  "group": "facilities",
+  "assets": [
+    {
+      "id": "cooling-plant_v0",
+      "kind": "cooling-plant",
+      "variant": 0,
+      "node": "cooling-plant_v0",
+      "nominalSize": [
+        36.0,
+        30.0,
+        17.9
+      ],
+      "anchors": {
+        "label": [
+          0.0,
+          23.9,
+          0.0
+        ],
+        "roofY": 11.0
+      },
+      "notes": "District cooling plant DC-1: chiller hall with louvres, six rooftop cooling-tower cells with fan stacks, thermal storage tank and chilled-water pipework.",
+      "facilityId": "cooling-dc1",
+      "file": "cooling-plant.glb",
+      "tris": 7968,
+      "materials": [
+        "concrete",
+        "facade_alt",
+        "roof",
+        "facade",
+        "trim",
+        "steel_dark",
+        "glazing",
+        "metal",
+        "pipe",
+        "valve_red"
+      ],
+      "vertexAO": true
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "file": "emergency-ops.glb",
+  "group": "facilities",
+  "assets": [
+    {
+      "id": "emergency-ops_v0",
+      "kind": "emergency-ops",
+      "variant": 0,
+      "node": "emergency-ops_v0",
+      "nominalSize": [
+        40.0,
+        30.0,
+        39.56
+      ],
+      "anchors": {
+        "label": [
+          0.0,
+          45.56,
+          0.0
+        ],
+        "roofY": 22.3,
+        "mastTop": [
+          -9.0,
+          39.4,
+          -5.0
+        ]
+      },
+      "notes": "Emergency Operations Centre: robust stone civic block, glazed operations room, antenna mast with aviation light, satellite dishes, standby generator.",
+      "facilityId": "eoc",
+      "file": "emergency-ops.glb",
+      "tris": 5110,
+      "materials": [
+        "concrete",
+        "roof",
+        "glazing",
+        "facade_alt",
+        "facade",
+        "trim",
+        "light_emissive",
+        "metal",
+        "steel_dark"
+      ],
+      "vertexAO": true
+    }
+  ]
+}

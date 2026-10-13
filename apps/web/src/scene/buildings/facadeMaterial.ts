@@ -125,7 +125,7 @@ if (isWall && st > 0.5 && st < 6.5 || isWall && st > 8.5) {
   vec4 r = vec4(0.2, 0.8, 0.3, 0.86);
   float litFrac = 0.55;
   vec3 frameCol = wallCol;
-  if (st < 1.5) { r = vec4(0.2, 0.8, 0.26, 0.84); litFrac = 0.52; }
+  if (st < 1.5) { r = vec4(0.2, 0.8, 0.26, 0.84); litFrac = 0.6; }
   else if (st < 2.5) { r = vec4(0.06, 0.94, 0.1, 0.93); litFrac = 0.62; frameCol = wallCol * 0.55; }
   else if (st < 3.5) { r = vec4(0.0, 1.0, 0.32, 0.8); litFrac = 0.72; }
   else if (st < 4.5) {
@@ -136,7 +136,7 @@ if (isWall && st > 0.5 && st < 6.5 || isWall && st > 8.5) {
   else if (st < 5.5) { r = vec4(0.12, 0.88, 0.55, 0.8); litFrac = 0.35; }
   else if (st < 6.5) { r = vec4(0.15, 0.85, 0.2, 0.8); litFrac = 0.6; }
   else if (st > 8.5 && st < 9.5) { r = vec4(0.03, 0.97, 0.03, 0.97); litFrac = 0.85; }
-  else { r = vec4(0.22, 0.78, 0.28, 0.86); litFrac = 0.52; }
+  else { r = vec4(0.22, 0.78, 0.28, 0.86); litFrac = 0.6; }
 
   float inSpan = step(0.0, cu) * step(cu, nCols);
   float belowTop = 1.0 - smoothstep(topY - 1.1, topY - 0.9, vFacade.y);
@@ -177,9 +177,11 @@ if (isWall && st > 0.5 && st < 6.5 || isWall && st > 8.5) {
   // floor slab lines on punched / ribbon facades
   float slab = (1.0 - encBoxAA(fy, 0.02, 0.98, fw.y)) * (1.0 - farF) * step(st, 3.5) * step(1.5, st);
   vec3 base = st > 1.5 && st < 2.5 ? frameCol : wallCol * (1.0 - 0.12 * slab);
+  // ground-contact darkening (cheap AO) on the lowest metres of each volume
+  base *= mix(0.72, 1.0, smoothstep(0.0, 7.0, vFacade.y - max(baseY, 0.0)));
   diffuseColor.rgb = mix(base, glass, m);
-  roughOut = mix(st > 4.5 && st < 5.5 ? 0.7 : 0.8, 0.06, m);
-  metalOut = mix(st > 1.5 && st < 2.5 ? 0.35 : 0.0, 0.85, m);
+  roughOut = mix(st > 4.5 && st < 5.5 ? 0.7 : 0.8, 0.05, m);
+  metalOut = mix(st > 1.5 && st < 2.5 ? 0.35 : 0.0, 0.92, m);
 }
 else if (!isWall && st > 6.5 && st < 7.5) {
   // rooftop PV: dark blue cells with fine frame lines
