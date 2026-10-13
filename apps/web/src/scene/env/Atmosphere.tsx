@@ -23,7 +23,7 @@ function makeSkyMaterial(clouds: boolean) {
     depthTest: false,
     fog: false,
     toneMapped: true,
-    uniforms: { uTime: { value: 0 }, uDip: { value: 0 } },
+    uniforms: { uTime: { value: 0 }, uDip: { value: 0 }, uClouds: { value: 1 } },
     vertexShader: /* glsl */ `
       varying vec3 vDir;
       void main() {
@@ -34,6 +34,7 @@ function makeSkyMaterial(clouds: boolean) {
     fragmentShader: /* glsl */ `
       uniform float uTime;
       uniform float uDip;
+      uniform float uClouds;
       varying vec3 vDir;
       ${SKY_GLSL}
       ${NOISE_GLSL}
@@ -47,7 +48,7 @@ function makeSkyMaterial(clouds: boolean) {
         ${
           clouds
             ? `
-        if (d.y > 0.0) {
+        if (uClouds > 0.5 && d.y > 0.0 && d.y < 0.9) {
           vec2 cp = d.xz / (d.y + 0.08) * 0.55 + vec2(uTime * 0.004, uTime * 0.001);
           float n = encFbm(cp * 1.6);
           float n2 = encFbm(cp * 4.0 + 3.1);
@@ -76,6 +77,10 @@ function makeSkyMaterial(clouds: boolean) {
 
 export function SkyDome() {
   const mat = useMemo(() => makeSkyMaterial(true), []);
+  const tier = useSceneQuality((s) => s.tier);
+  useEffect(() => {
+    mat.uniforms.uClouds.value = tier === 'low' ? 0 : 1;
+  }, [mat, tier]);
   const ref = useRef<Mesh>(null);
   const fwd = useMemo(() => new Vector3(), []);
   useFrame((state) => {

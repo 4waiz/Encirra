@@ -13,6 +13,7 @@ import { collectMeshes } from '../assets/merge';
 import { kitFiles, kitManifest, useKitSignature } from '../assets/kit';
 import { KIT_BUILDING_FILES, resolvePlacements } from '../buildings/KitBuildings';
 import { useXrayFade } from '../buildings/Buildings';
+import { useSceneQuality } from '../runtime';
 
 const PALMS = cityLayout.props.palms;
 const LIGHTS = cityLayout.props.streetLights;
@@ -61,6 +62,7 @@ export function KitProps({ palms, lights }: { palms: boolean; lights: boolean })
   const sigProps = useKitSignature(['palm.glb', 'streetlight.glb']);
   const sigSolar = useKitSignature(['solar-array.glb', ...KIT_BUILDING_FILES]);
   const sig = sigProps + '#' + sigSolar;
+  const tier = useSceneQuality((s) => s.tier);
   const built = useMemo(() => {
     if (!sigProps.startsWith('ready:')) return null;
     const files = kitFiles(['palm.glb', 'streetlight.glb', 'solar-array.glb', ...KIT_BUILDING_FILES]);
@@ -71,6 +73,7 @@ export function KitProps({ palms, lights }: { palms: boolean; lights: boolean })
     if (palms && files['palm.glb']) {
       const byVariant: Matrix4[][] = [[], [], []];
       PALMS.forEach(([x, z, s, r], i) => {
+        if (tier === 'low' && i % 2 === 1) return; // half the palms on the low tier
         q.setFromAxisAngle(up, r);
         const v = (i * 7 + Math.floor(s * 10)) % 3;
         byVariant[v].push(new Matrix4().compose(new Vector3(x, 0, z), q, new Vector3(s, s * (v === 2 ? 0.85 : 1), s)));
@@ -110,7 +113,7 @@ export function KitProps({ palms, lights }: { palms: boolean; lights: boolean })
       meshes.push(...instanced(files['solar-array.glb'], 'solar-array_v0', list, mats));
     }
     return { meshes, mats: [...mats.values()] };
-  }, [sig, palms, lights]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sig, palms, lights, tier]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(
     () => () => {

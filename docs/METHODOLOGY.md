@@ -248,6 +248,14 @@ of the feeder-fault scenario is electrically safe and verified, but fails `press
   flow / velocity / status, pump state / flow / head / kW, tank level / %.
 * `demandKW` includes the pump demand that would be drawn in normal operation (from a no-fault
   reference EPS) whenever a pump is stopped, so that `unservedKW` counts lost pumping.
+* `unservedKW = demandKW − servedKW` per frame. It includes load the plan deliberately sheds (inside or
+  outside the original outage) and the demand of pumps that cannot run.
+* `restoredKW`: load served at buses whose supply was lost after the fault (dark or shed) and is back.
+* Net restoration (summary `loadRestoredPct`, and the same formula per frame in the UI):
+  `restoredKW / (restoredKW + unservedKW)` at the end of the horizon. `loadRestoredKW` and
+  `remainingUnservedKW` are the last frame's `restoredKW` and `unservedKW`; `loadShedKW` is the load
+  deliberately disconnected by the plan at the end of the horizon; `unservedEnergyKWh` integrates
+  `unservedKW` (so shed load is counted as unserved energy).
 * `criticalUnservedKW`: unserved demand at critical buses minus what a facility genset carries.
 * Facility power: `external` (not on the modelled feeder), `online`, `restored` (energised again after
   an interruption), `backup` (dark or shed but genset fitted), `offline`. Water: `n/a`, `normal`
@@ -267,39 +275,43 @@ of the feeder-fault scenario is electrically safe and verified, but fails `press
 
 ## 9. Results (default scenarios, `npm run sim:export`)
 
-Interrupted kW is the load lost when protection operated (17:00). Loads keep rising towards the 19:00
-peak, so the served load of the interrupted buses at 19:30 is compared with *their* demand at 19:30.
-"Hospital min pressure" is the minimum over the horizon at J-HOSP/J-EOC; "Min below 20 m" counts
-minutes in which a critical facility is below the service threshold. Planning time is the wall-clock
-time of candidate generation, coupled evaluation and independent verification (laptop, single
-process); it is shared by the two planning strategies of a scenario.
+Interrupted kW is the load lost when protection operated (17:00). Restored and shed kW are taken at
+19:30; net restoration is restored ÷ (restored + unserved) at 19:30, where unserved includes plan-shed
+load and stopped pumps. "Critical-facility min pressure" is the minimum over the horizon at
+J-HOSP/J-EOC; "Minutes below 20 m" counts minutes in which a critical facility is below the service
+threshold. Planning time is the wall-clock time of candidate generation, coupled evaluation and
+independent verification (laptop, single process), shared by the two planning strategies of a
+scenario.
 
-| Scenario | Strategy | Plan | Interrupted kW | Interrupted buses served at 19:30, kW (% of their demand) | PS-2 at 19:30 | Hospital min pressure | Min below 20 m | Hard violations | Candidates eval./rej. | Planning time |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| feeder-fault | none | — (recloser stays open) | 829 | 0 (0.0 %) | off | 0.0 m | 79 | 0 | 0/0 | — |
-| feeder-fault | grid-only | C21: Close SW-25-29 · open SW-31-32 | 829 | 647 (69.2 %) | off | 0.0 m | 79 | 0 | 80/59 | 18.6 s |
-| feeder-fault | encirra | C16: Close SW-25-29 · shed B30 | 829 | 736 (78.7 %) | running | 37.8 m | 0 | 0 | 80/59 | 18.4 s |
-| pump-power-loss | none | — (recloser stays open) | 869 | 0 (0.0 %) | off | 0.0 m | 79 | 0 | 0/0 | — |
-| pump-power-loss | grid-only | C01: No further switching (keep post-isolation configuration) | 869 | 899 (91.6 %) | off | 0.0 m | 79 | 0 | 5/1 | 2.8 s |
-| pump-power-loss | encirra | C04: Close SW-18-33 · shed B18 | 869 | 981 (100.0 %) | running | 37.8 m | 0 | 0 | 5/1 | 2.9 s |
-| high-demand | none | — (recloser stays open) | 1031 | 0 (0.0 %) | off | 0.0 m | 91 | 0 | 0/0 | — |
-| high-demand | grid-only | C16: Close SW-25-29 · shed B30 | 1031 | 915 (78.6 %) | running | 37.1 m | 0 | 0 | 83/70 | 19.4 s |
-| high-demand | encirra | C16: Close SW-25-29 · shed B30 | 1031 | 915 (78.6 %) | running | 37.1 m | 0 | 0 | 83/70 | 17.4 s |
+| Scenario | Strategy | Plan | Interrupted kW (17:00) | Restored kW (19:30) | Shed kW (19:30) | Net restoration | PS-2 at 19:30 | Critical-facility min pressure | Minutes below 20 m | Hard violations | Candidates eval. / rej. | Planning time |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| feeder-fault | none | — (recloser stays open) | 829 | 0 | 0 | 0.0 % | off | 0.0 m | 79 | 0 | 0 / 0 | — |
+| feeder-fault | grid-only | C21: Close SW-25-29 · open SW-31-32 | 829 | 647 | 0 | 69.2 % | off | 0.0 m | 79 | 0 | 80 / 59 | 18.3 s |
+| feeder-fault | encirra | C16: Close SW-25-29 · shed B30 | 829 | 736 | 199 | 78.7 % | running | 37.8 m | 0 | 0 | 80 / 59 | 18.1 s |
+| pump-power-loss | none | — (recloser stays open) | 909 | 0 | 0 | 0.0 % | off | 0.0 m | 79 | 0 | 0 / 0 | — |
+| pump-power-loss | grid-only | C01: No further switching (keep post-isolation configuration) | 909 | 941 | 0 | 91.7 % | off | 0.0 m | 79 | 0 | 5 / 2 | 2.5 s |
+| pump-power-loss | encirra | C04: Close SW-18-33 · shed B18 | 909 | 1026 | 98 | 91.2 % | running | 37.8 m | 0 | 0 | 5 / 2 | 2.7 s |
+| high-demand | none | — (recloser stays open) | 1031 | 0 | 0 | 0.0 % | off | 0.0 m | 91 | 0 | 0 / 0 | — |
+| high-demand | grid-only | C16: Close SW-25-29 · shed B30 | 1031 | 915 | 249 | 78.6 % | running | 37.1 m | 0 | 0 | 83 / 70 | 19.8 s |
+| high-demand | encirra | C16: Close SW-25-29 · shed B30 | 1031 | 915 | 249 | 78.6 % | running | 37.1 m | 0 | 0 | 83 / 70 | 18.0 s |
 
 Reading the results:
 
 * **feeder-fault** — both planners restore load, but they disagree on *which* load. Grid-only restores
-  B28–B31 including the 200 kW cooling plant: in its accounting the hospital's 150 kW is already
-  served by the genset and PS-2 is an ordinary ~80 kW load. PS-2 therefore stays dark; Tank T2 empties
-  at 18:12 and hospital pressure is below 20 m for the last 79 minutes. Encirra leaves DC-1 off
-  (its 600 kVAr would overload the ~1 MVA tie) and restores the hospital bus and PS-2: hospital pressure
-  never drops below 37.8 m and T2 never falls below 47 %. Encirra also serves more actual load.
-* **pump-power-loss** — after isolation only PS-2's bus (≈ 80 kW) is dark. Back-feeding it from B18
-  alone is rejected (V(B33) = 0.900 pu < 0.90 pu at 19:00). Grid-only keeps the post-isolation state —
-  restoring one pump would mean interrupting supplied customers — and the hospital loses water at
-  18:12. Encirra interrupts 84 kW at B18 (36 connections, the most voltage-relevant non-critical load
-  on the tie path) to make the back-feed feasible, and the West zone keeps its pump.
-* **high-demand** — the strategies converge (see §10): the tie cannot carry DC-1 at 125 % load, and
+  B28–B31 including the 200 kW cooling plant: in its accounting the hospital's 150 kW is already served
+  by the genset and PS-2 is an ordinary ~80 kW load. PS-2 therefore stays dark; Tank T2 empties at 18:12
+  and hospital pressure is below 20 m for the last 79 minutes. Encirra leaves DC-1 off (with it the
+  ~1 MVA tie would be overloaded) and restores the hospital bus and PS-2: hospital pressure never drops
+  below 37.8 m and T2 never falls below 47 %. Net restoration is 78.7 % against 69.2 %.
+* **pump-power-loss** — after isolation only PS-2's bus is dark. Back-feeding it from B18 alone is
+  rejected (`V(B33)=0.894 pu < 0.90 pu at 19:00`); interrupting the office cluster at B8 instead is
+  rejected because PU-2 would still trip on undervoltage at 18:55 (0.899 pu). Grid-only keeps the
+  post-isolation state — it does not interrupt supplied customers to restore one pump — and the hospital
+  loses water at 18:12. Encirra sheds B18 (88 kW at 17:10, 98 kW at 19:30; 36 connections — the most
+  voltage-relevant non-critical load on the tie path) to free voltage headroom, and the West zone keeps
+  its pump. Net electrical restoration is practically equal (91.2 % vs 91.7 %): Encirra trades a
+  residential block's supply for the hospital's water service, and the trade is reported, not hidden.
+* **high-demand** — the strategies converge (see §10): at 125 % load the tie cannot carry DC-1, and
   with DC-1 off the remaining capacity restores the hospital and PS-2 under both objectives. Restoration
   ends partial (78.6 %) for both; without intervention the hospital loses water after 60 minutes.
 * No plan selected by either strategy violates a hard limit in any frame (verified per minute).
@@ -325,20 +337,42 @@ Scenario parameters:
 
 * **feeder-fault** — fault on line B27–B28 (F3), base load. The tie can carry B28–B31 including DC-1
   (grid-only optimum) or B28, B29, B31–B33 with DC-1 off (Encirra optimum), not both.
-* **pump-power-loss** — fault on PS-2's supply cable (B32–B33) on a warm evening (`loadMultiplier`
-  1.05). PS-2 can only be re-supplied through tie 18–33 from B18. At the evening peak that route
-  violates the 0.90 pu limit by a few thousandths of a per-unit, so restoring PS-2 needs voltage headroom —
-  interrupting supplied customers on the F1 tail. **Sensitivity (reported honestly):** at base load
-  (1.00) the route is feasible with only ≈ 0.002 pu of margin and both strategies restore PS-2 the
-  same way; the scenario's 5 % warmer evening is a declared assumption chosen to illustrate the
-  decision.
+* **pump-power-loss** — fault on PS-2's supply cable (B32–B33) on a hot evening (`loadMultiplier`
+  1.10). PS-2 can only be re-supplied through tie 18–33 from B18, the weakest point of F1, so restoring
+  it needs voltage headroom — interrupting supplied customers on the F1 tail. **Sensitivity (reported
+  honestly):** at base load (1.00) the back-feed is feasible on its own (V(B33) = 0.902 pu, a margin of
+  0.002 pu) and both strategies restore PS-2 identically; at 1.05 it fails by only 0.0003 pu; at 1.10 it
+  fails clearly (0.894 pu) while the B18-shed plan keeps 0.903 pu. The 10 % hotter evening is a declared
+  scenario assumption chosen so that the decision does not rest on a sub-millivolt margin.
 * **high-demand** — electrical ×1.25, water ×1.15, same fault as feeder-fault. Under stress the tie
   cannot carry DC-1 at all; once DC-1 is off, the remaining capacity restores the hospital and PS-2,
   which is also the maximum-energy choice — **both strategies converge** on the same plan and both end
   partially restored (DC-1 off). Tank T2 drains faster: without PS-2 the hospital would lose pressure
   after 60 min instead of 72.
 
-SENSITIVITY_TABLE
+**Planner sensitivity** (screening level: same candidate generation, coupled evaluation and
+objectives; tie rating varied for all five ties):
+
+| Case | Grid-only optimum | Encirra optimum |
+| --- | --- | --- |
+| feeder-fault, ties 42 A or 44 A | close SW-25-29 · shed B30 (PS-2 on) | close SW-25-29 · shed B30 (PS-2 on) |
+| feeder-fault, ties 46 A (**default**) | close SW-25-29 · open SW-31-32 (PS-2 dark) | close SW-25-29 · shed B30 (PS-2 on) |
+| feeder-fault, ties 50 A | close SW-25-29 · open SW-31-32 (PS-2 dark) | close SW-18-33 · close SW-25-29 · open SW-32-33 · shed B29 (PS-2 on) |
+| feeder-fault, ties 55 A | close SW-18-33 · close SW-25-29 · open SW-32-33 · shed B28 (PS-2 on) | same |
+| feeder-fault, ties 58 A | close SW-18-33 · close SW-25-29 · open SW-32-33 (all restored) | same |
+| feeder-fault, ties 62 A | close SW-25-29 (all restored) | same |
+| feeder-fault, load ×0.95 | close SW-25-29 · open SW-31-32 (PS-2 dark) | close SW-18-33 · close SW-25-29 · open SW-32-33 · shed B31 (PS-2 on) |
+| feeder-fault, load ×1.05 | close SW-25-29 · shed B30 (PS-2 on) | same |
+| pump-power-loss, load ×1.00 | close SW-18-33 (PS-2 on) | same |
+| pump-power-loss, load ×1.05 / ×1.10 (**default**) | no further switching (PS-2 dark) | close SW-18-33 · shed B18 (PS-2 on) |
+| high-demand, load ×1.10 / ×1.25 (**default**) | close SW-25-29 · shed B30 (PS-2 on) | same |
+
+The strategies diverge only when restoration capacity is scarce but not exhausted: with very weak ties
+both must shed DC-1, with strong ties everything is restored, and in between the grid-only accounting
+(genset load counted as served, pumps as ordinary load, no new interruptions) leaves the PS-2 section
+dark while the coupled objective restores it. The default scenarios sit inside that window by
+construction of the synthetic ratings; this is a scenario-design choice, documented here, not a
+property of real networks.
 
 ## 11. Assumptions and limitations
 

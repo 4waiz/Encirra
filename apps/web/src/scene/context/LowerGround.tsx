@@ -85,7 +85,7 @@ float gaa = max(max(gfw.x, gfw.y), 0.05);
 float wsd = encWaterSd(gp);
 float isW = 1.0 - smoothstep(-2.0, 2.0, wsd);
 float gn = encNoise(gp * 0.013);
-float gn2 = encNoise(gp * 0.11);
+float gn2 = 0.5 + 0.3 * sin(gp.x * 0.07 + sin(gp.y * 0.031) * 2.0) * sin(gp.y * 0.09 + sin(gp.x * 0.027) * 2.0);
 // streets every ${LOW_GRID} m (aligned with the district grid)
 float sx = encGridLine(gp.x, ${LOW_GRID.toFixed(1)}, ${(LOW_STREET / 2).toFixed(1)}, gaa);
 float sz = encGridLine(gp.y, ${LOW_GRID.toFixed(1)}, ${(LOW_STREET / 2).toFixed(1)}, gaa);
@@ -114,7 +114,7 @@ float centreX = exp(-dX * dX / 6.0) * sx;
 float centreZ = exp(-dZ * dZ / 6.0) * sz;
 float lampsX = pow(0.5 + 0.5 * cos(gp.y * 6.2832 / 28.0), 24.0) * (1.0 - smoothstep(0.6, 1.6, abs(dX - ${(LOW_STREET / 2 - 0.5).toFixed(1)}))) * step(dZ, 200.0);
 float lampsZ = pow(0.5 + 0.5 * cos(gp.x * 6.2832 / 28.0), 24.0) * (1.0 - smoothstep(0.6, 1.6, abs(dZ - ${(LOW_STREET / 2 - 0.5).toFixed(1)})));
-float traffic = 0.45 + 0.55 * smoothstep(0.3, 0.75, encNoise(gp * 0.015 + vec2(uTime * 0.03, uTime * 0.017)));
+float traffic = 0.6 + 0.4 * sin(gp.x * 0.021 + gp.y * 0.017 + uTime * 0.6) * sin(gp.y * 0.013 - uTime * 0.4);
 vec3 gEm = vec3(1.0, 0.56, 0.24) * (street * mix(0.05, 0.11, 1.0 - lfade) + max(centreX, centreZ) * 0.22 * traffic) * (1.0 - isW);
 gEm += vec3(1.0, 0.72, 0.42) * max(lampsX, lampsZ) * 2.2 * lfade * (1.0 - isW);
 gEm += vec3(1.0, 0.7, 0.4) * walk * 0.03 * (1.0 - isW);
