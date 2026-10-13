@@ -98,13 +98,13 @@ function ClockAndContext() {
         <div className="h-6 w-px bg-line" />
         <div
           className="flex items-center gap-1.5 px-[clamp(6px,0.6vw,12px)]"
-          data-tip={`${amb.temperatureC} °C, ${amb.condition}. ${amb.source}: a scenario assumption, not live weather.`}
+          data-tip={`${amb.temperatureC} °C, ${amb.condition.toLowerCase()}. Scenario assumption (${amb.source.toLowerCase()}), not live weather.`}
           data-tip-pos="bottom-end"
           data-testid="ambient"
         >
           <Sun size={22} className="text-power" strokeWidth={2} />
           <div className="leading-none">
-            <div className="text-[clamp(12px,0.82vw,15px)] font-semibold whitespace-nowrap text-navy">{amb.temperatureC}°C</div>
+            <div className="text-[clamp(12px,0.82vw,15px)] font-semibold whitespace-nowrap text-navy">{amb.temperatureC}&#8201;°C</div>
             <div className="hide-below-1400 mt-[3px] text-[10px] whitespace-nowrap text-slate">{amb.condition.split(',')[0]}</div>
           </div>
         </div>
