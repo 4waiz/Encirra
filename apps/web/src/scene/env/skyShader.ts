@@ -44,8 +44,8 @@ vec3 encSkyBase(vec3 d, float withSun) {
   return col;
 }
 vec3 encHaze(vec3 d) {
-  vec3 dd = normalize(vec3(d.x, clamp(d.y, -0.04, 0.06), d.z));
-  return encSkyBase(dd, 0.35) * 0.92;
+  vec3 dd = normalize(vec3(d.x, 0.004, d.z) + vec3(1e-5, 0.0, 0.0));
+  return encSkyBase(dd, 0.35) * 0.95;
 }
 #endif
 `;

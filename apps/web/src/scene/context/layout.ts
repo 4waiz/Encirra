@@ -4,7 +4,6 @@
  * composition (supertall behind-left, towers framing both sides, downtown behind the district).
  */
 import { mulberry32 } from '../lib/GeoBuilder';
-import { bendDrop } from './bend';
 
 export const GROUND_Y = -48;
 
@@ -74,16 +73,17 @@ export function skylineTowers(): TowerSpec[] {
   const rnd = mulberry32(2026);
   const out: TowerSpec[] = [];
   // downtown behind the district
-  cluster(out, rnd, 60, -1350, 650, 520, 70, 110, 420, 2.0);
+  cluster(out, rnd, 80, -980, 560, 330, 46, 120, 400, 1.8);
   // west marina across the creek
-  cluster(out, rnd, -1180, -700, 330, 900, 55, 90, 320, 2.2);
+  cluster(out, rnd, -1000, -520, 260, 640, 40, 110, 340, 1.9);
   // east waterfront
-  cluster(out, rnd, 600, -800, 200, 650, 36, 90, 300, 2.0);
+  cluster(out, rnd, 620, -560, 170, 520, 30, 100, 320, 1.9);
   // far ring (silhouettes)
-  cluster(out, rnd, -200, -2150, 1500, 330, 60, 80, 260, 2.4);
-  cluster(out, rnd, 1500, 300, 260, 900, 25, 70, 220, 2.4);
-  cluster(out, rnd, -1500, 900, 300, 500, 22, 60, 200, 2.4);
-  for (const t of out) t.base = GROUND_Y - bendDrop(t.x, t.z);
+  cluster(out, rnd, -150, -1650, 1300, 300, 46, 90, 300, 2.2);
+  cluster(out, rnd, 1250, 150, 230, 700, 22, 80, 260, 2.2);
+  cluster(out, rnd, -1350, 700, 260, 420, 18, 70, 220, 2.2);
+  // base is the flat-world height; the curved-world drop is applied in the vertex shader
+  for (const t of out) t.base = GROUND_Y;
   return out;
 }
 
@@ -113,11 +113,11 @@ export function lowerCity(): LowSpec[] {
         if (r > R) continue;
         if (isWater(x, z, 25) || nearDistrict(x, z, 40)) continue;
         // keep the foreground in front of the cut-away low
-        const front = z > 160 && z < 900 && x > -800 && x < 500;
+        const front = z > 160 && z < 1100 && x > -900 && x < 600;
         const w = 18 + rnd() * 26;
         const d = 16 + rnd() * 26;
-        let h = 10 + Math.pow(rnd(), 2.2) * (front ? 22 : 70);
-        if (r > 1600) h *= 1.3;
+        const cap = front ? 14 : r < 650 ? 20 : r < 1100 ? 42 : 75;
+        const h = 6 + Math.pow(rnd(), 2.0) * cap;
         out.push({ x, z, w, d, h, rot: rnd() < 0.85 ? 0 : Math.PI / 4, seed: rnd() * 1000 });
       }
     }

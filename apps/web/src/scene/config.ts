@@ -34,7 +34,7 @@ export const LIN = {
 /** Sun direction (towards the sun) — low warm dusk sun in the west-south-west. */
 export const SUN = {
   azimuthDeg: 252, // compass-like: 0 = -Z (north), 90 = +X (east), 180 = +Z (south), 270 = -X (west)
-  elevationDeg: 13,
+  elevationDeg: 19,
   color: '#FFB27A',
 };
 

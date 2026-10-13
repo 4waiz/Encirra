@@ -30,8 +30,12 @@ function IconBadge({ tone, children }: { tone: Tone; children: React.ReactNode }
   );
 }
 
-function MetricRow({ children }: { children: React.ReactNode }) {
-  return <div className="mt-auto grid grid-cols-4 gap-0 divide-x divide-line border-t border-line pt-[clamp(6px,0.9vh,10px)] [&>*]:px-[clamp(6px,0.6vw,12px)] [&>*:first-child]:pl-0">{children}</div>;
+function MetricRow({ children, cols = '1fr 1.22fr 1fr 1.08fr' }: { children: React.ReactNode; cols?: string }) {
+  return (
+    <div style={{ gridTemplateColumns: cols }} className="mt-auto grid gap-0 divide-x divide-line border-t border-line pt-[clamp(6px,0.9vh,10px)] [&_.t-label]:text-[clamp(10px,0.64vw,11.5px)] [&>*]:px-[clamp(5px,0.5vw,10px)] [&>*:first-child]:pl-0">
+      {children}
+    </div>
+  );
 }
 
 // ───────────────────────────────────────────────────────────── 1. Feeder fault
@@ -42,6 +46,7 @@ export function FaultCard() {
   const { frame, topology } = ctx;
   const active = model.active;
   const pumpsOff = frame.water.pumpsTotal - frame.water.pumpsOnline;
+  const unsupplied = frame.power.busState.filter((st) => st !== 'energized' && st !== 'restored').length;
   const notSafe = frame.facilities.filter((f) => f.status !== 'safe' && topology.facilities.find((x) => x.id === f.id)?.critical).length;
   return (
     <Card className="flex h-full flex-col p-[clamp(10px,0.8vw,15px)]" data-testid="fault-card" data-state={active ? 'fault' : 'normal'}>
@@ -63,7 +68,9 @@ export function FaultCard() {
             </>
           ) : (
             <>
-              <div className="t-body truncate font-medium text-ink">All modelled feeders supplied</div>
+              <div className="t-body truncate font-medium text-ink">
+                {unsupplied === 0 ? 'All modelled buses supplied' : `${unsupplied} of ${frame.power.busState.length} buses without supply`}
+              </div>
               <div className="t-label truncate">
                 {fmtInt(frame.power.servedKW)} kW served · {frame.water.pumpsOnline}/{frame.water.pumpsTotal} pumps online · {fmtPct(frame.water.deliveredPct)} water demand met
               </div>
@@ -179,7 +186,9 @@ export function RecoveryCard() {
             <button
               type="button"
               onClick={() => setWhy(true)}
-              disabled={!model.planVisible && ctx.run.candidates.length === 0}
+              disabled={!model.planVisible && !(ctx.run.strategy === 'none' && ctx.frame.stage !== 'ready')}
+              data-tip={model.planVisible || ctx.run.strategy === 'none' ? undefined : 'Available once recovery candidates have been evaluated'}
+              data-tip-pos="bottom-end"
               className="inline-flex shrink-0 items-center gap-1 rounded-full border border-info/25 bg-info-soft px-2 py-[2px] t-micro font-semibold text-info hover:bg-info hover:text-white disabled:opacity-40"
               data-testid="why-plan-btn"
             >

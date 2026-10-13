@@ -5,7 +5,9 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Environment, Lightformer } from '@react-three/drei';
-import { BackSide, Color, FogExp2, type DirectionalLight, type Mesh, Object3D, ShaderMaterial } from 'three';
+import { BackSide, Color, FogExp2, type DirectionalLight, type Mesh, Object3D, ShaderMaterial, Vector3 } from 'three';
+import { bendDrop } from '../context/bend';
+import { GROUND_Y } from '../context/layout';
 import { SKY_GLSL, NOISE_GLSL, installHazeFog } from './skyShader';
 import { SUN, sunDirection, WORLD } from '../config';
 import { useSceneQuality } from '../runtime';
@@ -19,7 +21,7 @@ function makeSkyMaterial(clouds: boolean) {
     depthTest: false,
     fog: false,
     toneMapped: true,
-    uniforms: { uTime: { value: 0 } },
+    uniforms: { uTime: { value: 0 }, uDip: { value: 0 } },
     vertexShader: /* glsl */ `
       varying vec3 vDir;
       void main() {
@@ -29,11 +31,16 @@ function makeSkyMaterial(clouds: boolean) {
       }`,
     fragmentShader: /* glsl */ `
       uniform float uTime;
+      uniform float uDip;
       varying vec3 vDir;
       ${SKY_GLSL}
       ${NOISE_GLSL}
       void main() {
-        vec3 d = normalize(vDir);
+        vec3 d0 = normalize(vDir);
+        // shift the sky so its horizon band sits on the visible (curved-world) horizon
+        float el = asin(clamp(d0.y, -1.0, 1.0)) + uDip;
+        vec2 hz = normalize(d0.xz + vec2(1e-5, 0.0));
+        vec3 d = vec3(hz.x * cos(el), sin(el), hz.y * cos(el));
         vec3 col = encSkyBase(d, 1.0);
         ${
           clouds
@@ -68,9 +75,25 @@ function makeSkyMaterial(clouds: boolean) {
 export function SkyDome() {
   const mat = useMemo(() => makeSkyMaterial(true), []);
   const ref = useRef<Mesh>(null);
+  const fwd = useMemo(() => new Vector3(), []);
   useFrame((state) => {
     mat.uniforms.uTime.value = state.clock.elapsedTime;
-    if (ref.current) ref.current.position.copy(state.camera.position);
+    const cam = state.camera;
+    if (ref.current) ref.current.position.copy(cam.position);
+    // visible horizon of the curved context ground along the view azimuth
+    cam.getWorldDirection(fwd);
+    fwd.y = 0;
+    if (fwd.lengthSq() < 1e-6) fwd.set(0, 0, -1);
+    fwd.normalize();
+    let best = -Math.PI / 2;
+    for (let i = 0; i < 64; i++) {
+      const s = 30 * Math.pow(400, i / 63);
+      const x = cam.position.x + fwd.x * s;
+      const z = cam.position.z + fwd.z * s;
+      const e = Math.atan2(GROUND_Y - bendDrop(x, z) - cam.position.y, s);
+      if (e > best) best = e;
+    }
+    mat.uniforms.uDip.value = Math.max(0, -best);
   });
   useEffect(() => () => mat.dispose(), [mat]);
   return (
@@ -86,7 +109,7 @@ export function SkyEnvironment() {
   const sd = sunDirection();
   useEffect(() => () => mat.dispose(), [mat]);
   return (
-    <Environment resolution={256} frames={1} environmentIntensity={0.62}>
+    <Environment resolution={256} frames={1} environmentIntensity={0.55}>
       <mesh material={mat} scale={500} renderOrder={-1}>
         <sphereGeometry args={[1, 64, 32]} />
       </mesh>
@@ -135,7 +158,7 @@ export function Lights() {
   }, [target, mapSize]);
 
   useEffect(() => {
-    scene.fog = new FogExp2(new Color('#ffffff'), 0.00026);
+    scene.fog = new FogExp2(new Color('#ffffff'), 0.00042);
     return () => {
       scene.fog = null;
     };
@@ -146,13 +169,13 @@ export function Lights() {
       <directionalLight
         ref={sun}
         color={SUN.color}
-        intensity={3.1}
+        intensity={4.4}
         position={[sd[0] * 900, sd[1] * 900, sd[2] * 900]}
         castShadow={tier !== 'low'}
       />
       {/* cool sky fill from the opposite side to separate facades */}
-      <directionalLight color="#A9BCD8" intensity={0.55} position={[-sd[0] * 600, 500, -sd[2] * 600]} />
-      <hemisphereLight args={['#C6CEDC', '#7B5E46', 0.75]} />
+      <directionalLight color="#A9BCD8" intensity={0.45} position={[-sd[0] * 600, 500, -sd[2] * 600]} />
+      <hemisphereLight args={['#C9D3E2', '#8A6A50', 0.55]} />
     </>
   );
 }

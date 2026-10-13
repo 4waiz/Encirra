@@ -21,7 +21,7 @@ export function LiveTwin() {
       style={{ gridTemplateRows: 'var(--top-h) minmax(0, 1fr) var(--bottom-h)' }}
       data-testid="live-twin"
     >
-      <section className="grid min-h-0 gap-[var(--gap)]" style={{ gridTemplateColumns: '1.27fr 0.98fr 1.37fr 1.08fr' }} aria-label="Incident and recovery status">
+      <section className="grid min-h-0 gap-[var(--gap)]" style={{ gridTemplateColumns: '1.27fr 0.98fr 1.42fr 1.06fr', gridTemplateRows: 'minmax(0, 1fr)' }} aria-label="Incident and recovery status">
         <FaultCard />
         <FeederStatusCard />
         <RecoveryCard />
@@ -38,7 +38,7 @@ export function LiveTwin() {
           <PlaybackBar />
         </div>
       </section>
-      <section className="grid min-h-0 gap-[var(--gap)]" style={{ gridTemplateColumns: '1fr 1fr 1.21fr 1.18fr' }} aria-label="Network panels">
+      <section className="grid min-h-0 gap-[var(--gap)]" style={{ gridTemplateColumns: '1fr 1fr 1.21fr 1.18fr', gridTemplateRows: 'minmax(0, 1fr)' }} aria-label="Network panels">
         <PowerPanel />
         <WaterPanel />
         <FacilitiesPanel />

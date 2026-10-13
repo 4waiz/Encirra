@@ -463,7 +463,7 @@ export const POWER_LABEL: Record<FacilityPower, string> = {
   offline: 'Offline',
   backup: 'On backup',
   restored: 'Restored',
-  external: 'External supply',
+  external: 'External',
 };
 export const WATER_LABEL: Record<FacilityWater, string> = {
   normal: 'Normal',

@@ -12,12 +12,12 @@ interface ViewBox {
   height?: number;
 }
 
-/** Event marker label placed beside its line (left or right) so neighbouring markers never collide. */
-function MarkerLabel({ viewBox, text, color, side }: { viewBox?: ViewBox; text: string; color: string; side: 'left' | 'right' }) {
-  const x = (viewBox?.x ?? 0) + (side === 'left' ? -3 : 3);
-  const y = (viewBox?.y ?? 0) + 8;
+/** Event marker label to the right of its line; `row` staggers neighbouring markers vertically so they never collide. */
+function MarkerLabel({ viewBox, text, color, row = 0 }: { viewBox?: ViewBox; text: string; color: string; row?: number }) {
+  const x = (viewBox?.x ?? 0) + 3;
+  const y = (viewBox?.y ?? 0) + 9 + row * 11;
   return (
-    <text x={x} y={y} textAnchor={side === 'left' ? 'end' : 'start'} fontSize={10} fontWeight={600} fill={color}>
+    <text x={x} y={y} textAnchor="start" fontSize={10} fontWeight={600} fill={color} stroke="#fff" strokeWidth={3} paintOrder="stroke">
       {text}
     </text>
   );
@@ -39,15 +39,15 @@ export const PowerChart = memo(function PowerChart({ run, playMin, height }: { r
       <ComposedChart data={data} margin={{ top: 14, right: 10, bottom: 0, left: 0 }}>
         <CartesianGrid vertical={false} {...GRID} />
         <XAxis dataKey="min" type="number" domain={[0, maxMin]} ticks={ticks} tickFormatter={fmtX} tick={AXIS_TICK} axisLine={AXIS_LINE} tickLine={false} height={16} />
-        <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} width={30} tickFormatter={kTick} domain={[0, 'auto']} />
+        <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} width={36} tickFormatter={kTick} domain={[0, 'auto']} />
         {faultMin != null && <ReferenceArea x1={faultMin} x2={restoredMin ?? maxMin} fill="#F04438" fillOpacity={0.06} ifOverflow="hidden" />}
         <Area dataKey="servedKW" type="linear" stroke={SERIES.served} strokeWidth={2} fill={SERIES.servedWash} fillOpacity={0.12} isAnimationActive={false} dot={false} activeDot={{ r: 4, strokeWidth: 2, stroke: '#fff' }} />
         <Line dataKey="demandKW" type="linear" stroke={SERIES.demand} strokeWidth={1.5} dot={false} isAnimationActive={false} activeDot={{ r: 3.5, strokeWidth: 2, stroke: '#fff' }} />
         {faultMin != null && (
-          <ReferenceLine x={faultMin} stroke="#F04438" strokeWidth={1.2} label={<MarkerLabel text="Fault" color="#c8281d" side="left" />} />
+          <ReferenceLine x={faultMin} stroke="#F04438" strokeWidth={1.2} label={<MarkerLabel text="Fault" color="#c8281d" />} />
         )}
         {restoredMin != null && (
-          <ReferenceLine x={restoredMin} stroke="#17A769" strokeWidth={1.2} label={<MarkerLabel text="Restored" color="#0f7f4f" side="right" />} />
+          <ReferenceLine x={restoredMin} stroke="#17A769" strokeWidth={1.2} label={<MarkerLabel text="Restored" color="#0f7f4f" row={1} />} />
         )}
         <ReferenceLine x={playMin} stroke="#15283C" strokeWidth={1} strokeOpacity={0.7} />
         <Tooltip
@@ -112,10 +112,10 @@ export const WaterCharts = memo(function WaterCharts({ run, topology, playMin }:
   const markers = (withLabels: boolean) => (
     <>
       {tripMin != null && (
-        <ReferenceLine x={tripMin} stroke="#F04438" strokeWidth={1.2} label={withLabels ? <MarkerLabel text="Pump trip" color="#c8281d" side="left" /> : undefined} />
+        <ReferenceLine x={tripMin} stroke="#F04438" strokeWidth={1.2} label={withLabels ? <MarkerLabel text="Pump trip" color="#c8281d" /> : undefined} />
       )}
       {recMin != null && (
-        <ReferenceLine x={recMin} stroke="#17A769" strokeWidth={1.2} label={withLabels ? <MarkerLabel text="Recovered" color="#0f7f4f" side="right" /> : undefined} />
+        <ReferenceLine x={recMin} stroke="#17A769" strokeWidth={1.2} label={withLabels ? <MarkerLabel text="Recovered" color="#0f7f4f" row={1} /> : undefined} />
       )}
       <ReferenceLine x={playMin} stroke="#15283C" strokeWidth={1} strokeOpacity={0.7} />
     </>
@@ -128,7 +128,7 @@ export const WaterCharts = memo(function WaterCharts({ run, topology, playMin }:
           <ComposedChart data={data} margin={{ top: 14, right: 10, bottom: 0, left: 0 }} syncId="water">
             <CartesianGrid vertical={false} {...GRID} />
             <XAxis dataKey="min" type="number" domain={[0, maxMin]} ticks={ticks} tick={false} axisLine={AXIS_LINE} tickLine={false} height={2} />
-            <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} width={30} domain={[0, Math.ceil(pMax / 10) * 10]} tickCount={4} />
+            <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} width={36} domain={[0, Math.ceil(pMax / 10) * 10]} tickCount={4} />
             {tripMin != null && belowMin != null && belowMin > tripMin && <ReferenceArea x1={tripMin} x2={belowMin} fill="#00BFEA" fillOpacity={0.08} ifOverflow="hidden" />}
             <ReferenceLine y={thr} stroke={SERIES.threshold} strokeDasharray="4 3" strokeWidth={1} strokeOpacity={0.7} />
             <Area dataKey="criticalPressureM" type="linear" stroke={SERIES.pressure} strokeWidth={2} fill={SERIES.pressure} fillOpacity={0.1} isAnimationActive={false} dot={false} activeDot={{ r: 4, strokeWidth: 2, stroke: '#fff' }} />
@@ -160,7 +160,7 @@ export const WaterCharts = memo(function WaterCharts({ run, topology, playMin }:
           <ComposedChart data={tankData} margin={{ top: 4, right: 10, bottom: 0, left: 0 }} syncId="water">
             <CartesianGrid vertical={false} {...GRID} />
             <XAxis dataKey="min" type="number" domain={[0, maxMin]} ticks={ticks} tickFormatter={fmtX} tick={AXIS_TICK} axisLine={AXIS_LINE} tickLine={false} height={16} />
-            <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} width={30} domain={[0, 100]} ticks={[0, 50, 100]} tickFormatter={(v: number) => `${v}%`} />
+            <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} width={36} domain={[0, 100]} ticks={[0, 50, 100]} tickFormatter={(v: number) => `${v}%`} />
             <Area dataKey="level" type="linear" stroke={SERIES.tank} strokeWidth={2} fill={SERIES.tank} fillOpacity={0.1} isAnimationActive={false} dot={false} activeDot={{ r: 3.5, strokeWidth: 2, stroke: '#fff' }} />
             {markers(false)}
             <Tooltip

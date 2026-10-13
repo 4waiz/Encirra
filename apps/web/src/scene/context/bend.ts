@@ -9,7 +9,7 @@
  */
 import type { Material, WebGLProgramParametersWithUniforms } from 'three';
 
-export const BEND = { r0: 430, R: 5200 };
+export const BEND = { r0: 290, R: 2300 };
 
 export const BEND_GLSL = /* glsl */ `
 float encBendDrop(vec2 xz) {

@@ -61,6 +61,7 @@ const wait = Number(opt('wait', 3500));
 const fpsSeconds = Number(opt('fps', 3));
 const cinematic = opt('cinematic', false);
 const extra = opt('eval', null);
+const cams = opt('cams', null); // JSON: [[px,py,pz,tx,ty,tz,fov], ...] captured in one session
 
 const parseSel = (s) => {
   if (!s || s === true) return null;
@@ -171,6 +172,21 @@ for (const [w, h] of sizes) {
     console.log(`  console (${uniq.length}):`);
     for (const l of uniq.slice(0, 25)) console.log('   ', l.slice(0, 400));
   } else console.log('  console: clean');
+  if (cams) {
+    const list = JSON.parse(String(cams));
+    for (let k = 0; k < list.length; k++) {
+      await page.evaluate((c) => {
+        const st = window.__encirra.r3f();
+        if (c[6]) st.camera.fov = c[6];
+        st.camera.updateProjectionMatrix();
+        st.controls.setLookAt(c[0], c[1], c[2], c[3], c[4], c[5], false);
+      }, list[k]);
+      await page.waitForTimeout(900);
+      const f = join(outDir, `${name}-cam${k}-${w}x${h}.png`);
+      await page.screenshot({ path: f });
+      console.log('  cam', k, JSON.stringify(list[k]), '→', f);
+    }
+  }
   await page.close();
 }
 await browser.close();

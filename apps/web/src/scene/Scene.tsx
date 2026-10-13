@@ -11,6 +11,8 @@ import { Effects } from './env/Effects';
 import { Platform } from './district/Platform';
 import { Buildings } from './buildings/Buildings';
 import { CameraRig } from './camera/CameraRig';
+import { LowerGround } from './context/LowerGround';
+import { Skyline } from './context/Skyline';
 
 /** Runs first every frame: store → `live` typed arrays → shared state textures. */
 function LiveSampler() {
@@ -39,12 +41,17 @@ function LiveSampler() {
 
 export function Scene() {
   const surface = useTwin((s) => s.layers.surface);
+  const skyline = useTwin((s) => s.layers.skyline);
   return (
     <>
       <LiveSampler />
       <SkyDome />
       <SkyEnvironment />
       <Lights />
+      <group visible={skyline}>
+        <LowerGround />
+        <Skyline />
+      </group>
       <Platform />
       <group visible={surface}>
         <Buildings />

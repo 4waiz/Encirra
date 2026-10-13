@@ -68,7 +68,7 @@ def setup_render(res=(1600, 900), samples=48):
     sc.view_settings.exposure = 0.0
 
 
-def setup_dusk_world(strength=0.85, sun_dir=(-0.62, -0.76, 0.2)):
+def setup_dusk_world(strength=0.6, sun_dir=(-0.62, -0.76, 0.2)):
     sc = bpy.context.scene
     w = bpy.data.worlds.get("Dusk") or bpy.data.worlds.new("Dusk")
     sc.world = w
@@ -121,7 +121,7 @@ def setup_dusk_world(strength=0.85, sun_dir=(-0.62, -0.76, 0.2)):
     return w
 
 
-def add_lights(sun_dir=(-0.62, -0.76, 0.2), strength=4.8):
+def add_lights(sun_dir=(-0.62, -0.76, 0.2), strength=7.0):
     sc = bpy.context.scene
     for ob in [o for o in sc.objects if o.name.startswith("_pv_light")]:
         bpy.data.objects.remove(ob, do_unlink=True)
@@ -176,8 +176,8 @@ def glazing_preview(mat):
     inx = _math(nodes, "MULTIPLY", _math(nodes, "GREATER_THAN", fu, 0.06, links=links), _math(nodes, "LESS_THAN", fu, 0.94, links=links), links=links)
     iny = _math(nodes, "MULTIPLY", _math(nodes, "GREATER_THAN", fv, 0.10, links=links), _math(nodes, "LESS_THAN", fv, 0.90, links=links), links=links)
     mask = _math(nodes, "MULTIPLY", inx, iny, links=links)
-    lit = _math(nodes, "MULTIPLY", _math(nodes, "GREATER_THAN", r1, 0.52, links=links), mask, links=links)
-    level = _math(nodes, "ADD", _math(nodes, "MULTIPLY", r2, 5.0, links=links), 1.8, links=links)
+    lit = _math(nodes, "MULTIPLY", _math(nodes, "GREATER_THAN", r1, 0.6, links=links), mask, links=links)
+    level = _math(nodes, "ADD", _math(nodes, "MULTIPLY", r2, 1.6, links=links), 0.5, links=links)
     strength = _math(nodes, "MULTIPLY", lit, level, links=links)
     mix = nodes.new("ShaderNodeMix")
     mix.data_type = "RGBA"
@@ -190,10 +190,10 @@ def glazing_preview(mat):
     base = nodes.new("ShaderNodeMix")
     base.data_type = "RGBA"
     links.new(mask, base.inputs["Factor"])
-    base.inputs[6].default_value = (0.06, 0.06, 0.065, 1)
-    base.inputs[7].default_value = (0.03, 0.045, 0.06, 1)
+    base.inputs[6].default_value = (0.05, 0.05, 0.055, 1)
+    base.inputs[7].default_value = (0.06, 0.085, 0.11, 1)
     links.new(base.outputs[2], bsdf.inputs["Base Color"])
-    rough = _math(nodes, "SUBTRACT", 0.45, _math(nodes, "MULTIPLY", mask, 0.38, links=links), links=links)
+    rough = _math(nodes, "SUBTRACT", 0.4, _math(nodes, "MULTIPLY", mask, 0.36, links=links), links=links)
     links.new(rough, bsdf.inputs["Roughness"])
     bsdf.inputs["Metallic"].default_value = 0.0
     if "Specular IOR Level" in bsdf.inputs:
