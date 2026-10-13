@@ -231,7 +231,7 @@ export function Electrical() {
   const ribbon = useMemo(() => ribbonGeometry(), []);
   const cableMat = useMemo(() => cableMaterial(), []);
   const nodeSpecs = useMemo<GlyphSpec[]>(
-    () => BUSES.map((b) => ({ pos: [b.pos[0], 1.2, b.pos[1]] as [number, number, number], size: b.number === 1 ? 26 : 9, bus: b.index })),
+    () => BUSES.map((b) => ({ pos: [b.pos[0], 1.2, b.pos[1]] as [number, number, number], size: b.number === 1 ? 0 : 9, bus: b.index })),
     [],
   );
   const nodeGeo = useMemo(() => glyphGeometry(nodeSpecs), [nodeSpecs]);

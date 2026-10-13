@@ -76,18 +76,30 @@ export function CameraRig() {
     if (req.focus) {
       const f = focusTargetFor(req.focus);
       if (!f) return;
+      // elements buried in the block (distribution mains, junctions) need the x-ray view
+      if (f.underground && (req.focus.kind === 'pipe' || req.focus.kind === 'junction')) {
+        const st = useTwin.getState();
+        // gallery mains / headers (front z > 144 or west x < -234) are visible in the cut-away
+        const buried = f.center[2] < 144 && f.center[0] > -234;
+        if (buried && !st.layers.underground) st.setLayer('underground', true);
+      }
       t1 = new Vector3(...f.center);
       // keep the current azimuth, settle at a comfortable oblique angle
       const dir = p0.clone().sub(t0);
       dir.y = 0;
       if (dir.lengthSq() < 1) dir.set(-0.35, 0, 1);
       dir.normalize();
-      if (f.underground) {
-        // look into the cut-away from the outside of the platform
-        if (dir.z < 0.2 && dir.x > -0.2) dir.set(-0.25, 0, 1).normalize();
+      // gallery elements are framed from outside the cut face at a low angle; elements buried in
+      // the block are framed from above (the x-ray view reveals them)
+      const inGallery = f.underground && !(f.center[2] < 144 && f.center[0] > -234);
+      const buriedTarget = f.underground && !inGallery;
+      if (inGallery) {
+        // look into the cut-away from outside the face that exposes the element
+        if (f.center[0] < -234 && f.center[2] < 144) dir.set(-1, 0, 0.3).normalize();
+        else if (dir.z < 0.35) dir.set(-0.3, 0, 1).normalize();
       }
-      const elev = f.underground ? MathUtils.degToRad(14) : MathUtils.degToRad(33);
-      const dist = f.radius * 2.4;
+      const elev = MathUtils.degToRad(inGallery ? 14 : buriedTarget ? 40 : 33);
+      const dist = buriedTarget ? Math.max(170, f.radius * 3.2) : f.radius * 2.4;
       p1 = t1.clone().add(new Vector3(dir.x * Math.cos(elev), Math.sin(elev), dir.z * Math.cos(elev)).multiplyScalar(dist));
       fov1 = 34;
       dur = req.durationS ?? 1.6;

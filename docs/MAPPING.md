@@ -81,8 +81,8 @@
 
 | Pump | Station | Supply bus | Design point | Efficiency |
 |---|---|---|---|---:|
-| PU-1 | ps-1 | B14 | 62 L/s @ 46 m | 74 % |
-| PU-2 | ps-2 | B33 | 50 L/s @ 46 m | 74 % |
+| PU-1 | ps-1 | B14 | 46 L/s @ 38 m | 74 % |
+| PU-2 | ps-2 | B33 | 40 L/s @ 36 m | 74 % |
 
 | Tank | Zone | Floor elevation (m) | Level range (m) | Diameter (m) | Usable volume (m³) |
 |---|---|---:|---|---:|---:|

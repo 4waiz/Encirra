@@ -9,8 +9,8 @@
 Encirra is a **physics-driven, optimization-assisted** digital twin. Every number in a run — every
 voltage, flow, pressure, tank level and pump power in every frame — comes from an AC power flow
 (pandapower) or an extended-period hydraulic simulation (EPANET 2.2 via WNTR). Recovery plans are
-chosen by an explicit, documented objective over an exhaustively enumerated candidate set; there is no
-learned model and no language-model decision making anywhere in the pipeline.
+chosen by an explicit, documented objective over an exhaustively evaluated candidate set; there is no
+machine-learned or generative component anywhere in the decision path.
 
 ---
 
@@ -267,7 +267,42 @@ of the feeder-fault scenario is electrically safe and verified, but fails `press
 
 ## 9. Results (default scenarios, `npm run sim:export`)
 
-RESULTS_TABLE
+Interrupted kW is the load lost when protection operated (17:00). Loads keep rising towards the 19:00
+peak, so the served load of the interrupted buses at 19:30 is compared with *their* demand at 19:30.
+"Hospital min pressure" is the minimum over the horizon at J-HOSP/J-EOC; "Min below 20 m" counts
+minutes in which a critical facility is below the service threshold. Planning time is the wall-clock
+time of candidate generation, coupled evaluation and independent verification (laptop, single
+process); it is shared by the two planning strategies of a scenario.
+
+| Scenario | Strategy | Plan | Interrupted kW | Interrupted buses served at 19:30, kW (% of their demand) | PS-2 at 19:30 | Hospital min pressure | Min below 20 m | Hard violations | Candidates eval./rej. | Planning time |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| feeder-fault | none | — (recloser stays open) | 829 | 0 (0.0 %) | off | 0.0 m | 79 | 0 | 0/0 | — |
+| feeder-fault | grid-only | C21: Close SW-25-29 · open SW-31-32 | 829 | 647 (69.2 %) | off | 0.0 m | 79 | 0 | 80/59 | 18.6 s |
+| feeder-fault | encirra | C16: Close SW-25-29 · shed B30 | 829 | 736 (78.7 %) | running | 37.8 m | 0 | 0 | 80/59 | 18.4 s |
+| pump-power-loss | none | — (recloser stays open) | 869 | 0 (0.0 %) | off | 0.0 m | 79 | 0 | 0/0 | — |
+| pump-power-loss | grid-only | C01: No further switching (keep post-isolation configuration) | 869 | 899 (91.6 %) | off | 0.0 m | 79 | 0 | 5/1 | 2.8 s |
+| pump-power-loss | encirra | C04: Close SW-18-33 · shed B18 | 869 | 981 (100.0 %) | running | 37.8 m | 0 | 0 | 5/1 | 2.9 s |
+| high-demand | none | — (recloser stays open) | 1031 | 0 (0.0 %) | off | 0.0 m | 91 | 0 | 0/0 | — |
+| high-demand | grid-only | C16: Close SW-25-29 · shed B30 | 1031 | 915 (78.6 %) | running | 37.1 m | 0 | 0 | 83/70 | 19.4 s |
+| high-demand | encirra | C16: Close SW-25-29 · shed B30 | 1031 | 915 (78.6 %) | running | 37.1 m | 0 | 0 | 83/70 | 17.4 s |
+
+Reading the results:
+
+* **feeder-fault** — both planners restore load, but they disagree on *which* load. Grid-only restores
+  B28–B31 including the 200 kW cooling plant: in its accounting the hospital's 150 kW is already
+  served by the genset and PS-2 is an ordinary ~80 kW load. PS-2 therefore stays dark; Tank T2 empties
+  at 18:12 and hospital pressure is below 20 m for the last 79 minutes. Encirra leaves DC-1 off
+  (its 600 kVAr would overload the ~1 MVA tie) and restores the hospital bus and PS-2: hospital pressure
+  never drops below 37.8 m and T2 never falls below 47 %. Encirra also serves more actual load.
+* **pump-power-loss** — after isolation only PS-2's bus (≈ 80 kW) is dark. Back-feeding it from B18
+  alone is rejected (V(B33) = 0.900 pu < 0.90 pu at 19:00). Grid-only keeps the post-isolation state —
+  restoring one pump would mean interrupting supplied customers — and the hospital loses water at
+  18:12. Encirra interrupts 84 kW at B18 (36 connections, the most voltage-relevant non-critical load
+  on the tie path) to make the back-feed feasible, and the West zone keeps its pump.
+* **high-demand** — the strategies converge (see §10): the tie cannot carry DC-1 at 125 % load, and
+  with DC-1 off the remaining capacity restores the hospital and PS-2 under both objectives. Restoration
+  ends partial (78.6 %) for both; without intervention the hospital loses water after 60 minutes.
+* No plan selected by either strategy violates a hard limit in any frame (verified per minute).
 
 ## 10. Scenario design
 

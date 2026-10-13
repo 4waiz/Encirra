@@ -1322,7 +1322,8 @@ def plan_rationale(rt: ScenarioRuntime, strategy: str, sel: Selection, o: Candid
             when = f" from {clock(fb[1])}" if fb else ""
             out.append(f"{p.id} stays without supply: the extended-period simulation shows critical-facility pressure falling to {m.min_critical_pressure_m:.1f} m{when} and tank storage to {m.tank_min_pct:.0f}%.")
     if m.v_min_pu is not None:
-        out.append(f"Worst evaluated voltage {m.v_min_pu:.3f} pu (hard limit 0.90 pu); peak line loading {m.max_loading_pct:.0f}%.")
+        load_txt = f"; peak line loading {m.max_loading_pct:.0f}%" if m.max_loading_pct is not None else ""
+        out.append(f"Worst evaluated voltage {m.v_min_pu:.3f} pu (hard limit 0.90 pu){load_txt}.")
     other = "grid-only" if strategy == "encirra" else "encirra"
     alt_list = ranked(sel.scored, other)
     if alt_list and alt_list[0].outcome.cid != o.cid:

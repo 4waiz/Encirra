@@ -423,8 +423,9 @@ export interface RunSummary {
   pumpsOffline: number;
   criticalAtRisk: number;
   loadRestoredKW: number;
-  loadRestoredPct: number; // of interrupted load
-  remainingUnservedKW: number; // at end of horizon
+  loadRestoredPct: number; // restored / (restored + remaining event-related unserved incl. plan-shed load), end of horizon
+  remainingUnservedKW: number; // at end of horizon, includes load deliberately shed by the plan
+  loadShedKW?: number; // load deliberately disconnected by the plan (inside or outside the original outage), end of horizon
   criticalRecovered: number;
   criticalTotal: number;
   pumpsAvailableEnd: number;

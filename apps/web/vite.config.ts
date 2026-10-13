@@ -2,9 +2,11 @@ import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { createReadStream, existsSync, statSync, mkdirSync, readdirSync, copyFileSync } from 'node:fs';
-import { resolve, join, extname } from 'node:path';
+import { resolve, join, extname, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const repoRoot = resolve(__dirname, '../..');
+const webRoot = dirname(fileURLToPath(import.meta.url));
+const repoRoot = resolve(webRoot, '../..');
 const modelsDir = join(repoRoot, 'assets', 'models');
 
 const MIME: Record<string, string> = {
@@ -35,7 +37,7 @@ function modelsFromAssets(): Plugin {
     },
     writeBundle(options) {
       if (!existsSync(modelsDir)) return;
-      const out = join(options.dir ?? resolve(__dirname, 'dist'), 'models');
+      const out = join(options.dir ?? resolve(webRoot, 'dist'), 'models');
       const copyDir = (src: string, dst: string) => {
         mkdirSync(dst, { recursive: true });
         for (const entry of readdirSync(src, { withFileTypes: true })) {
@@ -53,7 +55,7 @@ function modelsFromAssets(): Plugin {
 export default defineConfig({
   plugins: [react(), tailwindcss(), modelsFromAssets()],
   resolve: {
-    alias: { '@': resolve(__dirname, 'src') },
+    alias: { '@': resolve(webRoot, 'src') },
   },
   server: {
     port: 5173,

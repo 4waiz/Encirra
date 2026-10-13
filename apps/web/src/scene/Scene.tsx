@@ -19,6 +19,7 @@ import { Props } from './district/Props';
 import { BuildingsLayer } from './buildings/BuildingsLayer';
 import { startKitLoading } from './assets/kit';
 import { Labels } from './labels/Labels';
+import { XrayGrid } from './district/XrayGrid';
 import { GpuTimer } from './GpuTimer';
 
 const GPU_TIMER = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('gputime') === '1';
@@ -65,6 +66,7 @@ export function Scene() {
         <Skyline />
       </group>
       <Platform />
+      <XrayGrid />
       <group visible={surface}>
         <BuildingsLayer />
         <Props />

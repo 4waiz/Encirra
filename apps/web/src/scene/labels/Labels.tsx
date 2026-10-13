@@ -228,9 +228,19 @@ export function Labels() {
     // header + top cards and the bottom panels). Labels that cannot be placed are hidden.
     const H = size.height;
     const W = size.width;
-    const safeTop = H * SAFE.top;
-    const safeBottom = H * SAFE.bottom;
-    const placed: { x0: number; x1: number; y0: number; y1: number }[] = [];
+    // free band published by the dashboard overlay (CSS px); default band for ?view=scene
+    const ol = useTwin.getState().overlayLayout;
+    const safeTop = ol ? ol.safe.y : H * SAFE.top;
+    const safeBottom = ol ? ol.safe.y + ol.safe.height : H * SAFE.bottom;
+    const safeLeft = ol ? ol.safe.x + 8 : 8;
+    const safeRight = ol ? ol.safe.x + ol.safe.width - 8 : W - 8;
+    const placed: { x0: number; x1: number; y0: number; y1: number }[] = (ol?.occluders ?? []).map((r) => ({
+      x0: r.x - 6,
+      x1: r.x + r.width + 6,
+      y0: r.y - 6,
+      y1: r.y + r.height + 6,
+    }));
+    const occluderCount = placed.length;
     for (const l of labels) {
       const el = els.current.get(l.key);
       if (!el) continue;
@@ -241,9 +251,10 @@ export function Labels() {
       const pw = (pill?.offsetWidth || 170) + 8;
       const ph = (pill?.offsetHeight || 38) + 6;
       let best: { lift: number; shift: number; below: boolean } | null = null;
-      if (tmp.z < 1 && ay <= safeBottom && ay >= safeTop - 60 && ax > 0 && ax < W) {
+      const anchorHidden = placed.slice(0, occluderCount).some((p) => ax > p.x0 && ax < p.x1 && ay > p.y0 && ay < p.y1);
+      if (tmp.z < 1 && !anchorHidden && ay <= safeBottom && ay >= safeTop - 60 && ax > safeLeft && ax < safeRight) {
         const lifts = [0, 34, 68, 102, 136];
-        const shifts = [0, -(pw * 0.55), pw * 0.55, -(pw * 1.05), pw * 1.05];
+        const shifts = [0, -(pw * 0.45), pw * 0.45];
         outer: for (const below of [false, true]) {
           for (const lift of lifts) {
             for (const shift of shifts) {
@@ -252,7 +263,7 @@ export function Labels() {
               const y1 = y0 + ph;
               const x0 = cx - pw / 2;
               const x1 = cx + pw / 2;
-              if (y0 < safeTop || y1 > safeBottom || x0 < 8 || x1 > W - 8) continue;
+              if (y0 < safeTop || y1 > safeBottom || x0 < safeLeft || x1 > safeRight) continue;
               if (!below && ay < safeTop) continue;
               if (placed.some((p) => x0 < p.x1 && x1 > p.x0 && y0 < p.y1 && y1 > p.y0)) continue;
               best = { lift, shift, below };
