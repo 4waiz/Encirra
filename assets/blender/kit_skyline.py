@@ -113,7 +113,7 @@ def spire_tower(mb):
     return dict(height=H_core + 176.0)
 
 
-def twist_tower(mb, H=310.0, w=34.0, twist=math.pi / 2):
+def twist_tower(mb, H=320.0, w=40.0, twist=math.pi / 2):
     n = 36
     sections = []
     for i in range(n + 1):
@@ -248,15 +248,15 @@ TOWERS = [
     ("skyline_spire", lambda mb: spire_tower(mb), (-560.0, -1150.0), 0.35),
     ("skyline_twist", lambda mb: twist_tower(mb), (430.0, -760.0), 0.2),
     ("skyline_sail", lambda mb: sail_tower(mb), (960.0, -420.0), -0.6),
-    ("skyline_twin_a", lambda mb: faceted_tower(mb, 300.0, 34.0, 34.0, 8.0, "pyramid"), (-860.0, -690.0), 0.0),
-    ("skyline_twin_b", lambda mb: faceted_tower(mb, 270.0, 32.0, 32.0, 8.0, "pyramid"), (-790.0, -760.0), 0.0),
+    ("skyline_twin_a", lambda mb: faceted_tower(mb, 300.0, 42.0, 42.0, 10.0, "pyramid"), (-860.0, -690.0), 0.0),
+    ("skyline_twin_b", lambda mb: faceted_tower(mb, 275.0, 40.0, 40.0, 10.0, "pyramid"), (-790.0, -760.0), 0.0),
     ("skyline_stepped", lambda mb: stepped_tower(mb), (150.0, -1020.0), 0.1),
-    ("skyline_glass_a", lambda mb: slim_glass(mb, 230.0, 30.0, 24.0), (-320.0, -720.0), 0.3),
+    ("skyline_glass_a", lambda mb: slim_glass(mb, 235.0, 36.0, 28.0), (-320.0, -720.0), 0.3),
     ("skyline_glass_b", lambda mb: slim_glass(mb, 200.0, 26.0, 26.0, 8.0, 14.0), (700.0, -1060.0), -0.2),
     ("skyline_glass_c", lambda mb: faceted_tower(mb, 210.0, 30.0, 24.0, 5.0, "slanted", 5), (-1080.0, -470.0), 0.4),
-    ("skyline_marina_a", lambda mb: marina_tower(mb, 190.0, 30.0, 24.0, 1), (1130.0, -160.0), -0.4),
-    ("skyline_marina_b", lambda mb: marina_tower(mb, 170.0, 28.0, 26.0, 2), (-1220.0, -150.0), 0.5),
-    ("skyline_marina_c", lambda mb: marina_tower(mb, 150.0, 26.0, 22.0, 3), (320.0, -1320.0), 0.0),
+    ("skyline_marina_a", lambda mb: marina_tower(mb, 195.0, 40.0, 30.0, 1), (1130.0, -160.0), -0.4),
+    ("skyline_marina_b", lambda mb: marina_tower(mb, 175.0, 38.0, 32.0, 2), (-1220.0, -150.0), 0.5),
+    ("skyline_marina_c", lambda mb: marina_tower(mb, 160.0, 36.0, 28.0, 3), (320.0, -1320.0), 0.0),
     ("skyline_twist_b", lambda mb: twist_tower(mb, 240.0, 28.0, -math.pi / 3), (-150.0, -1450.0), 0.0),
 ]
 

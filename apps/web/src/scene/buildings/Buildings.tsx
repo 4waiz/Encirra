@@ -1,141 +1,89 @@
 /**
- * All district buildings as a single merged mesh with the facade/window shader.
- * Power state per building is driven by the bus that supplies it (layout `bus`, 1-based).
+ * Procedural fallback buildings: one merged mesh with the facade/window shader for every layout
+ * building that the asset kit does not (yet) cover. Power state per building is driven by the
+ * bus that supplies it (layout `bus`, 1-based) through the shared building state texture.
  */
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useFrame, type ThreeEvent } from '@react-three/fiber';
-import type { Mesh } from 'three';
+import type { BufferGeometry, Material } from 'three';
 import { useTwin } from '@/state/store';
-import { BUILDINGS, N_BLD, BUILDING_BY_FACILITY } from '../data/twin';
-import { CODE, isPowered, live } from '../data/live';
+import { BUILDINGS } from '../data/twin';
 import { fx } from '../runtime';
 import { buildDistrictBuildings } from './massing';
-import { createFacadeMaterial, createStateTexture } from './facadeMaterial';
-import { selectionToBuildingIndex } from '../interaction/selection';
+import { createFacadeMaterial } from './facadeMaterial';
+import { bldStateTex } from './buildingState';
 
-export function Buildings() {
-  const geometry = useMemo(() => buildDistrictBuildings(), []);
-  const stateTex = useMemo(() => createStateTexture(N_BLD), []);
-  const material = useMemo(() => createFacadeMaterial(stateTex), [stateTex]);
-  const meshRef = useRef<Mesh>(null);
+/** Shared pointer handlers for merged building meshes (vertex attribute → building index). */
+export function useBuildingPicking(geometry: BufferGeometry | null, attr: 'aExtra' | 'aBld') {
   const setHovered = useTwin((s) => s.setHovered);
   const setSelected = useTwin((s) => s.setSelected);
-
-  // per-building animation state
-  const anim = useMemo(
-    () => ({
-      power: new Float32Array(N_BLD).fill(1),
-      restoreAt: new Float64Array(N_BLD).fill(-1e9),
-      wasPowered: new Uint8Array(N_BLD).fill(1),
-      highlight: new Float32Array(N_BLD),
-      seenVersion: -1,
-    }),
-    [],
-  );
-
-  useEffect(() => () => {
-    geometry.dispose();
-    material.dispose();
-    stateTex.dispose();
-  }, [geometry, material, stateTex]);
-
-  useFrame((state, dt) => {
-    const t = state.clock.elapsedTime;
-    const u = material.userData.uniforms;
-    u.uTime.value = t;
-    const data = stateTex.image.data as Float32Array;
-    const s = useTwin.getState();
-    const hov = selectionToBuildingIndex(s.hovered);
-    const sel = selectionToBuildingIndex(s.selected);
-    let dirty = false;
-    for (let i = 0; i < N_BLD; i++) {
-      const b = BUILDINGS[i];
-      let target = 1;
-      let emergency = 0;
-      let powered = true;
-      const fac = b.facilityId ? live.facilities.get(b.facilityId) : undefined;
-      if (fac && (fac.power === 'backup' || fac.power === 'offline')) {
-        powered = false;
-        target = fac.power === 'backup' ? 0.42 : 0;
-        emergency = 1;
-      } else if (b.busIndex >= 0) {
-        const code = live.busCode[b.busIndex];
-        powered = isPowered(code);
-        target = powered ? 1 : 0;
-        emergency = powered ? 0 : 1;
-        if (code === CODE.restored && !anim.wasPowered[i]) anim.restoreAt[i] = t;
-      }
-      if (fac && fac.power === 'restored' && !anim.wasPowered[i]) anim.restoreAt[i] = t;
-      anim.wasPowered[i] = powered ? 1 : 0;
-      const cur = anim.power[i];
-      const rate = target > cur ? 0.9 : 3.5; // slow fade-in, fast blackout
-      const next = cur + Math.sign(target - cur) * Math.min(Math.abs(target - cur), rate * dt);
-      anim.power[i] = next;
-      const tint = Math.max(0, 1 - (t - anim.restoreAt[i]) / 3.2);
-      const hTarget = i === sel ? 1 : i === hov ? 0.65 : 0;
-      anim.highlight[i] += (hTarget - anim.highlight[i]) * Math.min(1, dt * 10);
-      const o = i * 4;
-      const vals = [next, tint, anim.highlight[i], emergency];
-      for (let k = 0; k < 4; k++) {
-        if (Math.abs(data[o + k] - vals[k]) > 1e-4) {
-          data[o + k] = vals[k];
-          dirty = true;
-        }
-      }
-    }
-    if (dirty) stateTex.needsUpdate = true;
-    // x-ray ghosting
-    const fade = 1 - 0.86 * fx.xray;
-    u.uFade.value = fade;
-    const wantTransparent = fade < 0.999;
-    if (material.transparent !== wantTransparent) {
-      material.transparent = wantTransparent;
-      material.depthWrite = !wantTransparent;
-      material.needsUpdate = true;
-    }
-    if (meshRef.current) meshRef.current.castShadow = !wantTransparent;
-  });
-
   const pick = (e: ThreeEvent<PointerEvent | MouseEvent>) => {
-    const idx = geometry.index;
-    if (e.faceIndex == null || !idx) return -1;
+    const idx = geometry?.index;
+    if (!geometry || e.faceIndex == null || !idx) return -1;
     const v = idx.getX(e.faceIndex * 3);
-    return Math.round(geometry.getAttribute('aExtra').getX(v));
+    return Math.round(geometry.getAttribute(attr).getX(v));
   };
   const toSelection = (bi: number) => {
     const b = BUILDINGS[bi];
     if (!b) return null;
     return b.facilityId ? { kind: 'facility' as const, id: b.facilityId } : { kind: 'building' as const, id: b.id };
   };
-
-  return (
-    <mesh
-      ref={meshRef}
-      geometry={geometry}
-      material={material}
-      castShadow
-      receiveShadow
-      onPointerMove={(e) => {
-        if (fx.xray > 0.5) return;
-        e.stopPropagation();
-        const bi = pick(e);
-        const sel = toSelection(bi);
-        const cur = useTwin.getState().hovered;
-        if (sel && (!cur || cur.id !== sel.id || cur.kind !== sel.kind)) setHovered(sel);
-        document.body.style.cursor = 'pointer';
-      }}
-      onPointerOut={() => {
-        setHovered(null);
-        document.body.style.cursor = '';
-      }}
-      onClick={(e) => {
-        if (fx.xray > 0.5) return;
-        e.stopPropagation();
-        const sel = toSelection(pick(e));
-        if (sel) setSelected(sel);
-      }}
-    />
-  );
+  return {
+    onPointerMove: (e: ThreeEvent<PointerEvent>) => {
+      if (fx.xray > 0.5) return;
+      e.stopPropagation();
+      const sel = toSelection(pick(e));
+      const cur = useTwin.getState().hovered;
+      if (sel && (!cur || cur.id !== sel.id || cur.kind !== sel.kind)) setHovered(sel);
+      document.body.style.cursor = 'pointer';
+    },
+    onPointerOut: () => {
+      setHovered(null);
+      document.body.style.cursor = '';
+    },
+    onClick: (e: ThreeEvent<MouseEvent>) => {
+      if (fx.xray > 0.5) return;
+      e.stopPropagation();
+      const sel = toSelection(pick(e));
+      if (sel) setSelected(sel);
+    },
+  };
 }
 
-export { BUILDING_BY_FACILITY };
+/** Fade a set of materials for the underground x-ray view (toggles transparency only when needed). */
+export function useXrayFade(materials: Material[], min = 0.14, onShadow?: (cast: boolean) => void) {
+  useFrame(() => {
+    const fade = 1 - (1 - min) * fx.xray;
+    const transparent = fade < 0.999;
+    for (const m of materials) {
+      const base = (m.userData.baseTransparent as boolean | undefined) ?? false;
+      const want = transparent || base;
+      if (m.transparent !== want) {
+        m.transparent = want;
+        m.depthWrite = !transparent && !base;
+        m.needsUpdate = true;
+      }
+      const u = (m.userData as { uniforms?: { uFade?: { value: number } } }).uniforms;
+      if (u?.uFade) u.uFade.value = fade;
+      else m.opacity = fade * ((m.userData.baseOpacity as number | undefined) ?? 1);
+    }
+    onShadow?.(!transparent);
+  });
+}
+
+export function Buildings({ skip }: { skip?: Set<number> }) {
+  const key = skip ? [...skip].sort((a, b) => a - b).join(',') : '';
+  const geometry = useMemo(() => buildDistrictBuildings(skip ? (b) => !skip.has(b.index) : undefined), [key]); // eslint-disable-line react-hooks/exhaustive-deps
+  const material = useMemo(() => createFacadeMaterial(bldStateTex), []);
+  const handlers = useBuildingPicking(geometry, 'aExtra');
+
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  useEffect(() => () => material.dispose(), [material]);
+  useFrame((state) => {
+    material.userData.uniforms.uTime.value = state.clock.elapsedTime;
+  });
+  useXrayFade([material], 0.14);
+
+  if (geometry.getAttribute('position').count === 0) return null;
+  return <mesh geometry={geometry} material={material} castShadow receiveShadow {...handlers} />;
+}

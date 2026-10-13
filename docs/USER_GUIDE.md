@@ -94,9 +94,10 @@ load served and critical pressure. Every chart has a **Table** toggle that shows
 
 ## 4. Scenarios
 
-Three scenario cards (electrical feeder failure, pumping-station power loss, peak-demand
-heatwave). The parameter form lists the parameters each scenario exposes; objective-weight sliders
-show the soft preferences of the Encirra planner (hard safety constraints are never weighted).
+Three scenario cards — **Electrical Feeder Failure**, **Critical Pump Power Loss** and
+**High-Demand Conditions** — each with its narrative. The parameter form lists the parameters each
+scenario exposes; objective-weight sliders show the soft preferences of the Encirra planner (hard
+safety constraints are never weighted).
 
 - **Live solver:** edit parameters/weights and press **Recompute & run** — all three strategies
   are recomputed by the simulation service.

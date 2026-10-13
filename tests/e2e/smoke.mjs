@@ -130,6 +130,7 @@ export async function runSmoke({ baseUrl = BASE_URL, viewport = { width: 1600, h
       for (const id of ['analytics', 'scenarios', 'assets', 'reports', 'live']) {
         await sel(`nav-${id}`).click();
         await (id === 'live' ? sel('live-twin') : sel(`page-${id}`)).waitFor({ state: 'visible', timeout: 8_000 });
+        await page.waitForTimeout(400); // page transition
         if (id !== 'live') await shot(`05-${id}`);
         out.push(id);
       }

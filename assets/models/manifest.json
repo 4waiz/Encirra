@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generatedAt": "2026-10-13T10:45:22.021Z",
+  "generatedAt": "2026-10-13T10:51:58.192Z",
   "units": "m",
   "up": "+Y",
   "front": "+Z",
@@ -51,9 +51,9 @@
       "metalness": 0
     },
     "glazing": {
-      "baseColor": "#2C3A44",
-      "roughness": 0.16,
-      "metalness": 0.35
+      "baseColor": "#1D2730",
+      "roughness": 0.12,
+      "metalness": 0.45
     },
     "roof": {
       "baseColor": "#B6AFA3",
@@ -158,7 +158,7 @@
   },
   "files": {
     "commercial-podium.glb": {
-      "bytes": 115620,
+      "bytes": 115624,
       "group": "buildings",
       "nodes": [
         "commercial-podium_v0",
@@ -167,14 +167,14 @@
       ]
     },
     "cooling-plant.glb": {
-      "bytes": 221048,
+      "bytes": 221064,
       "group": "facilities",
       "nodes": [
         "cooling-plant_v0"
       ]
     },
     "desalination-inlet.glb": {
-      "bytes": 324716,
+      "bytes": 324732,
       "group": "facilities",
       "nodes": [
         "desalination-inlet_v0"
@@ -188,21 +188,21 @@
       ]
     },
     "emergency-ops.glb": {
-      "bytes": 154116,
+      "bytes": 154132,
       "group": "facilities",
       "nodes": [
         "emergency-ops_v0"
       ]
     },
     "hospital.glb": {
-      "bytes": 128148,
+      "bytes": 128164,
       "group": "facilities",
       "nodes": [
         "hospital_v0"
       ]
     },
     "lowrise-residential.glb": {
-      "bytes": 147704,
+      "bytes": 149580,
       "group": "buildings",
       "nodes": [
         "lowrise-residential_v0",
@@ -211,14 +211,14 @@
       ]
     },
     "mall.glb": {
-      "bytes": 166972,
+      "bytes": 166988,
       "group": "facilities",
       "nodes": [
         "mall_v0"
       ]
     },
     "midrise-residential.glb": {
-      "bytes": 251956,
+      "bytes": 266704,
       "group": "buildings",
       "nodes": [
         "midrise-residential_v0",
@@ -228,7 +228,7 @@
       ]
     },
     "office-complex.glb": {
-      "bytes": 102300,
+      "bytes": 102316,
       "group": "facilities",
       "nodes": [
         "office-complex_v0"
@@ -244,7 +244,7 @@
       ]
     },
     "pump-station.glb": {
-      "bytes": 473036,
+      "bytes": 473052,
       "group": "facilities",
       "nodes": [
         "pump-station_v0",
@@ -252,7 +252,7 @@
       ]
     },
     "skyline.glb": {
-      "bytes": 415184,
+      "bytes": 429264,
       "group": "skyline",
       "nodes": [
         "skyline_spire",
@@ -294,14 +294,14 @@
       ]
     },
     "substation.glb": {
-      "bytes": 861404,
+      "bytes": 861420,
       "group": "facilities",
       "nodes": [
         "substation_v0"
       ]
     },
     "tower-office.glb": {
-      "bytes": 173064,
+      "bytes": 173068,
       "group": "buildings",
       "nodes": [
         "tower-office_v0",
@@ -311,7 +311,7 @@
       ]
     },
     "tower-residential.glb": {
-      "bytes": 385324,
+      "bytes": 380376,
       "group": "buildings",
       "nodes": [
         "tower-residential_v0",
@@ -333,7 +333,7 @@
       ]
     },
     "villa.glb": {
-      "bytes": 60980,
+      "bytes": 60984,
       "group": "buildings",
       "nodes": [
         "villa_v0",
@@ -341,7 +341,7 @@
       ]
     },
     "water-tower.glb": {
-      "bytes": 190440,
+      "bytes": 190456,
       "group": "facilities",
       "nodes": [
         "water-tower_v0",
@@ -349,7 +349,7 @@
       ]
     }
   },
-  "totalBytes": 5250612,
+  "totalBytes": 5276524,
   "assets": [
     {
       "id": "tower-residential_v0",
@@ -361,7 +361,7 @@
         19.04,
         51.2
       ],
-      "tris": 3236,
+      "tris": 3244,
       "materials": [
         "glazing",
         "facade_alt",
@@ -376,6 +376,7 @@
       "storeyHeight": 3.25,
       "lobbyHeight": 5,
       "roofY": 47.75,
+      "stoneTint": "white",
       "anchors": {
         "label": [
           0,
@@ -417,6 +418,7 @@
       "storeyHeight": 3.3,
       "lobbyHeight": 5.5,
       "roofY": 48.9,
+      "stoneTint": "beige",
       "anchors": {
         "label": [
           0,
@@ -459,6 +461,7 @@
       "storeyHeight": 3.2,
       "lobbyHeight": 5,
       "roofY": 47.1,
+      "stoneTint": "cream",
       "anchors": {
         "label": [
           0,
@@ -482,11 +485,11 @@
       "variant": 3,
       "node": "tower-residential_v3",
       "nominalSize": [
-        22.08,
-        19.08,
-        48.7
+        22,
+        19,
+        54.5
       ],
-      "tris": 3332,
+      "tris": 3762,
       "materials": [
         "glazing",
         "facade_alt",
@@ -494,28 +497,28 @@
         "glass_clear",
         "trim",
         "roof",
-        "accent",
         "metal",
         "steel_dark"
       ],
-      "floors": 13,
-      "storeyHeight": 3.25,
+      "floors": 15,
+      "storeyHeight": 3.2,
       "lobbyHeight": 5,
-      "roofY": 44.5,
+      "roofY": 50.3,
+      "stoneTint": "white",
       "anchors": {
         "label": [
           0,
-          52.7,
+          58.5,
           0
         ],
         "roof": [
           0,
-          44.5,
+          50.3,
           0
         ],
-        "roofY": 44.5
+        "roofY": 50.3
       },
-      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (13 storeys, lobby 5.0 m, storey 3.25 m), u = facade bay.",
+      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (15 storeys, lobby 5.0 m, storey 3.20 m), u = facade bay.",
       "file": "tower-residential.glb",
       "vertexAO": true
     },
@@ -542,6 +545,7 @@
       "storeyHeight": 3.8,
       "lobbyHeight": 6.5,
       "roofY": 52.5,
+      "stoneTint": "white",
       "anchors": {
         "label": [
           0,
@@ -582,6 +586,7 @@
       "storeyHeight": 3.8,
       "lobbyHeight": 6.5,
       "roofY": 52.5,
+      "stoneTint": "cream",
       "anchors": {
         "label": [
           0,
@@ -621,6 +626,7 @@
       "storeyHeight": 3.8,
       "lobbyHeight": 6.5,
       "roofY": 52.1,
+      "stoneTint": "beige",
       "anchors": {
         "label": [
           0,
@@ -661,6 +667,7 @@
       "storeyHeight": 3.8,
       "lobbyHeight": 6.5,
       "roofY": 52.6,
+      "stoneTint": "white",
       "anchors": {
         "label": [
           0,
@@ -703,6 +710,7 @@
       "storeyHeight": 3.2,
       "lobbyHeight": 4.6,
       "roofY": 27.5,
+      "stoneTint": "cream",
       "anchors": {
         "label": [
           0,
@@ -730,7 +738,7 @@
         18.56,
         30.95
       ],
-      "tris": 1984,
+      "tris": 1988,
       "materials": [
         "glazing",
         "facade",
@@ -745,6 +753,7 @@
       "storeyHeight": 3.2,
       "lobbyHeight": 4.6,
       "roofY": 27.5,
+      "stoneTint": "white",
       "anchors": {
         "label": [
           0,
@@ -787,6 +796,7 @@
       "storeyHeight": 3.2,
       "lobbyHeight": 4.6,
       "roofY": 27.5,
+      "stoneTint": "beige",
       "anchors": {
         "label": [
           0,
@@ -810,39 +820,40 @@
       "variant": 3,
       "node": "midrise-residential_v3",
       "nominalSize": [
-        20.08,
-        18.58,
-        31.85
+        20,
+        18.5,
+        30.95
       ],
-      "tris": 1584,
+      "tris": 2166,
       "materials": [
         "glazing",
         "facade_alt",
         "facade",
-        "glass_clear",
-        "trim",
         "roof",
+        "accent",
+        "trim",
         "metal",
         "steel_dark"
       ],
       "floors": 8,
       "storeyHeight": 3.2,
-      "lobbyHeight": 4.8,
-      "roofY": 27.7,
+      "lobbyHeight": 4.6,
+      "roofY": 27.5,
+      "stoneTint": "sand",
       "anchors": {
         "label": [
           0,
-          35.85,
+          34.95,
           0
         ],
         "roof": [
           0,
-          27.7,
+          27.5,
           0
         ],
-        "roofY": 27.7
+        "roofY": 27.5
       },
-      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (8 storeys, lobby 4.8 m, storey 3.20 m), u = facade bay.",
+      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (8 storeys, lobby 4.6 m, storey 3.20 m), u = facade bay.",
       "file": "midrise-residential.glb",
       "vertexAO": true
     },
@@ -871,6 +882,7 @@
       "storeyHeight": 3.2,
       "lobbyHeight": 3.8,
       "roofY": 10.7,
+      "stoneTint": "beige",
       "anchors": {
         "label": [
           0,
@@ -914,6 +926,7 @@
       "storeyHeight": 3.2,
       "lobbyHeight": 3.8,
       "roofY": 10.7,
+      "stoneTint": "white",
       "anchors": {
         "label": [
           0,
@@ -941,7 +954,7 @@
         18.06,
         15.95
       ],
-      "tris": 1432,
+      "tris": 1436,
       "materials": [
         "glazing",
         "facade_alt",
@@ -957,6 +970,7 @@
       "storeyHeight": 3.2,
       "lobbyHeight": 3.8,
       "roofY": 13.9,
+      "stoneTint": "cream",
       "anchors": {
         "label": [
           0,
@@ -999,6 +1013,7 @@
       "storeyHeight": 3.4,
       "lobbyHeight": 3.85,
       "roofY": 7.4,
+      "stoneTint": "white",
       "anchors": {
         "label": [
           0,
@@ -1041,6 +1056,7 @@
       "storeyHeight": 3.3,
       "lobbyHeight": 3.55,
       "roofY": 6.85,
+      "stoneTint": "sand",
       "anchors": {
         "label": [
           0,
@@ -1082,6 +1098,7 @@
       "storeyHeight": 4.2,
       "lobbyHeight": 5.5,
       "roofY": 14.3,
+      "stoneTint": "cream",
       "anchors": {
         "label": [
           0,
@@ -1123,6 +1140,7 @@
       "storeyHeight": 4.2,
       "lobbyHeight": 5.5,
       "roofY": 14.3,
+      "stoneTint": "white",
       "anchors": {
         "label": [
           0,
@@ -1164,6 +1182,7 @@
       "storeyHeight": 4.2,
       "lobbyHeight": 5.5,
       "roofY": 14.3,
+      "stoneTint": "beige",
       "anchors": {
         "label": [
           0,
@@ -1867,9 +1886,9 @@
       "variant": 6,
       "node": "skyline_glass_a",
       "nominalSize": [
-        30.6,
-        24.5,
-        242.4
+        36.7,
+        28.6,
+        247.4
       ],
       "placement": {
         "position": [
@@ -1882,7 +1901,7 @@
       "anchors": {
         "top": [
           0,
-          242,
+          247,
           0
         ]
       },
@@ -1973,9 +1992,9 @@
       "variant": 9,
       "node": "skyline_marina_a",
       "nominalSize": [
+        43.2,
         32.4,
-        25.9,
-        199.4
+        204.4
       ],
       "placement": {
         "position": [
@@ -1988,13 +2007,13 @@
       "anchors": {
         "top": [
           0,
-          199,
+          204,
           0
         ]
       },
       "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
       "file": "skyline.glb",
-      "tris": 1922,
+      "tris": 2010,
       "materials": [
         "glazing",
         "facade",
@@ -2009,9 +2028,9 @@
       "variant": 10,
       "node": "skyline_marina_b",
       "nominalSize": [
-        30.2,
-        28.1,
-        179.4
+        41,
+        34.6,
+        184.4
       ],
       "placement": {
         "position": [
@@ -2024,13 +2043,13 @@
       "anchors": {
         "top": [
           0,
-          179,
+          184,
           0
         ]
       },
       "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
       "file": "skyline.glb",
-      "tris": 1746,
+      "tris": 1790,
       "materials": [
         "glazing",
         "facade",
@@ -2045,9 +2064,9 @@
       "variant": 11,
       "node": "skyline_marina_c",
       "nominalSize": [
-        28.1,
-        23.8,
-        159.4
+        38.9,
+        30.2,
+        169.4
       ],
       "placement": {
         "position": [
@@ -2060,13 +2079,13 @@
       "anchors": {
         "top": [
           0,
-          159,
+          169,
           0
         ]
       },
       "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
       "file": "skyline.glb",
-      "tris": 1570,
+      "tris": 1658,
       "materials": [
         "glazing",
         "facade",
@@ -2117,9 +2136,9 @@
       "variant": 0,
       "node": "skyline_spire",
       "nominalSize": [
-        99.6,
-        90.7,
-        775
+        76.4,
+        69.5,
+        765
       ],
       "placement": {
         "position": [
@@ -2132,13 +2151,13 @@
       "anchors": {
         "top": [
           0,
-          776,
+          766,
           0
         ]
       },
       "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
       "file": "skyline.glb",
-      "tris": 2149,
+      "tris": 2359,
       "materials": [
         "glazing",
         "facade",
@@ -2189,9 +2208,9 @@
       "variant": 3,
       "node": "skyline_twin_a",
       "nominalSize": [
-        37.7,
-        37.7,
-        368.6
+        46.6,
+        46.6,
+        375
       ],
       "placement": {
         "position": [
@@ -2204,7 +2223,7 @@
       "anchors": {
         "top": [
           0,
-          368.2,
+          374.6,
           0
         ]
       },
@@ -2225,9 +2244,9 @@
       "variant": 4,
       "node": "skyline_twin_b",
       "nominalSize": [
-        35.5,
-        35.5,
-        337
+        44.3,
+        44.3,
+        348.4
       ],
       "placement": {
         "position": [
@@ -2240,7 +2259,7 @@
       "anchors": {
         "top": [
           0,
-          336.6,
+          348,
           0
         ]
       },
@@ -2261,9 +2280,9 @@
       "variant": 1,
       "node": "skyline_twist",
       "nominalSize": [
-        39,
-        39,
-        342.3
+        47.1,
+        47.1,
+        352.3
       ],
       "placement": {
         "position": [
@@ -2276,7 +2295,7 @@
       "anchors": {
         "top": [
           0,
-          341,
+          351,
           0
         ]
       },

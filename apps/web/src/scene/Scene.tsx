@@ -5,6 +5,7 @@ import { useFrame } from '@react-three/fiber';
 import { useTwin } from '@/state/store';
 import { sampleLive } from './data/live';
 import { updateStateTextures } from './data/stateTextures';
+import { updateBuildingState } from './buildings/buildingState';
 import { fx } from './runtime';
 import { SkyDome, SkyEnvironment, Lights } from './env/Atmosphere';
 import { Effects } from './env/Effects';
@@ -33,6 +34,7 @@ function LiveSampler() {
     fx.water += ((layers.water ? 1 : 0) - fx.water) * k;
     fx.skyline += ((layers.skyline ? 1 : 0) - fx.skyline) * k;
     updateStateTextures(state.clock.elapsedTime, d);
+    updateBuildingState(state.clock.elapsedTime, d);
     fx.frames++;
     // QA statistics: when autoReset is disabled, accumulate all passes of a frame
     const info = state.gl.info;

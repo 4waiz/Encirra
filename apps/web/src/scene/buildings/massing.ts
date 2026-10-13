@@ -243,9 +243,10 @@ function facility(g: GeoBuilder, b: BuildingDef) {
   }
 }
 
-export function buildDistrictBuildings(): BufferGeometry {
+export function buildDistrictBuildings(filter?: (b: BuildingDef) => boolean): BufferGeometry {
   const g = new GeoBuilder();
   for (const b of BUILDINGS) {
+    if (filter && !filter(b)) continue;
     const r = mulberry32(1000 + b.index * 97);
     g.frame(b.pos[0], 0, b.pos[1], b.rot);
     switch (b.kind) {
