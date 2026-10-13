@@ -952,8 +952,10 @@ def build_events(fc: FrameContext, frames: list[Frame], sel: Optional[Selection]
                 ev.add(k, "switching", "info", "Switching sequence executed", "; ".join(acts) + ".", {"switches": [a.switch_id for a in fc.plan.actions], "lines": [a.line_id for a in fc.plan.actions], "buses": sorted(fc.plan.spec.shed) or None})
                 rest = sorted(fc.plan.restored_buses)
                 if rest:
-                    kw = sum(frames[k].power.bus_served_kw[b] for b in rest)
-                    ev.add(k, "restoration", "success", f"{kw:.0f} kW restored", f"Re-energised {bus_list(rest)} via the verified plan.", {"buses": rest})
+                    kw = float(fc.plan.metrics.restored_kw)
+                    shed_kw = float(fc.plan.metrics.shed_kw)
+                    extra = f"; {shed_kw:.0f} kW shed ({bus_list(fc.plan.spec.shed)}), net {kw - shed_kw:+.0f} kW" if fc.plan.spec.shed else ""
+                    ev.add(k, "restoration", "success", f"{kw:.0f} kW restored", f"Re-energised {bus_list(rest)} via the verified plan{extra}.", {"buses": rest})
                 for b in fc.plan.spec.shed:
                     fac = [f.name for f in d.facilities_on_bus(b)]
                     shed_kw = d.buses[b].load_kw * st.load_factor[k]
@@ -998,7 +1000,9 @@ def build_events(fc: FrameContext, frames: list[Frame], sel: Optional[Selection]
         "info",
         "info",
         "End of simulation horizon",
-        f"Served {last.power.served_kw:.0f} of {last.power.demand_kw:.0f} kW; {last.water.pumps_online}/{last.water.pumps_total} pumps running; "
+        f"Served {last.power.served_kw:.0f} of {last.power.demand_kw:.0f} kW"
+        + (f" ({sum(d.buses[b].load_kw * st.load_factor[rt.n - 1] for b in cr.timeline.at(rt.n - 1).shed):.0f} kW shed by the plan: {bus_list(cr.timeline.at(rt.n - 1).shed)})" if cr.timeline.at(rt.n - 1).shed else "")
+        + f"; {last.water.pumps_online}/{last.water.pumps_total} pumps running; "
         f"critical-facility pressure {last.water.critical_pressure_m:.1f} m; tanks {', '.join(f'{t} {p:.0f}%' for t, p in zip(hyd.tank_ids, last.water.tank_pct))}.",
     )
     return ev.build()
@@ -1076,7 +1080,19 @@ def build_timeline(fc: FrameContext, sel: Optional[Selection], frames: list[Fram
         steps.append(TimelineStep(id="service-restored", label="Service restored", t=None, clock=None, outcome="failed", detail="Outage persists"))
     else:
         oc = "done" if fc.outcome == "complete" else "partial"
-        steps.append(TimelineStep(id="service-restored", label="Service restored", t=t, clock=c, outcome=oc, detail=f"{summary_restored_pct:.0f}% of interrupted load served at end of horizon"))
+        shed_txt = ""
+        if fc.plan is not None and fc.plan.spec.shed:
+            shed_txt = f"; {bus_list(fc.plan.spec.shed)} shed by the plan"
+        steps.append(
+            TimelineStep(
+                id="service-restored",
+                label="Service restored",
+                t=t,
+                clock=c,
+                outcome=oc,
+                detail=f"{summary_restored_pct:.0f}% net restoration at end of horizon (restored ÷ restored + unserved){shed_txt}",
+            )
+        )
     return steps
 
 
@@ -1094,14 +1110,14 @@ def build_summary(fc: FrameContext, frames: list[Frame], series: dict, sel: Opti
     load_int = sum(pre.power.bus_served_kw[b] for b in tripped)
     conns = sum(d.buses[b].connections for b in tripped)
     last = frames[-1]
-    rest_kw = sum(last.power.bus_served_kw[b] for b in tripped)
-    # demand of the interrupted buses at the end (incl. would-be pump demand)
-    base_pump = rt.baseline_pump_kw()
-    dem_end = sum(d.buses[b].load_kw * st.load_factor[n - 1] for b in tripped)
-    for i, p in enumerate(d.pumps):
-        if p.bus in rt.fault.tripped_buses:
-            dem_end += hyd.pump_kw[n - 1, i] if hyd.pump_on[n - 1, i] else base_pump[n - 1, i]
-    rest_pct = 100.0 * rest_kw / dem_end if dem_end > 0 else 100.0
+    # Net restoration at the end of the horizon (same formula the UI applies per frame):
+    # restored / (restored + remaining unserved), where unserved includes load the plan deliberately
+    # sheds — inside or outside the original outage — and the demand of pumps that cannot run.
+    rest_kw = float(last.power.restored_kw)
+    uns_kw = float(last.power.unserved_kw)
+    rest_pct = 100.0 * rest_kw / (rest_kw + uns_kw) if (rest_kw + uns_kw) > 0 else 100.0
+    seg_end = fc.cr.timeline.at(n - 1)
+    shed_end_kw = sum(d.buses[b].load_kw * st.load_factor[n - 1] for b in seg_end.shed)
     pumps_off_max = 0
     for k in range(kf, n):
         pumps_off_max = max(pumps_off_max, int(len(d.pumps) - hyd.pump_on[k].sum()))
@@ -1147,7 +1163,8 @@ def build_summary(fc: FrameContext, frames: list[Frame], series: dict, sel: Opti
         critical_at_risk=len(at_risk),
         load_restored_kw=_r(rest_kw, 1),
         load_restored_pct=_r(rest_pct, 1),
-        remaining_unserved_kw=_r(last.power.unserved_kw, 1),
+        remaining_unserved_kw=_r(uns_kw, 1),
+        load_shed_kw=_r(shed_end_kw, 1),
         critical_recovered=len(recovered),
         critical_total=len(crit_facs),
         pumps_available_end=int(hyd.pump_on[-1].sum()),
@@ -1298,7 +1315,12 @@ def plan_rationale(rt: ScenarioRuntime, strategy: str, sel: Selection, o: Candid
         if interrupting:
             ex = interrupting[0].outcome
             out.append(f"{len(interrupting)} feasible plan(s) that interrupt supplied customers for voltage headroom (e.g. {ex.cid}: {ex.label}) are outside this policy.")
-    out.append(f"Restores {m.restored_kw:.0f} kW at switching; sheds {m.shed_kw:.0f} kW; {m.switch_ops} switching operation(s).")
+    if m.shed_kw > 0:
+        out.append(
+            f"Restores {m.restored_kw:.0f} kW at switching and sheds {m.shed_kw:.0f} kW ({bus_list(o.spec.shed)}): net {m.restored_kw - m.shed_kw:+.0f} kW; {m.switch_ops} switching operation(s)."
+        )
+    else:
+        out.append(f"Restores {m.restored_kw:.0f} kW at switching; nothing shed; {m.switch_ops} switching operation(s).")
     region_shed = [b for b in o.spec.shed if b in region]
     head_shed = [b for b in o.spec.shed if b not in region]
     if region_shed:
@@ -1306,13 +1328,14 @@ def plan_rationale(rt: ScenarioRuntime, strategy: str, sel: Selection, o: Candid
         for b in region_shed:
             fac = d.facilities_on_bus(b)
             names.append(f"B{b + 1}" + (f" ({fac[0].name}, {d.buses[b].load_kw:.0f} kW / {d.buses[b].load_kvar:.0f} kVAr)" if fac else ""))
-        out.append(f"Leaves {', '.join(names)} off so the rest of the de-energised area can be restored within every hard limit.")
+        kw_r = sum(d.buses[b].load_kw * lf for b in region_shed)
+        out.append(f"Sheds {kw_r:.0f} kW by leaving {', '.join(names)} off, so the rest of the de-energised area can be restored within every hard limit.")
     if head_shed:
         kw = sum(d.buses[b].load_kw * lf for b in head_shed)
         conn = sum(d.buses[b].connections for b in head_shed)
         out.append(
-            f"Interrupts {bus_list(head_shed)} ({kw:.0f} kW, {conn} connections) — customers who still had supply — to create voltage headroom "
-            "at the tie; admissible only because no plan without new interruptions protects the same critical facilities."
+            f"Sheds {kw:.0f} kW at {bus_list(head_shed)} ({conn} connections that still had supply) to free voltage headroom on the "
+            "restoration path; admissible only because no plan without new interruptions protects the same critical facilities."
         )
     for p in [p for p in d.pumps if p.bus in region]:
         if p.bus in o.restored_buses and m.pumps_restored:

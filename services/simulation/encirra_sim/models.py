@@ -552,6 +552,7 @@ class RunSummary(CamelModel):
     load_restored_kw: float
     load_restored_pct: float
     remaining_unserved_kw: float
+    load_shed_kw: Optional[float] = Field(default=None, exclude_if=_omit_none)
     critical_recovered: int
     critical_total: int
     pumps_available_end: int

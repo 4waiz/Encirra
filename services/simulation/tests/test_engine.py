@@ -122,3 +122,21 @@ def test_pump_power_loss_tie_is_evaluated_and_decision_differs(pump_runs):
     assert not grid.frames[-1].water.pump_on[1]
     assert grid.summary.min_critical_pressure_m < THR <= enc.summary.min_critical_pressure_m
     assert any("Grid-only accounting" in r for r in grid.plan.rationale) or any("outside this policy" in r for r in grid.plan.rationale)
+
+
+def test_restoration_metrics_are_net_of_shedding(feeder_fault_runs, pump_runs):
+    """loadRestoredPct = restored / (restored + remaining unserved incl. plan-shed load), as the UI computes per frame."""
+    for runs in (feeder_fault_runs[1], pump_runs):
+        for r in runs.values():
+            s, last = r.summary, r.frames[-1].power
+            assert s.load_restored_kw == pytest.approx(last.restored_kw, abs=0.05)
+            assert s.remaining_unserved_kw == pytest.approx(last.unserved_kw, abs=0.05)
+            denom = last.restored_kw + last.unserved_kw
+            assert s.load_restored_pct == pytest.approx(100.0 * last.restored_kw / denom if denom else 100.0, abs=0.06)
+            shed = [b for b, x in enumerate(last.bus_shed) if x]
+            assert (s.load_shed_kw > 0) == bool(shed)
+            # shed load is part of the unserved load
+            assert s.remaining_unserved_kw + 0.05 >= s.load_shed_kw
+    enc = pump_runs["encirra"]
+    assert enc.summary.load_shed_kw > 0 and 17 in enc.plan.unserved_after.buses  # B18 shed for voltage headroom
+    assert any("shed" in r and "B18" in r for r in enc.plan.rationale)

@@ -142,6 +142,28 @@ export function CameraRig() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Adaptive lens shift: centre the composition on the free band between the dashboard cards
+  // (store.overlayLayout.safe) instead of the raw viewport centre. A vertical view offset keeps
+  // the viewing angle (so the cut faces stay visible) and shifts everything uniformly, including
+  // the 3D labels and picking.
+  const shift = useRef(0);
+  const size = useThree((s) => s.size);
+  useFrame(() => {
+    const ol = useTwin.getState().overlayLayout;
+    const H = size.height;
+    const W = size.width;
+    const bandCentre = ol ? ol.safe.y + ol.safe.height / 2 : H * 0.495;
+    const target = MathUtils.clamp(H / 2 - bandCentre, -H * 0.15, H * 0.15);
+    shift.current += (target - shift.current) * 0.08;
+    const s = Math.round(shift.current * 2) / 2;
+    const v = camera.view;
+    if (Math.abs(s) < 0.5) {
+      if (v && v.enabled) camera.clearViewOffset();
+    } else if (!v || !v.enabled || v.offsetY !== s || v.fullWidth !== W || v.fullHeight !== H) {
+      camera.setViewOffset(W, H, 0, s, W, H);
+    }
+  });
+
   const tmpP = new Vector3();
   const tmpT = new Vector3();
   useFrame((_, dt) => {
