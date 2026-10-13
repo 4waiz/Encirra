@@ -207,6 +207,19 @@ for (const [w, h] of sizes) {
       console.log('  cam', k, JSON.stringify(list[k]), '→', f);
     }
   }
+  // --shots a,b,c | all : request each named CameraShot in turn (same session) and capture it
+  const shotsOpt = opt('shots', null);
+  if (shotsOpt) {
+    const ALL = ['home', 'aerial', 'substation', 'hospital', 'ps-1', 'ps-2', 'tank-t1', 'tank-t2', 'west-district', 'underground-west', 'underground-front', 'recovery-path', 'overview-top'];
+    const list = shotsOpt === 'all' || shotsOpt === true ? ALL : String(shotsOpt).split(',');
+    for (const s of list) {
+      await page.evaluate((sh) => window.__encirra.useTwin.getState().requestCamera({ shot: sh, durationS: 0.05 }), s);
+      await page.waitForTimeout(1200);
+      const f = join(outDir, `${name}-shot-${s}-${w}x${h}.png`);
+      await page.screenshot({ path: f });
+      console.log('  shot', s, '→', f);
+    }
+  }
   await page.close();
 }
 await browser.close();

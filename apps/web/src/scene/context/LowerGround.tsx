@@ -94,12 +94,12 @@ float street = max(sx, sz);
 float swx = encGridLine(gp.x, ${LOW_GRID.toFixed(1)}, ${(LOW_STREET / 2 + 3.5).toFixed(1)}, gaa);
 float swz = encGridLine(gp.y, ${LOW_GRID.toFixed(1)}, ${(LOW_STREET / 2 + 3.5).toFixed(1)}, gaa);
 float walk = max(swx, swz) * (1.0 - street);
-vec3 block = mix(vec3(0.07, 0.062, 0.052), vec3(0.11, 0.095, 0.075), gn) * (0.85 + 0.25 * gn2);
+vec3 block = mix(vec3(0.045, 0.04, 0.035), vec3(0.07, 0.062, 0.05), gn) * (0.85 + 0.25 * gn2);
 // parks and planted courtyards
 float park = smoothstep(0.58, 0.66, encNoise(gp * 0.0045 + 3.0));
 block = mix(block, mix(vec3(0.03, 0.06, 0.02), vec3(0.06, 0.1, 0.03), gn2), park * 0.9);
 vec3 asphalt = vec3(0.022, 0.023, 0.026) * (0.85 + 0.3 * gn2);
-vec3 gcol = mix(block, vec3(0.15, 0.14, 0.12), walk);
+vec3 gcol = mix(block, vec3(0.09, 0.085, 0.075), walk);
 gcol = mix(gcol, asphalt, street);
 // quay edge along the water
 float quay = (1.0 - smoothstep(0.0, 12.0, wsd)) * (1.0 - isW);
@@ -151,6 +151,7 @@ if (isW > 0.0) {
   totalEmissiveRadiance += refl * fres * 0.85 * isW;
 }`,
         )
+        .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>\nreflectedLight.directDiffuse *= 0.4;`)
         .replace('#include <dithering_fragment>', `#include <dithering_fragment>\ngl_FragColor.a *= uFade;`);
     };
     return m;

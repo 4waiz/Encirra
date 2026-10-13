@@ -184,6 +184,10 @@ ${RIM}`,
 diffuseColor.rgb *= mix(vec3(0.72, 0.7, 0.76), vec3(1.0), clamp(vBState.r * 1.4, 0.0, 1.0));`,
         );
     }
+    frag = frag.replace(
+      '#include <lights_fragment_end>',
+      '#include <lights_fragment_end>\n#ifdef ENC_SKYLINE\nreflectedLight.directDiffuse *= 0.45;\nreflectedLight.directSpecular *= 0.45;\n#endif',
+    );
     frag = frag.replace('#include <dithering_fragment>', '#include <dithering_fragment>\ngl_FragColor.a *= uFade;');
     shader.fragmentShader = frag;
   };

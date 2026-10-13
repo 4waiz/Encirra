@@ -79,7 +79,7 @@ export function deriveLabels(): LabelSpec[] {
       key: 'fault',
       pos: [x, 30, z],
       title: faultIdx >= 0 ? `${feederName} Fault` : `${feederName} · Fault Isolated`,
-      sub: lost > 0 ? 'Supply Lost' : faultIdx >= 0 ? 'Protection Operated' : 'Section Open',
+      sub: lost > 0 ? 'Supply Lost' : isolatedIdx >= 0 ? 'Section Isolated' : 'Section Open',
       tone: 'fault',
       icon: 'bolt',
       priority: 100,

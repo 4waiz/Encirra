@@ -101,11 +101,11 @@ if (glassy) warm = mix(warm, vec3(0.85, 0.92, 1.0), 0.35);
 vec3 wallA = glassy ? mix(vec3(0.05, 0.07, 0.085), vec3(0.14, 0.16, 0.17), fract(seed * 0.37)) : (tone < 0.75 ? mix(vec3(0.28, 0.27, 0.26), vec3(0.4, 0.39, 0.37), fract(seed * 0.71)) : mix(vec3(0.26, 0.21, 0.16), vec3(0.36, 0.3, 0.23), fract(seed * 0.71)));
 vec3 glassC = glassy ? vec3(0.02, 0.035, 0.05) : vec3(0.025, 0.027, 0.03);
 #ifdef ENC_LOW
-wallA = mix(mix(vec3(0.1, 0.095, 0.09), vec3(0.2, 0.18, 0.155), fract(seed * 0.71)), vec3(0.32, 0.31, 0.3), step(0.85, fract(seed * 0.29)));
+wallA = mix(mix(vec3(0.06, 0.058, 0.056), vec3(0.12, 0.108, 0.095), fract(seed * 0.71)), vec3(0.2, 0.2, 0.2), step(0.85, fract(seed * 0.29)));
 #endif
 vec3 roofC = vec3(0.35, 0.34, 0.33);
 #ifdef ENC_LOW
-roofC = vec3(0.13, 0.13, 0.13) * (0.8 + 0.4 * fract(seed * 0.53));
+roofC = vec3(0.07, 0.07, 0.072) * (0.8 + 0.4 * fract(seed * 0.53));
 #endif
 diffuseColor.rgb = roof ? roofC : mix(wallA, glassC, m);
 vec3 tEm = warm * (0.6 + 1.1 * mix(encH13(vec3(ci, seed + 9.0)), 0.5, farF)) * lit * m;
@@ -117,7 +117,18 @@ float tMetal = roof ? 0.0 : mix(glassy ? 0.25 : 0.0, 0.3, m);`,
       )
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>\nroughnessFactor = tRough;`)
       .replace('#include <metalnessmap_fragment>', `#include <metalnessmap_fragment>\nmetalnessFactor = tMetal;`)
-      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>\ntotalEmissiveRadiance += tEm;`);
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>\ntotalEmissiveRadiance += tEm;`)
+      // dusk shade: the context city below / beyond the raised district gets little direct sun
+      .replace(
+        '#include <lights_fragment_end>',
+        `#include <lights_fragment_end>
+#ifdef ENC_LOW
+reflectedLight.directDiffuse *= 0.32;
+#else
+reflectedLight.directDiffuse *= 0.5;
+reflectedLight.directSpecular *= 0.5;
+#endif`,
+      );
   };
   return m;
 }

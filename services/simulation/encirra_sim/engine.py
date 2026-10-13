@@ -385,7 +385,7 @@ def _cache_path(run_id: str):
 
 def cached_runs() -> int:
     try:
-        return len(list(cache_dir().glob("run-*.json")))
+        return len(list(cache_dir().glob(f"run-*-{code_fingerprint()}.json")))
     except OSError:
         return len(_MEM_CACHE)
 
@@ -518,7 +518,8 @@ def build_frames(fc: FrameContext) -> tuple[list[Frame], dict]:
             if fc.plan.spec.closed[ln.id] and ln.from_bus in fc.plan.energized_after and ln.to_bus in fc.plan.energized_after and (ln.from_bus in plan_buses or ln.to_bus in plan_buses):
                 plan_lines.add(ln.id)
 
-    interrupted = np.zeros(d.n_bus, dtype=bool)  # bus lost supply at some frame since the fault
+    interrupted = np.zeros(d.n_bus, dtype=bool)  # bus load lost supply (dark or shed) at some frame since the fault
+    node_dark = np.zeros(d.n_bus, dtype=bool)  # bus node was de-energised at some frame since the fault
     line_was_dark = np.zeros(d.n_line, dtype=bool)
     pump_was_off = {p.id: False for p in d.pumps}
     jun_was_below = np.zeros(len(d.junctions), dtype=bool)
@@ -552,6 +553,8 @@ def build_frames(fc: FrameContext) -> tuple[list[Frame], dict]:
             for b in range(d.n_bus):
                 if b not in en or b in seg.shed:
                     interrupted[b] = True
+                if b not in en:
+                    node_dark[b] = True
         restored_kw = float(sum(bus_served[b] for b in range(d.n_bus) if interrupted[b] and b in en and b not in seg.shed))
         vm = [None] * d.n_bus
         converged = bool(pf.converged) if pf is not None else False
@@ -567,7 +570,7 @@ def build_frames(fc: FrameContext) -> tuple[list[Frame], dict]:
             if b in rt.fault.section_buses and fault_on and k >= rt.k_iso and fc.strategy != "none":
                 bus_state.append("isolated")
             elif b in en:
-                bus_state.append("restored" if interrupted[b] and after_fault else "energized")
+                bus_state.append("restored" if node_dark[b] and after_fault else "energized")
             elif fc.plan_verified and b in plan_buses and rt.k_verif <= k < rt.k_switch:
                 bus_state.append("restoring")
             else:
@@ -1015,7 +1018,7 @@ def impact_assessment(rt: ScenarioRuntime, sel: Selection) -> Optional[dict]:
     dark = sorted(rt.fault.downstream_dark)
     if dark:
         kw = sum(d.buses[b].load_kw * st.load_factor[rt.k_impact] for b in dark)
-        parts.append(f"{len(dark)} healthy buses ({bus_list(dark)}, {kw:.0f} kW) remain de-energised")
+        parts.append(f"{len(dark)} healthy bus{'es' if len(dark) != 1 else ''} ({bus_list(dark)}, {kw:.0f} kW) remain{'s' if len(dark) == 1 else ''} de-energised")
     stopped = [p for i, p in enumerate(d.pumps) if not hyd.pump_on[min(rt.k_impact, rt.n - 1), i]]
     for p in stopped:
         parts.append(f"{p.id} offline")
