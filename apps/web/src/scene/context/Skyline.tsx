@@ -11,7 +11,6 @@
 import { useEffect, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import {
-  type BufferGeometry,
   type Material,
   BoxGeometry,
   CylinderGeometry,

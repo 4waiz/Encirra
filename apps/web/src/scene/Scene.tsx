@@ -13,6 +13,8 @@ import { Platform } from './district/Platform';
 import { CameraRig } from './camera/CameraRig';
 import { LowerGround } from './context/LowerGround';
 import { Skyline } from './context/Skyline';
+import { LowerPalms } from './context/LowerPalms';
+import { WaterReflection } from './context/WaterReflection';
 import { Electrical } from './networks/Electrical';
 import { WaterNetwork } from './networks/Water';
 import { Props } from './district/Props';
@@ -64,6 +66,8 @@ export function Scene() {
       <group visible={skyline}>
         <LowerGround />
         <Skyline />
+        <LowerPalms />
+        <WaterReflection />
       </group>
       <Platform />
       <XrayGrid />

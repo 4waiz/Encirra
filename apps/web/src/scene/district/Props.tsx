@@ -33,7 +33,7 @@ import { KitProps } from './KitProps';
 const PALMS = cityLayout.props.palms;
 const LIGHTS = cityLayout.props.streetLights;
 
-function trunkGeometry() {
+export function trunkGeometry() {
   const g = new CylinderGeometry(0.2, 0.36, 9.5, 7, 6, true);
   g.translate(0, 4.75, 0);
   const p = g.getAttribute('position') as BufferAttribute;
@@ -49,7 +49,7 @@ function trunkGeometry() {
   return g;
 }
 
-function crownGeometry() {
+export function crownGeometry() {
   const pos: number[] = [];
   const uv: number[] = [];
   const nor: number[] = [];

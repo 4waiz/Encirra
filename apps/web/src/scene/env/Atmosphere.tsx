@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Environment, Lightformer } from '@react-three/drei';
-import { BackSide, Color, FogExp2, type DirectionalLight, type Mesh, Object3D, ShaderMaterial, Vector3 } from 'three';
+import { BackSide, Color, FogExp2, type DirectionalLight, type Group, type Mesh, Object3D, ShaderMaterial, Vector3 } from 'three';
 import { bendDrop } from '../context/bend';
 import { GROUND_Y } from '../context/layout';
 import { useKit } from '../assets/kit';
@@ -13,6 +13,7 @@ import { useTwin } from '@/state/store';
 import { SKY_GLSL, NOISE_GLSL, installHazeFog } from './skyShader';
 import { SUN, sunDirection, WORLD } from '../config';
 import { useSceneQuality } from '../runtime';
+import { REFLECTION_LAYER } from '../context/Skyline';
 
 installHazeFog();
 
@@ -203,8 +204,14 @@ export function Lights() {
     }
   });
 
+  // lights must also be on the reflection layer, or the mirrored skyline renders unlit
+  const lightsRef = useRef<Group>(null);
+  useEffect(() => {
+    lightsRef.current?.traverse((o) => o.layers.enable(REFLECTION_LAYER));
+  }, []);
+
   return (
-    <>
+    <group ref={lightsRef}>
       <directionalLight
         ref={sun}
         color={SUN.color}
@@ -215,6 +222,6 @@ export function Lights() {
       {/* cool sky fill from the opposite side to separate facades */}
       <directionalLight color="#93ABDA" intensity={0.55} position={[-sd[0] * 600, 500, -sd[2] * 600]} />
       <hemisphereLight args={['#9FB4DA', '#4B4A4E', 0.8]} />
-    </>
+    </group>
   );
 }
