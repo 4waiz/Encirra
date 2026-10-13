@@ -233,12 +233,19 @@ export function Labels() {
         lift += (hit.h + h) / 2 - Math.abs(hit.y - (y - lift)) + 4;
       }
       y -= lift;
+      // keep callouts inside the safe area (no clipping at the screen edges / behind the camera)
+      const inside = tmp.z < 1 && x - w / 2 > 10 && x + w / 2 < size.width - 10 && y - h > size.height * 0.04 && y < size.height * 0.98;
+      if (!inside) {
+        el.style.opacity = '0';
+        continue;
+      }
       placed.push({ x, y, w, h });
       const prev = offsets.get(l.key) ?? 0;
       const next = prev + (lift - prev) * 0.25;
       offsets.set(l.key, next);
       el.style.setProperty('--lift', `${next.toFixed(1)}px`);
       el.style.opacity = String(1 - fx.xray * 0.15);
+      el.style.visibility = 'visible';
     }
   });
 

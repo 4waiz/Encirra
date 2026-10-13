@@ -6,7 +6,7 @@ import { useEffect, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { BufferAttribute, BufferGeometry, MeshStandardMaterial } from 'three';
 import { bendShader } from './bend';
-import { GROUND_Y, LOW_GRID, WATER_GLSL } from './layout';
+import { GROUND_Y, LOW_GRID, LOW_STREET, WATER_GLSL } from './layout';
 import { NOISE_GLSL, SKY_GLSL } from '../env/skyShader';
 import { fx } from '../runtime';
 
@@ -85,26 +85,32 @@ float wsd = encWaterSd(gp);
 float isW = 1.0 - smoothstep(-2.0, 2.0, wsd);
 float gn = encNoise(gp * 0.013);
 float gn2 = encNoise(gp * 0.11);
-// streets every ${LOW_GRID} m
-float sx = encGridLine(gp.x, ${LOW_GRID.toFixed(1)}, 5.0, gaa);
-float sz = encGridLine(gp.y, ${LOW_GRID.toFixed(1)}, 5.0, gaa);
+// streets every ${LOW_GRID} m (aligned with the district grid)
+float sx = encGridLine(gp.x, ${LOW_GRID.toFixed(1)}, ${(LOW_STREET / 2).toFixed(1)}, gaa);
+float sz = encGridLine(gp.y, ${LOW_GRID.toFixed(1)}, ${(LOW_STREET / 2).toFixed(1)}, gaa);
 float street = max(sx, sz);
-vec3 block = mix(vec3(0.075, 0.065, 0.055), vec3(0.12, 0.1, 0.08), gn) * (0.85 + 0.25 * gn2);
-// patches of park
-block = mix(block, vec3(0.025, 0.05, 0.018), smoothstep(0.6, 0.68, encNoise(gp * 0.004 + 3.0)) * 0.85);
-vec3 asphalt = vec3(0.018, 0.019, 0.022);
-vec3 gcol = mix(block, asphalt, street);
+// sidewalks
+float swx = encGridLine(gp.x, ${LOW_GRID.toFixed(1)}, ${(LOW_STREET / 2 + 3.5).toFixed(1)}, gaa);
+float swz = encGridLine(gp.y, ${LOW_GRID.toFixed(1)}, ${(LOW_STREET / 2 + 3.5).toFixed(1)}, gaa);
+float walk = max(swx, swz) * (1.0 - street);
+vec3 block = mix(vec3(0.13, 0.115, 0.095), vec3(0.2, 0.17, 0.13), gn) * (0.85 + 0.25 * gn2);
+// parks and planted courtyards
+float park = smoothstep(0.58, 0.66, encNoise(gp * 0.0045 + 3.0));
+block = mix(block, mix(vec3(0.03, 0.06, 0.02), vec3(0.06, 0.1, 0.03), gn2), park * 0.9);
+vec3 asphalt = vec3(0.022, 0.023, 0.026) * (0.85 + 0.3 * gn2);
+vec3 gcol = mix(block, vec3(0.24, 0.22, 0.19), walk);
+gcol = mix(gcol, asphalt, street);
 // quay edge along the water
-float quay = (1.0 - smoothstep(0.0, 10.0, wsd)) * (1.0 - isW);
-gcol = mix(gcol, vec3(0.3, 0.28, 0.25), quay * 0.8);
-diffuseColor.rgb = mix(gcol, vec3(0.012, 0.03, 0.04), isW);
-// streetlight dots along streets (fade with distance to avoid shimmer)
-float lfade = 1.0 - smoothstep(0.35, 1.2, gaa);
-float lx = encGridLine(gp.y, 30.0, 0.7, gaa) * encGridLine(gp.x - 6.0, ${LOW_GRID.toFixed(1)}, 0.7, gaa);
-float lz = encGridLine(gp.x, 30.0, 0.7, gaa) * encGridLine(gp.y - 6.0, ${LOW_GRID.toFixed(1)}, 0.7, gaa);
-vec3 gEm = vec3(1.0, 0.62, 0.3) * max(lx, lz) * 6.0 * lfade * (1.0 - isW);
-// soft average glow of the street network at distance
-gEm += vec3(1.0, 0.6, 0.3) * street * 0.12 * (1.0 - lfade) * (1.0 - isW);
+float quay = (1.0 - smoothstep(0.0, 12.0, wsd)) * (1.0 - isW);
+gcol = mix(gcol, vec3(0.34, 0.32, 0.28), quay * 0.85);
+diffuseColor.rgb = mix(gcol, vec3(0.01, 0.025, 0.035), isW);
+// street lighting: warm light pools along the carriageways + soft network glow at distance
+float lfade = 1.0 - smoothstep(0.5, 1.6, gaa);
+float poolsX = pow(0.5 + 0.5 * cos(gp.y * 6.2832 / 26.0), 6.0) * sx;
+float poolsZ = pow(0.5 + 0.5 * cos(gp.x * 6.2832 / 26.0), 6.0) * sz;
+float traffic = 0.35 + 0.65 * smoothstep(0.35, 0.8, encNoise(gp * 0.02 + vec2(uTime * 0.02, 0.0)));
+vec3 gEm = vec3(1.0, 0.6, 0.28) * (max(poolsX, poolsZ) * 0.9 * lfade + street * mix(0.06, 0.16, 1.0 - lfade)) * traffic * (1.0 - isW);
+gEm += vec3(1.0, 0.7, 0.4) * walk * 0.03 * (1.0 - isW);
 float gRough = mix(mix(0.92, 0.75, street), 0.04, isW);
 `,
         )

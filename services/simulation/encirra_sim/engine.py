@@ -45,6 +45,7 @@ from .config import (
     TANK_LOW_PCT,
     District,
     cache_dir,
+    code_fingerprint,
     district_mtime,
     load_district,
     load_scenario_files,
@@ -379,7 +380,7 @@ _CACHE_LOCK = threading.Lock()
 
 
 def _cache_path(run_id: str):
-    return cache_dir() / f"run-{run_id}.json"
+    return cache_dir() / f"run-{run_id}-{code_fingerprint()}.json"
 
 
 def cached_runs() -> int:

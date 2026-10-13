@@ -74,6 +74,22 @@ def cache_dir() -> Path:
     return d
 
 
+@lru_cache(maxsize=1)
+def code_fingerprint() -> str:
+    """Hash of the engine source, district.json and scenario files (cache invalidation)."""
+    import hashlib
+
+    h = hashlib.sha256()
+    pkg = Path(__file__).resolve().parent
+    for f in sorted(pkg.glob("*.py")):
+        h.update(f.name.encode())
+        h.update(f.read_bytes())
+    h.update(district_path().read_bytes())
+    for f in sorted(scenarios_dir().glob("*.json")):
+        h.update(f.read_bytes())
+    return h.hexdigest()[:12]
+
+
 def _read_json(path: Path) -> Any:
     with open(path, encoding="utf-8") as fh:
         return json.load(fh)

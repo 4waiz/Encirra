@@ -56,7 +56,9 @@ from .coupling import CoupledResult, Segment, SimSetup, SwitchingTimeline, simul
 from .electrical import PowerNetwork
 from .models import CandidateMetrics, ObjectiveWeights, ScoreBreakdown, SwitchAction, VerificationCheck
 from .profiles import clock_str
+from .screening import propose_shed_set
 from .topology import FaultPlan, check_radiality, energized_buses
+from .water import pump_power_kw
 
 LIFE_SAFETY_KINDS = ("hospital", "emergency-ops")
 
@@ -591,6 +593,12 @@ def evaluate_all(ctx: PlanningContext) -> list[CandidateOutcome]:
     region = ctx.fault.downstream_dark
     oos = [ctx.fault.fault_line]
     frames = ctx.sample_frames()
+    peak_lf = float(max(ctx.setup.load_factor[k] for k in frames))
+    tanphi = 0.6197  # pf 0.85
+    pump_extra = {}
+    for pu in d.pumps:  # design-point motor input as the screening estimate of pump demand
+        kw = float(pump_power_kw(pu.design_flow_lps / 1000.0, pu.design_head_m, pu.efficiency))
+        pump_extra[pu.bus] = (kw, kw * tanphi)
     outcomes: list[CandidateOutcome] = []
     for ties, opens, closed in topologies(ctx):
         spec0 = CandidateSpec(ties, opens, (), closed)
@@ -613,6 +621,25 @@ def evaluate_all(ctx: PlanningContext) -> list[CandidateOutcome]:
                 outcomes.append(o)
                 if o.feasible:
                     feasible_sheds.append(set(dset))
+        # Beyond the enumeration bound: CP-SAT proposes the best larger shed set (LinDistFlow).
+        budget = MAX_SWITCH_OPS - len(ties) - len(opens)
+        if not feasible_sheds and len(sheddable) > MAX_SHED_BUSES and budget > MAX_SHED_BUSES:
+            prop = propose_shed_set(
+                d,
+                closed,
+                oos,
+                sheddable,
+                peak_lf,
+                pump_extra,
+                float(d.limits["vMinPu"]),
+                max_shed=budget,
+            )
+            if prop is not None and len(prop) > MAX_SHED_BUSES:
+                spec = CandidateSpec(ties, opens, prop, closed)
+                checks, reasons = topology_checks(ctx, spec)
+                o = _evaluate_one(ctx, spec, frames, checks, reasons)
+                o.extra["origin"] = "cp-sat"
+                outcomes.append(o)
     outcomes.sort(key=lambda o: (o.spec.ops, o.spec.ties, o.spec.opens, o.spec.shed))
     for i, o in enumerate(outcomes):
         o.cid = f"C{i + 1:02d}"

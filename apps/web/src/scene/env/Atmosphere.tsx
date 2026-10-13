@@ -109,7 +109,7 @@ export function SkyEnvironment() {
   const sd = sunDirection();
   useEffect(() => () => mat.dispose(), [mat]);
   return (
-    <Environment resolution={256} frames={1} environmentIntensity={0.55}>
+    <Environment resolution={256} frames={1} environmentIntensity={0.48}>
       <mesh material={mat} scale={500} renderOrder={-1}>
         <sphereGeometry args={[1, 64, 32]} />
       </mesh>
@@ -169,13 +169,13 @@ export function Lights() {
       <directionalLight
         ref={sun}
         color={SUN.color}
-        intensity={4.4}
+        intensity={4.6}
         position={[sd[0] * 900, sd[1] * 900, sd[2] * 900]}
         castShadow={tier !== 'low'}
       />
       {/* cool sky fill from the opposite side to separate facades */}
-      <directionalLight color="#A9BCD8" intensity={0.45} position={[-sd[0] * 600, 500, -sd[2] * 600]} />
-      <hemisphereLight args={['#C9D3E2', '#8A6A50', 0.55]} />
+      <directionalLight color="#9DB4DA" intensity={0.38} position={[-sd[0] * 600, 500, -sd[2] * 600]} />
+      <hemisphereLight args={['#A9BBD6', '#6A5240', 0.5]} />
     </>
   );
 }

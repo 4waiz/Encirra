@@ -12,7 +12,7 @@ export function Effects() {
   return (
     <EffectComposer multisampling={tier === 'high' ? 4 : 0} frameBufferType={HalfFloatType} key={tier}>
       {tier === 'high' ? <N8AO aoRadius={7} distanceFalloff={0.6} intensity={1.4} aoSamples={12} denoiseSamples={4} halfRes /> : <></>}
-      <Bloom mipmapBlur intensity={tier === 'low' ? 0.55 : 0.75} luminanceThreshold={0.92} luminanceSmoothing={0.25} radius={0.72} />
+      <Bloom mipmapBlur intensity={tier === 'low' ? 0.6 : 0.85} luminanceThreshold={1.15} luminanceSmoothing={0.2} radius={0.68} />
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
       <SMAA />
       <Vignette offset={0.32} darkness={0.42} eskil={false} />

@@ -21,11 +21,11 @@ const vec3 ENC_SUN_DIR = ${SUN};
 vec3 encSkyBase(vec3 d, float withSun) {
   float h = d.y;
   float t = clamp(h, 0.0, 1.0);
-  vec3 cHor = ${v3('#FFD2AE')} * 1.55;
-  vec3 cLow = ${v3('#F8B790')} * 1.35;
-  vec3 cMid = ${v3('#D7A6A0')} * 1.05;
-  vec3 cUp  = ${v3('#9C9FB6')} * 0.95;
-  vec3 cTop = ${v3('#6B82A0')} * 0.85;
+  vec3 cHor = ${v3('#FFD0A0')} * 1.6;
+  vec3 cLow = ${v3('#F6AA78')} * 1.35;
+  vec3 cMid = ${v3('#D99A8C')} * 1.0;
+  vec3 cUp  = ${v3('#959CB8')} * 0.9;
+  vec3 cTop = ${v3('#5C7599')} * 0.82;
   vec3 col = mix(cHor, cLow, smoothstep(0.0, 0.05, t));
   col = mix(col, cMid, smoothstep(0.03, 0.16, t));
   col = mix(col, cUp, smoothstep(0.12, 0.38, t));
@@ -45,7 +45,10 @@ vec3 encSkyBase(vec3 d, float withSun) {
 }
 vec3 encHaze(vec3 d) {
   vec3 dd = normalize(vec3(d.x, 0.004, d.z) + vec3(1e-5, 0.0, 0.0));
-  return encSkyBase(dd, 0.35) * 0.8;
+  // aerial perspective: warm towards the sun, dustier / cooler elsewhere
+  vec3 sh = normalize(vec3(ENC_SUN_DIR.x, 0.0, ENC_SUN_DIR.z));
+  float az = dot(normalize(vec3(d.x, 0.0, d.z) + vec3(1e-5, 0.0, 0.0)), sh) * 0.5 + 0.5;
+  return encSkyBase(dd, 0.35) * mix(vec3(0.62, 0.6, 0.66), vec3(0.78, 0.7, 0.62), az);
 }
 #endif
 `;

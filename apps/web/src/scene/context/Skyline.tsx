@@ -35,7 +35,8 @@ float encAAB(float x, float a, float b, float w){ return clamp(smoothstep(a - w,
 /** Instanced tower material: windows computed in metric object space from the instance scale. */
 function createTowerMaterial(kind: 'tower' | 'low') {
   const m = new MeshStandardMaterial({ color: '#ffffff', roughness: 0.8, metalness: 0, envMapIntensity: 1.0 });
-  m.customProgramCacheKey = () => `encirra-tower-${kind}-v1`;
+  m.customProgramCacheKey = () => `encirra-tower-${kind}-v2`;
+  if (kind === 'low') m.defines = { ENC_LOW: '' };
   m.onBeforeCompile = (shader) => {
     bendShader(shader);
     shader.vertexShader = shader.vertexShader
@@ -98,7 +99,14 @@ vec3 warm = mix(vec3(1.0, 0.56, 0.25), vec3(1.0, 0.8, 0.55), mix(encH13(vec3(ci,
 if (glassy) warm = mix(warm, vec3(0.85, 0.92, 1.0), 0.35);
 vec3 wallA = glassy ? mix(vec3(0.05, 0.07, 0.085), vec3(0.14, 0.16, 0.17), fract(seed * 0.37)) : (tone < 0.75 ? mix(vec3(0.42, 0.4, 0.37), vec3(0.6, 0.58, 0.55), fract(seed * 0.71)) : mix(vec3(0.36, 0.28, 0.2), vec3(0.52, 0.42, 0.31), fract(seed * 0.71)));
 vec3 glassC = glassy ? vec3(0.02, 0.035, 0.05) : vec3(0.025, 0.027, 0.03);
-diffuseColor.rgb = roof ? vec3(0.35, 0.34, 0.33) : mix(wallA, glassC, m);
+#ifdef ENC_LOW
+wallA = mix(mix(vec3(0.15, 0.14, 0.13), vec3(0.29, 0.26, 0.22), fract(seed * 0.71)), vec3(0.42, 0.41, 0.4), step(0.82, fract(seed * 0.29)));
+#endif
+vec3 roofC = vec3(0.35, 0.34, 0.33);
+#ifdef ENC_LOW
+roofC = vec3(0.13, 0.13, 0.13) * (0.8 + 0.4 * fract(seed * 0.53));
+#endif
+diffuseColor.rgb = roof ? roofC : mix(wallA, glassC, m);
 vec3 tEm = warm * (0.6 + 1.1 * mix(encH13(vec3(ci, seed + 9.0)), 0.5, farF)) * lit * m;
 // crown light band on taller towers
 float crown = smoothstep(vH - 6.0, vH - 4.0, v) * (1.0 - smoothstep(vH - 2.5, vH - 1.5, v)) * step(90.0, vH) * step(0.5, fract(seed * 1.3));
@@ -127,7 +135,7 @@ function buildInstances(specs: { x: number; z: number; w: number; d: number; h: 
     attr[i * 4] = s.seed;
     attr[i * 4 + 1] = low ? 0.5 + ((s.seed * 7.13) % 1) * 0.5 : tone;
     attr[i * 4 + 2] = low ? 3.4 : tone < 0.55 ? 4.0 : 3.5;
-    attr[i * 4 + 3] = low ? 0.3 : 0.22 + ((s.seed * 3.7) % 0.25);
+    attr[i * 4 + 3] = low ? 0.42 : 0.2 + ((s.seed * 3.7) % 0.2);
   });
   mesh.geometry = geo.clone();
   mesh.geometry.setAttribute('aTower', new InstancedBufferAttribute(attr, 4));
