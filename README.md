@@ -54,6 +54,17 @@ All selected plans pass every hard check in a minute-by-minute re-simulation. Th
 demand, and Encirra's advantage depends on the synthetic tie-line capacity; both findings are reported, with a
 sensitivity analysis, in [docs/METHODOLOGY.md](docs/METHODOLOGY.md).
 
+### Screenshots
+
+| | |
+|---|---|
+| ![17:02 — fault isolated, hospital on backup power, PS-2 offline, Tank T2 falling](docs/screenshots/live-twin-fault.jpg) | ![18:20 — grid-only plan: electrically verified, but PS-2 stays dark and hospital water pressure collapses after 72 min](docs/screenshots/grid-only-hospital-water-loss.jpg) |
+| **Fault (17:02).** Protection has isolated Feeder F3; the hospital rides on its genset while PS-2 has stopped and Tank T2 starts to fall. | **Grid-only at 18:20.** The plan restores the most electrical load, but PS-2 stays dark: Tank T2 empties and hospital pressure falls to 0 m. |
+| ![Underground x-ray view of the water network](docs/screenshots/underground-xray.jpg) | ![Why this plan? — candidates, score breakdown, rejected alternatives and verification](docs/screenshots/why-this-plan.jpg) |
+| **Underground x-ray.** The surface fades to reveal mains, pumps and valves with live flow direction and pressure colouring. | **Why this plan?** Every candidate, its objective breakdown, the rejected alternatives with their failed checks, and the verification result. |
+| ![Analytics page](docs/screenshots/analytics.jpg) | ![Reports page](docs/screenshots/reports.jpg) |
+| **Analytics.** Voltage profiles, line loading, pump power and flow, pressures and tank levels. | **Reports.** None vs Grid-only vs Encirra, candidate evidence, methodology and CSV/JSON export. |
+
 ---
 
 ## Quick start

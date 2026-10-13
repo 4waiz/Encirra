@@ -29,12 +29,6 @@ desktop.ini
 .vscode/*
 !.vscode/extensions.json
 
-# Local tool state (never commit)
-.claude/
-CLAUDE.md
-CLAUDE.local.md
-.agent-scratch/
-
 # Blender autosave/backups
 *.blend1
 *.blend2
