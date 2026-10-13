@@ -212,11 +212,11 @@ function FocusMenu() {
   }, [open]);
   return (
     <div ref={ref} className="relative">
-      <IconButton tip={open ? undefined : 'Focus presets'} tipPos="left" active={open} onClick={() => setOpen((o) => !o)} data-testid="focus-menu-btn">
+      <IconButton tip={open ? undefined : 'Focus presets'} active={open} onClick={() => setOpen((o) => !o)} data-testid="focus-menu-btn">
         <Crosshair size={16} />
       </IconButton>
       {open && (
-        <div className="enc-panel enc-panel-strong absolute top-0 right-[calc(100%+8px)] z-30 w-[220px] rounded-[10px] p-1" role="menu">
+        <div className="enc-panel enc-panel-strong absolute top-[calc(100%+8px)] right-0 z-30 w-[220px] rounded-[10px] p-1" role="menu">
           <div className="px-2 pt-1 pb-1 t-micro font-semibold tracking-wide text-slate uppercase">Camera focus</div>
           {SHOTS.map((s) => (
             <button
@@ -247,31 +247,37 @@ export function SceneToolbar() {
   const demoActive = useTwin((s) => s.demo.active);
   const hasRun = useTwin((s) => !!s.run);
   return (
-    <div className="enc-panel pointer-events-auto flex flex-col items-center gap-0.5 rounded-[12px] p-1" data-testid="scene-toolbar">
+    <div className="enc-panel pointer-events-auto flex items-center gap-0.5 rounded-[12px] p-1" data-testid="scene-toolbar">
+      <span className="hidden px-1.5 t-micro font-semibold tracking-wide text-slate uppercase 2xl:inline">Layers</span>
       {LAYER_BTNS.map(({ key, label, icon: Icon }) => (
-        <IconButton key={key} tip={label} tipPos="left" active={layers[key]} onClick={() => toggleLayer(key)} data-testid={`layer-${key}`}>
+        <IconButton key={key} tip={label} active={layers[key]} onClick={() => toggleLayer(key)} data-testid={`layer-${key}`}>
           <Icon size={16} />
         </IconButton>
       ))}
-      <div className="my-0.5 h-px w-6 bg-line" />
-      <IconButton
-        tip="Cinematic demo (3 min guided sequence)"
-        tipPos="left"
-        active={demoActive}
-        disabled={!hasRun}
-        onClick={() => startDemo()}
-        data-testid="demo-start"
-        className={clsx(!demoActive && 'text-info')}
-      >
-        <Clapperboard size={16} />
-      </IconButton>
-      <IconButton tip="Auto-orbit" tipPos="left" active={autoOrbit} onClick={() => setAutoOrbit(!autoOrbit)} data-testid="auto-orbit">
+      <div className="mx-0.5 h-6 w-px bg-line" />
+      <IconButton tip="Auto-orbit" active={autoOrbit} onClick={() => setAutoOrbit(!autoOrbit)} data-testid="auto-orbit">
         <Orbit size={16} />
       </IconButton>
-      <IconButton tip="Reset camera" tipPos="left" onClick={() => requestCamera({ shot: 'home' })} data-testid="camera-reset">
+      <IconButton tip="Reset camera" onClick={() => requestCamera({ shot: 'home' })} data-testid="camera-reset">
         <RotateCcw size={16} />
       </IconButton>
       <FocusMenu />
+      <div className="mx-0.5 h-6 w-px bg-line" />
+      <button
+        type="button"
+        disabled={!hasRun}
+        onClick={() => startDemo()}
+        data-testid="demo-start"
+        data-tip="Guided 3-minute sequence: fault, cascade, recovery, evidence"
+        data-tip-pos="bottom-end"
+        className={clsx(
+          'flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-semibold whitespace-nowrap transition-colors disabled:opacity-40',
+          demoActive ? 'bg-info-soft text-info' : 'bg-info text-white hover:bg-brand-deep',
+        )}
+      >
+        <Clapperboard size={15} />
+        Cinematic Demo
+      </button>
     </div>
   );
 }

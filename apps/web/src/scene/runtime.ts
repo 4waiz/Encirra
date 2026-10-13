@@ -33,4 +33,5 @@ export const fx = {
   skyline: 1,
   frames: 0,
   ready: false,
+  stats: null as null | { calls: number; triangles: number },
 };

@@ -135,7 +135,7 @@ def run_group(name, fn, bake_ao, args):
     for stem, items in files.items():
         roots = [ob for ob, _ in items]
         path = os.path.join(args.out, stem + ".glb")
-        common.export_glb(roots, path, image_format="JPEG" if name == "base" else "AUTO")
+        common.export_glb(roots, path, image_format="AUTO")
         recs = [finalize_record(rec, stem, ob) for ob, rec in items]
         with open(os.path.join(man_dir, stem + ".json"), "w", encoding="utf-8") as fh:
             json.dump({"file": stem + ".glb", "group": name, "assets": recs}, fh, indent=2)

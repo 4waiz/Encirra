@@ -161,6 +161,8 @@ class MeshBuilder:
         # Optional callable(point_world, normal) -> (u, v) for glazing faces
         self.glazing_uv = None
         self.uv_override = {}
+        self.fcol = []
+        self.col = None  # current per-face colour (grey value or rgb) written to COLOR_0 "AO"
 
     # -- transforms ---------------------------------------------------------
     @property
@@ -192,7 +194,7 @@ class MeshBuilder:
         return self.xform(Matrix.Translation((x, y, z)) @ Matrix.Rotation(angle, 4, "Z"))
 
     # -- low level ----------------------------------------------------------
-    def face(self, pts, mat, inside=None, smooth=False, uvs=None):
+    def face(self, pts, mat, inside=None, smooth=False, uvs=None, col=None):
         """Add a polygon. `pts` are local points; if `inside` (local point) is given the
         face is oriented so its normal points away from it."""
         M = self.M
@@ -219,13 +221,21 @@ class MeshBuilder:
         self.fmat.append(mat)
         self.fsmooth.append(smooth)
         self.fuv.append(uvs)
+        self.fcol.append(col if col is not None else self.col)
 
     def quad(self, a, b, c, d, mat, inside=None, smooth=False, uvs=None):
         self.face([a, b, c, d], mat, inside, smooth, uvs)
 
     # -- primitives ---------------------------------------------------------
     def box(self, x0, y0, z0, x1, y1, z1, mat, c=0.0, skip=(), mats=None,
-            bevel_vertical=True, bevel_top=True, bevel_bottom=False):
+            bevel_vertical=True, bevel_top=True, bevel_bottom=False, col=None):
+        if col is not None:
+            prev = self.col
+            self.col = col
+            try:
+                return self.box(x0, y0, z0, x1, y1, z1, mat, c, skip, mats, bevel_vertical, bevel_top, bevel_bottom)
+            finally:
+                self.col = prev
         """Axis-aligned box. `c` = chamfer width.  `mats` maps side names
         ('top','bottom','front'(-y),'back'(+y),'left'(-x),'right'(+x)) to materials.
         `skip` lists sides to omit."""
@@ -503,6 +513,7 @@ class MeshBuilder:
             self.fmat.append(mat)
             self.fsmooth.append(smooth)
             self.fuv.append(None)
+            self.fcol.append(self.col)
 
     # -- stats --------------------------------------------------------------
     def tris(self):
@@ -600,6 +611,19 @@ class MeshBuilder:
             for uv in uvs:
                 flat.extend(uv)
         uvl.data.foreach_set("uv", flat)
+        if any(c is not None for c in self.fcol):
+            ca = me.color_attributes.new("AO", "BYTE_COLOR", "CORNER")
+            cols = []
+            for out_i, fi in enumerate(keep):
+                c = self.fcol[fi]
+                if c is None:
+                    c = (1.0, 1.0, 1.0)
+                elif isinstance(c, (int, float)):
+                    c = (c, c, c)
+                for _ in range(me.polygons[out_i].loop_total):
+                    cols.extend((c[0], c[1], c[2], 1.0))
+            ca.data.foreach_set("color", cols)
+            me.color_attributes.active_color = ca
         me.validate(clean_customdata=False)
         me.update()
         return me
