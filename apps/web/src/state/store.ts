@@ -13,6 +13,7 @@ import { create } from 'zustand';
 import type {
   Comparison,
   Frame,
+  HealthResponse,
   NetworkTopology,
   ObjectiveWeights,
   ReplayManifest,
@@ -72,6 +73,7 @@ export interface DemoState {
   paused: boolean;
   stepIndex: number; // index into the demo script
   stepStartedAt: number; // performance.now() when the step began
+  elapsedS: number; // seconds into the demo script (updated a few times per second)
 }
 
 export interface TwinState {
@@ -82,6 +84,10 @@ export interface TwinState {
   // ── authoritative data
   dataSource: DataSource;
   dataError: string | null;
+  /** true while the temporary development fixture is shown (dev server only, never shipped) */
+  devFixture: boolean;
+  /** /api/health response when the live simulation service is reachable */
+  health: HealthResponse | null;
   topology: NetworkTopology | null;
   manifest: ReplayManifest | null;
   scenarios: ScenarioDefinition[];
@@ -92,6 +98,10 @@ export interface TwinState {
   run: RunResult | null;
   runsByStrategy: Partial<Record<StrategyId, RunResult>>;
   comparison: Comparison | null;
+  /** human-readable progress message while a scenario loads or the live solver recomputes */
+  busy: string | null;
+  /** last error from a scenario load / live recompute (the previous data stays displayed) */
+  runError: string | null;
 
   // ── playback (frame cursor over run.frames)
   playhead: number; // fractional frame position, 0 … frames.length − 1
@@ -104,15 +114,37 @@ export interface TwinState {
   layers: Layers;
   overviewMode: OverviewMode;
   camera: { mode: 'orbit' | 'cinematic'; request: CameraRequest | null };
+  /** slow automatic orbit of the 3D camera (scene reads it) */
+  autoOrbit: boolean;
   demo: DemoState;
   whyPlanOpen: boolean;
   aboutOpen: boolean;
 
   // ── actions
-  setData: (patch: Partial<Pick<TwinState, 'dataSource' | 'dataError' | 'topology' | 'manifest' | 'scenarios' | 'comparison'>>) => void;
+  setData: (
+    patch: Partial<
+      Pick<
+        TwinState,
+        | 'dataSource'
+        | 'dataError'
+        | 'devFixture'
+        | 'health'
+        | 'topology'
+        | 'manifest'
+        | 'scenarios'
+        | 'comparison'
+        | 'busy'
+        | 'runError'
+      >
+    >,
+  ) => void;
   setRun: (run: RunResult) => void;
+  /** Replace all runs of the current scenario at once and show `strategy`. */
+  setRuns: (runs: Partial<Record<StrategyId, RunResult>>, strategy: StrategyId, opts?: { resetPlayhead?: boolean }) => void;
   setScenario: (id: ScenarioId) => void;
   setStrategy: (s: StrategyId) => void;
+  /** Show another strategy of the loaded scenario (keeps the playhead: all strategies share one timebase). */
+  switchStrategy: (s: StrategyId) => void;
   setParams: (p: ScenarioParams | null) => void;
   setWeights: (w: ObjectiveWeights | null) => void;
   setPlayhead: (p: number) => void;
@@ -125,6 +157,7 @@ export interface TwinState {
   setOverviewMode: (m: OverviewMode) => void;
   requestCamera: (req: Omit<CameraRequest, 'nonce'>) => void;
   setCameraMode: (mode: 'orbit' | 'cinematic') => void;
+  setAutoOrbit: (on: boolean) => void;
   setDemo: (patch: Partial<DemoState>) => void;
   setWhyPlanOpen: (open: boolean) => void;
   setAboutOpen: (open: boolean) => void;
@@ -138,6 +171,8 @@ export const useTwin = create<TwinState>()((set, get) => ({
 
   dataSource: 'loading',
   dataError: null,
+  devFixture: false,
+  health: null,
   topology: null,
   manifest: null,
   scenarios: [],
@@ -148,6 +183,8 @@ export const useTwin = create<TwinState>()((set, get) => ({
   run: null,
   runsByStrategy: {},
   comparison: null,
+  busy: null,
+  runError: null,
 
   playhead: 0,
   playing: false,
@@ -158,7 +195,8 @@ export const useTwin = create<TwinState>()((set, get) => ({
   layers: { surface: true, electrical: true, water: true, underground: false, labels: true, skyline: true },
   overviewMode: 'power',
   camera: { mode: 'orbit', request: null },
-  demo: { active: false, paused: false, stepIndex: 0, stepStartedAt: 0 },
+  autoOrbit: false,
+  demo: { active: false, paused: false, stepIndex: 0, stepStartedAt: 0, elapsedS: 0 },
   whyPlanOpen: false,
   aboutOpen: false,
 
@@ -169,8 +207,29 @@ export const useTwin = create<TwinState>()((set, get) => ({
       runsByStrategy: { ...s.runsByStrategy, [run.strategy]: run },
       playhead: Math.min(s.playhead, Math.max(0, run.frames.length - 1)),
     })),
+  setRuns: (runs, strategy, opts) =>
+    set((s) => {
+      const run = runs[strategy] ?? Object.values(runs)[0] ?? null;
+      const n = run?.frames.length ?? 1;
+      return {
+        runsByStrategy: runs,
+        strategy: run?.strategy ?? strategy,
+        run,
+        scenarioId: run?.scenarioId ?? s.scenarioId,
+        params: run?.params ?? s.params,
+        weights: run?.weights ?? s.weights,
+        playhead: opts?.resetPlayhead ? 0 : Math.max(0, Math.min(n - 1, s.playhead)),
+        playing: opts?.resetPlayhead ? false : s.playing,
+      };
+    }),
   setScenario: (scenarioId) => set({ scenarioId }),
   setStrategy: (strategy) => set({ strategy }),
+  switchStrategy: (strategy) =>
+    set((s) => {
+      const run = s.runsByStrategy[strategy];
+      if (!run) return { strategy };
+      return { strategy, run, playhead: Math.max(0, Math.min(run.frames.length - 1, s.playhead)) };
+    }),
   setParams: (params) => set({ params }),
   setWeights: (weights) => set({ weights }),
   setPlayhead: (p) => {
@@ -186,6 +245,7 @@ export const useTwin = create<TwinState>()((set, get) => ({
   setOverviewMode: (overviewMode) => set({ overviewMode }),
   requestCamera: (req) => set((s) => ({ camera: { ...s.camera, request: { ...req, nonce: ++cameraNonce } } })),
   setCameraMode: (mode) => set((s) => ({ camera: { ...s.camera, mode } })),
+  setAutoOrbit: (autoOrbit) => set({ autoOrbit }),
   setDemo: (patch) => set((s) => ({ demo: { ...s.demo, ...patch } })),
   setWhyPlanOpen: (whyPlanOpen) => set({ whyPlanOpen }),
   setAboutOpen: (aboutOpen) => set({ aboutOpen }),
@@ -199,3 +259,12 @@ export function selectFrame(s: TwinState): Frame | null {
 }
 
 export const useFrame = () => useTwin(selectFrame);
+
+/** Integer frame index of the playhead (re-renders only when the frame changes). */
+export function selectFrameIndex(s: TwinState): number {
+  const n = s.run?.frames.length ?? 0;
+  if (n === 0) return 0;
+  return Math.max(0, Math.min(n - 1, Math.floor(s.playhead)));
+}
+
+export const useFrameIndex = () => useTwin(selectFrameIndex);
