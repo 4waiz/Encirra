@@ -76,50 +76,49 @@ vec4 encSurface(vec2 p) {
     }
     col = mix(asph, vec3(0.62, 0.62, 0.6), mark * 0.85);
     col = mix(col, vec3(0.75, 0.48, 0.08), yellow * 0.9);
-    encSurfKind = kind;
-    return vec4(col, rough);
+  } else {
+    // distance to the nearest road edge and to the platform rim
+    float dEdge = min(dAv - AV_HALF, dSt - ST_HALF);
+    float dRim = min(min(p.x - PLAT.x, PLAT.y - p.x), min(p.y - PLAT.z, PLAT.w - p.y));
+    dEdge = min(dEdge, dRim);
+    if (abs(p.x) < 33.0 && abs(p.y) < 31.0) {
+      // substation gravel yard
+      kind = 3.0;
+      float sp = encNoise(p * 6.0);
+      col = vec3(0.2, 0.2, 0.2) * (0.8 + 0.35 * sp);
+      float pad = step(abs(p.x), 30.0) * step(abs(p.y), 28.0);
+      col = mix(col * 0.9, col, pad);
+      rough = 0.95;
+    } else if (dEdge < 4.0) {
+      // sidewalk + kerb
+      kind = 2.0;
+      vec3 pave = vec3(0.34, 0.31, 0.27) * (0.9 + 0.15 * n2);
+      vec2 tl = fract(p / 1.2);
+      float joint = (1.0 - encLineAA(abs(tl.x - 0.5), 0.47, aa / 1.2) * encLineAA(abs(tl.y - 0.5), 0.47, aa / 1.2)) * fineFade;
+      pave *= 1.0 - 0.18 * joint;
+      float curb = 1.0 - smoothstep(0.25, 0.4, dEdge);
+      col = mix(pave, vec3(0.5, 0.49, 0.46), curb);
+      rough = 0.86;
+    } else {
+      // landscaped block interior
+      kind = 4.0;
+      vec3 paving = vec3(0.42, 0.37, 0.29) * (0.92 + 0.12 * n2);
+      vec2 tl = fract(p / 3.0);
+      float joint = (1.0 - encLineAA(abs(tl.x - 0.5), 0.485, aa / 3.0) * encLineAA(abs(tl.y - 0.5), 0.485, aa / 3.0)) * fineFade;
+      paving *= 1.0 - 0.12 * joint;
+      vec3 grass = mix(vec3(0.055, 0.12, 0.025), vec3(0.11, 0.2, 0.04), n1) * (0.85 + 0.3 * n2);
+      float verge = step(dEdge, 7.5);
+      float lawn = smoothstep(0.42, 0.5, n3 + 0.12 * n1);
+      float m = max(verge, lawn);
+      // hedges / planter lines along the verge edge
+      float hedge = encLineAA(abs(dEdge - 7.5), 0.5, aa) * 0.6;
+      col = mix(paving, grass, m);
+      col = mix(col, vec3(0.03, 0.07, 0.02), hedge);
+      rough = mix(0.85, 0.95, m);
+    }
   }
-  // distance to the nearest road edge and to the platform rim
-  float dEdge = min(dAv - AV_HALF, dSt - ST_HALF);
-  float dRim = min(min(p.x - PLAT.x, PLAT.y - p.x), min(p.y - PLAT.z, PLAT.w - p.y));
-  dEdge = min(dEdge, dRim);
-  // substation gravel yard
-  if (abs(p.x) < 33.0 && abs(p.y) < 31.0) {
-    kind = 3.0;
-    float sp = encNoise(p * 6.0);
-    col = vec3(0.2, 0.2, 0.2) * (0.8 + 0.35 * sp);
-    float pad = step(abs(p.x), 30.0) * step(abs(p.y), 28.0);
-    col = mix(col * 0.9, col, pad);
-    encSurfKind = kind;
-    return vec4(col, 0.95);
-  }
-  if (dEdge < 4.0) {
-    kind = 2.0;
-    vec3 pave = vec3(0.34, 0.31, 0.27) * (0.9 + 0.15 * n2);
-    vec2 tl = fract(p / 1.2);
-    float joint = (1.0 - encLineAA(abs(tl.x - 0.5), 0.47, aa / 1.2) * encLineAA(abs(tl.y - 0.5), 0.47, aa / 1.2)) * fineFade;
-    pave *= 1.0 - 0.18 * joint;
-    float curb = 1.0 - smoothstep(0.25, 0.4, dEdge);
-    col = mix(pave, vec3(0.5, 0.49, 0.46), curb);
-    encSurfKind = kind;
-    return vec4(col, 0.86);
-  }
-  // landscaped block interior
-  kind = 4.0;
-  vec3 paving = vec3(0.42, 0.37, 0.29) * (0.92 + 0.12 * n2);
-  vec2 tl = fract(p / 3.0);
-  float joint = (1.0 - encLineAA(abs(tl.x - 0.5), 0.485, aa / 3.0) * encLineAA(abs(tl.y - 0.5), 0.485, aa / 3.0)) * fineFade;
-  paving *= 1.0 - 0.12 * joint;
-  vec3 grass = mix(vec3(0.055, 0.12, 0.025), vec3(0.11, 0.2, 0.04), n1) * (0.85 + 0.3 * n2);
-  float verge = step(dEdge, 7.5);
-  float lawn = smoothstep(0.42, 0.5, n3 + 0.12 * n1);
-  float m = max(verge, lawn);
-  // hedges / planter lines along the verge edge
-  float hedge = encLineAA(abs(dEdge - 7.5), 0.5, aa) * 0.6;
-  col = mix(paving, grass, m);
-  col = mix(col, vec3(0.03, 0.07, 0.02), hedge);
   encSurfKind = kind;
-  return vec4(col, mix(0.85, 0.95, m));
+  return vec4(col, rough);
 }
 `;
 
