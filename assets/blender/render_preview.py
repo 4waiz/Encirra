@@ -39,7 +39,9 @@ def setup_render(res=(1600, 900), samples=48):
     sc.render.engine = "BLENDER_EEVEE"
     sc.render.resolution_x, sc.render.resolution_y = res
     sc.render.resolution_percentage = 100
-    sc.render.image_settings.file_format = "PNG"
+    sc.render.image_settings.file_format = "JPEG"
+    sc.render.image_settings.color_mode = "RGB"
+    sc.render.image_settings.quality = 85
     sc.render.film_transparent = False
     ee = sc.eevee
     for attr, val in (("taa_render_samples", samples), ("use_shadows", True), ("use_raytracing", True),
@@ -177,25 +179,25 @@ def glazing_preview(mat):
     iny = _math(nodes, "MULTIPLY", _math(nodes, "GREATER_THAN", fv, 0.10, links=links), _math(nodes, "LESS_THAN", fv, 0.90, links=links), links=links)
     mask = _math(nodes, "MULTIPLY", inx, iny, links=links)
     lit = _math(nodes, "MULTIPLY", _math(nodes, "GREATER_THAN", r1, 0.6, links=links), mask, links=links)
-    level = _math(nodes, "ADD", _math(nodes, "MULTIPLY", r2, 1.6, links=links), 0.5, links=links)
+    level = _math(nodes, "ADD", _math(nodes, "MULTIPLY", r2, 1.1, links=links), 0.35, links=links)
     strength = _math(nodes, "MULTIPLY", lit, level, links=links)
     mix = nodes.new("ShaderNodeMix")
     mix.data_type = "RGBA"
     links.new(r2, mix.inputs["Factor"])
-    mix.inputs[6].default_value = (1.0, 0.62, 0.30, 1)
-    mix.inputs[7].default_value = (1.0, 0.86, 0.64, 1)
+    mix.inputs[6].default_value = (1.0, 0.5, 0.2, 1)
+    mix.inputs[7].default_value = (1.0, 0.74, 0.45, 1)
     links.new(mix.outputs[2], bsdf.inputs["Emission Color"])
     links.new(strength, bsdf.inputs["Emission Strength"])
     # glass vs frame
     base = nodes.new("ShaderNodeMix")
     base.data_type = "RGBA"
     links.new(mask, base.inputs["Factor"])
-    base.inputs[6].default_value = (0.05, 0.05, 0.055, 1)
-    base.inputs[7].default_value = (0.06, 0.085, 0.11, 1)
+    base.inputs[6].default_value = (0.09, 0.09, 0.095, 1)
+    base.inputs[7].default_value = (0.16, 0.2, 0.25, 1)
     links.new(base.outputs[2], bsdf.inputs["Base Color"])
     rough = _math(nodes, "SUBTRACT", 0.4, _math(nodes, "MULTIPLY", mask, 0.36, links=links), links=links)
     links.new(rough, bsdf.inputs["Roughness"])
-    bsdf.inputs["Metallic"].default_value = 0.0
+    bsdf.inputs["Metallic"].default_value = 0.35
     if "Specular IOR Level" in bsdf.inputs:
         bsdf.inputs["Specular IOR Level"].default_value = 0.7
 

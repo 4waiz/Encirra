@@ -36,7 +36,8 @@ float encWaterSd(vec2 p) {
 
 /** Keep-out zone around the district platform (clear sight-lines to the cut-away faces). */
 export function nearDistrict(x: number, z: number, m = 0) {
-  return x > -330 - m && x < 320 + m && z > -230 - m && z < 235 + m;
+  // generous clearance to the south and west (cut-away sight lines), tighter to the north/east
+  return x > -340 - m && x < 285 + m * 0.4 && z > -200 - m * 0.4 && z < 240 + m;
 }
 
 export interface TowerSpec {
@@ -116,7 +117,7 @@ export function lowerCity(): LowSpec[] {
         const front = z > 160 && z < 1100 && x > -900 && x < 200;
         const w = 18 + rnd() * 26;
         const d = 16 + rnd() * 26;
-        const cap = front ? 14 : r < 650 ? 20 : r < 1100 ? 42 : 75;
+        const cap = front ? 10 : r < 650 ? 20 : r < 1100 ? 42 : 75;
         const h = 6 + Math.pow(rnd(), 2.0) * cap;
         out.push({ x, z, w, d, h, rot: rnd() < 0.85 ? 0 : Math.PI / 4, seed: rnd() * 1000 });
       }

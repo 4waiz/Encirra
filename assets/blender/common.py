@@ -29,7 +29,7 @@ MATERIALS = OrderedDict([
                     desc="Primary warm-white stone/render: walls, slabs, piers, balcony fronts.")),
     ("facade_alt", dict(hex="#D2BC98", rough=0.82, metal=0.0,
                         desc="Secondary sand/beige stone: bands, alternate volumes, podiums.")),
-    ("glazing", dict(hex="#2C3A44", rough=0.16, metal=0.35,
+    ("glazing", dict(hex="#1D2730", rough=0.12, metal=0.45,
                      desc="Facade glazing planes/bands; replaced in the scene by the lit-window shader. "
                           "UV0 encodes the window grid: v = storey index (1.0 per storey, slab-aligned), "
                           "u = bay index (1.0 per ~3 m bay).")),
@@ -783,6 +783,40 @@ def bake_vertex_ao(objects, distance=6.0, samples=48, strength=0.85, floor=0.38,
             m = plane.data
             bpy.data.objects.remove(plane, do_unlink=True)
             bpy.data.meshes.remove(m)
+
+
+STONE_TINTS = {
+    "white": (1.0, 1.0, 1.0),
+    "cream": (1.0, 0.962, 0.9),
+    "beige": (0.975, 0.915, 0.83),
+    "sand": (0.95, 0.885, 0.775),
+}
+
+
+def apply_facade_tint(ob, tint, mats=("facade", "facade_alt")):
+    """Multiply COLOR_0 ('AO') by a stone tint on faces using the given materials, giving
+    per-variant white / cream / beige / sand variety without extra materials."""
+    if isinstance(tint, str):
+        tint = STONE_TINTS[tint]
+    if tint == (1.0, 1.0, 1.0):
+        return
+    me = ob.data
+    ca = me.color_attributes.get("AO")
+    if ca is None:
+        ca = me.color_attributes.new("AO", "BYTE_COLOR", "CORNER")
+        ca.data.foreach_set("color", [1.0] * (len(ca.data) * 4))
+        me.color_attributes.active_color = ca
+    idx = {i for i, m in enumerate(me.materials) if m is not None and m.name.split(".")[0] in mats}
+    buf = [0.0] * (len(ca.data) * 4)
+    ca.data.foreach_get("color", buf)
+    for poly in me.polygons:
+        if poly.material_index not in idx:
+            continue
+        for li in poly.loop_indices:
+            for c in range(3):
+                buf[li * 4 + c] *= tint[c]
+    ca.data.foreach_set("color", buf)
+    me.update()
 
 
 # ---------------------------------------------------------------------------

@@ -47,6 +47,13 @@ from .config import (
 )
 from .models import VerificationCheck, VerificationReport
 
+try:
+    import numba  # noqa: F401
+
+    _NUMBA = True
+except ImportError:  # pragma: no cover
+    _NUMBA = False
+
 METHOD = (
     "Independent re-solve: both networks rebuilt from district.json through a separate code path "
     "(pandapower model assembled element-by-element from benchmark impedances; EPANET 2.2 input file "
@@ -170,7 +177,7 @@ class _IndependentGrid:
 
     def solve(self) -> dict:
         try:
-            pp.runpp(self.net, numba=False, init="flat", calculate_voltage_angles=False, max_iteration=30)
+            pp.runpp(self.net, numba=_NUMBA, init="flat", calculate_voltage_angles=False, max_iteration=30)
             ok = bool(self.net.converged)
         except pp.LoadflowNotConverged:
             ok = False

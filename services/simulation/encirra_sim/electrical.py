@@ -31,6 +31,13 @@ warnings.filterwarnings("ignore", category=DeprecationWarning, module="pandapowe
 
 TAN_PHI_PUMP = math.tan(math.acos(PUMP_POWER_FACTOR))
 
+try:  # numba only accelerates pandapower's Jacobian build; results are identical without it
+    import numba  # noqa: F401
+
+    NUMBA = True
+except ImportError:  # pragma: no cover
+    NUMBA = False
+
 
 @dataclass
 class PFResult:
@@ -83,9 +90,24 @@ class PowerNetwork:
         for p in district.pumps:
             self.pump_load_idx[p.id] = pp.create_load(net, bus=p.bus, p_mw=0.0, q_mvar=0.0, name=p.id)
         self.net = net
-        self._load_rows = np.array([self.bus_load_idx[b] for b in range(district.n_bus) if self.bus_load_idx[b] >= 0])
-        self._load_buses = np.array([b for b in range(district.n_bus) if self.bus_load_idx[b] >= 0])
-        self._switch_rows = np.arange(district.n_line)  # switches created in line order
+        if list(net.switch.index) != list(range(district.n_line)) or list(net.switch.element) != list(range(district.n_line)):
+            raise RuntimeError("switch table must be indexed in line order")
+        # Column-wise state arrays (one pandas assignment per column per solve).
+        self._load_index = net.load.index.to_numpy()
+        self._load_bus = net.load.bus.to_numpy(dtype=int)
+        self._p_nom = np.zeros(len(self._load_index))
+        self._q_nom = np.zeros(len(self._load_index))
+        self._pump_row = {}
+        for row, idx in enumerate(self._load_index):
+            if idx in self.pump_load_idx.values():
+                pid = next(k for k, v in self.pump_load_idx.items() if v == idx)
+                self._pump_row[pid] = row
+            else:
+                self._p_nom[row] = self.p_nom_mw[self._load_bus[row]]
+                self._q_nom[row] = self.q_nom_mvar[self._load_bus[row]]
+        self._is_pump_row = np.array([idx in self.pump_load_idx.values() for idx in self._load_index])
+        self._line_from = np.array([ln.from_bus for ln in district.lines])
+        self._line_to = np.array([ln.to_bus for ln in district.lines])
 
     def solve(
         self,
@@ -97,25 +119,30 @@ class PowerNetwork:
     ) -> PFResult:
         net = self.net
         d = self.district
-        net.switch.loc[self._switch_rows, "closed"] = np.asarray(closed, dtype=bool)
-        oos = set(out_of_service)
-        net.line["in_service"] = [i not in oos for i in net.line.index]
-        shed_set = set(shed)
-        p = self.p_nom_mw[self._load_buses] * load_factor
-        q = self.q_nom_mvar[self._load_buses] * load_factor
-        in_svc = np.array([b not in shed_set for b in self._load_buses])
-        net.load.loc[self._load_rows, "p_mw"] = p
-        net.load.loc[self._load_rows, "q_mvar"] = q
-        net.load.loc[self._load_rows, "in_service"] = in_svc
+        sw_closed = np.asarray(closed, dtype=bool)
+        net.switch["closed"] = sw_closed
+        oos = np.zeros(d.n_line, dtype=bool)
+        for i in out_of_service:
+            oos[i] = True
+        net.line["in_service"] = ~oos
+        shed_mask = np.zeros(d.n_bus, dtype=bool)
+        for b in shed:
+            shed_mask[b] = True
+        p = self._p_nom * load_factor
+        q = self._q_nom * load_factor
+        in_svc = ~shed_mask[self._load_bus] & ~self._is_pump_row
         pump_kw = pump_kw or {}
-        for pid, idx in self.pump_load_idx.items():
+        for pid, row in self._pump_row.items():
             kw = max(0.0, float(pump_kw.get(pid, 0.0)))
-            net.load.at[idx, "p_mw"] = kw / 1000.0
-            net.load.at[idx, "q_mvar"] = kw / 1000.0 * TAN_PHI_PUMP
-            net.load.at[idx, "in_service"] = kw > 0
+            p[row] = kw / 1000.0
+            q[row] = kw / 1000.0 * TAN_PHI_PUMP
+            in_svc[row] = kw > 0
+        net.load["p_mw"] = p
+        net.load["q_mvar"] = q
+        net.load["in_service"] = in_svc
         n_bus, n_line = d.n_bus, d.n_line
         try:
-            pp.runpp(net, numba=False, init="flat", calculate_voltage_angles=False, max_iteration=30)
+            pp.runpp(net, numba=NUMBA, init="flat", calculate_voltage_angles=False, max_iteration=30)
             converged = bool(net.converged)
         except pp.LoadflowNotConverged:
             converged = False
@@ -128,24 +155,13 @@ class PowerNetwork:
         p_from = net.res_line.p_from_mw.to_numpy(dtype=float) * 1000.0
         i_ka = net.res_line.i_ka.to_numpy(dtype=float).copy()
         losses = float(np.nansum(net.res_line.pl_mw.to_numpy(dtype=float)) * 1000.0)
-        # Lines that carry no current (open switch, de-energised) -> NaN for loading/flow.
-        sw_closed = np.asarray(closed, dtype=bool)
-        for ln in d.lines:
-            a, b = ln.from_bus, ln.to_bus
-            live = sw_closed[ln.id] and ln.id not in oos and not np.isnan(vm[a]) and not np.isnan(vm[b])
-            if not live:
-                loading[ln.id] = np.nan
-                p_from[ln.id] = np.nan
-                i_ka[ln.id] = np.nan
+        # Lines that carry no current (open switch, out of service, de-energised end) -> NaN.
+        dead = ~sw_closed | oos | np.isnan(vm[self._line_from]) | np.isnan(vm[self._line_to])
+        loading[dead] = np.nan
+        p_from[dead] = np.nan
+        i_ka[dead] = np.nan
+        res_p = net.res_load.p_mw.to_numpy(dtype=float) * 1000.0
+        live = ~np.isnan(vm[self._load_bus]) & ~np.isnan(res_p)
         bus_p = np.zeros(n_bus)
-        res_load = net.res_load
-        for row, bus in zip(self._load_rows, self._load_buses):
-            val = res_load.at[row, "p_mw"]
-            if not np.isnan(vm[bus]) and not np.isnan(val):
-                bus_p[bus] += float(val) * 1000.0
-        for pid, idx in self.pump_load_idx.items():
-            bus = int(net.load.at[idx, "bus"])
-            val = res_load.at[idx, "p_mw"]
-            if not np.isnan(vm[bus]) and not np.isnan(val):
-                bus_p[bus] += float(val) * 1000.0
+        np.add.at(bus_p, self._load_bus[live], res_p[live])
         return PFResult(True, vm, loading, p_from, i_ka, losses, bus_p)

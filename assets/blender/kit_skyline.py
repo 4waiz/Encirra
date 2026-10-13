@@ -68,11 +68,11 @@ def loft(mb, sections, mat="glazing", cap_mat="trim", cap=True):
 
 def spire_tower(mb):
     """Stylised supertall: Y-plan wings stepping back in a spiral around a hexagonal core."""
-    core_r = 14.0
-    wing_w = 19.0
-    tiers = 16
-    H_core = 600.0
-    base_len = 50.0
+    core_r = 11.0
+    wing_w = 15.0
+    tiers = 18
+    H_core = 590.0
+    base_len = 38.0
     for w in range(3):
         ang = math.pi / 2 + w * 2 * math.pi / 3
         dx, dy = math.cos(ang), math.sin(ang)
@@ -292,7 +292,8 @@ def _skyline_preview(roots, path, res):
         o.location = (0.0, 0.0, 0.0)
         o.rotation_euler = (0.0, 0.0, 0.0)
     try:
-        pv.preview_lineup(roots, path.replace(".png", "_lineup.png"), res=res, azim=20.0, elev=6.0, gap=25.0, lens=50.0, margin=1.04, samples=24)
+        others = [o for o in roots if o.name != "skyline_spire"]
+        pv.preview_lineup(others, path.replace(".jpg", "_lineup.jpg"), res=res, azim=12.0, elev=4.0, gap=18.0, lens=50.0, margin=1.02, samples=24)
     finally:
         for o, loc, rot in saved:
             o.location = loc

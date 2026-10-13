@@ -8,9 +8,9 @@
       "variant": 0,
       "node": "skyline_spire",
       "nominalSize": [
-        99.6,
-        90.7,
-        775.0
+        76.4,
+        69.5,
+        765.0
       ],
       "placement": {
         "position": [
@@ -23,13 +23,13 @@
       "anchors": {
         "top": [
           0.0,
-          776.0,
+          766.0,
           0.0
         ]
       },
       "notes": "Background tower (generic, stylised). Node transform = suggested placement; mesh origin = base centre.",
       "file": "skyline.glb",
-      "tris": 2149,
+      "tris": 2359,
       "materials": [
         "glazing",
         "facade",

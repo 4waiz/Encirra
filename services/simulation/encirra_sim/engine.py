@@ -506,11 +506,16 @@ def build_frames(fc: FrameContext) -> tuple[list[Frame], dict]:
     pidx = {p.id: i for i, p in enumerate(d.pumps)}
     tidx = {t["id"]: i for i, t in enumerate(d.tanks)}
     iso_lines = {d.switch_index[s] for s in rt.fault.isolation_open}
-    plan_lines = set()
+    plan_lines = set()  # lines the plan will energise (closed ties + closed lines inside the restored area)
+    plan_ties = set()
     plan_buses: set[int] = set()
     if fc.plan is not None and fc.plan_verified:
-        plan_lines = {a.line_id for a in fc.plan.actions}
         plan_buses = set(fc.plan.restored_buses)
+        plan_ties = {a.line_id for a in fc.plan.actions if a.action == "close"}
+        plan_lines = set(plan_ties)
+        for ln in d.lines:
+            if fc.plan.spec.closed[ln.id] and ln.from_bus in fc.plan.energized_after and ln.to_bus in fc.plan.energized_after and (ln.from_bus in plan_buses or ln.to_bus in plan_buses):
+                plan_lines.add(ln.id)
 
     interrupted = np.zeros(d.n_bus, dtype=bool)  # bus lost supply at some frame since the fault
     line_was_dark = np.zeros(d.n_line, dtype=bool)
@@ -578,12 +583,12 @@ def build_frames(fc: FrameContext) -> tuple[list[Frame], dict]:
                 s = "faulted"
             elif fault_on and ln.id in iso_lines and not closed and fc.strategy != "none" and k >= rt.k_iso:
                 s = "isolated"
-            elif fc.plan_verified and ln.id in plan_lines and rt.k_verif <= k < rt.k_switch:
+            elif fc.plan_verified and ln.id in plan_lines and rt.k_verif <= k < rt.k_switch and not live:
                 s = "restoring"
             elif not closed:
                 s = "open"
             elif live:
-                s = "restored" if (line_was_dark[ln.id] or (ln.kind == "tie" and ln.id in plan_lines)) and after_fault else "energized"
+                s = "restored" if (line_was_dark[ln.id] or ln.id in plan_ties) and after_fault else "energized"
             else:
                 s = "deenergized"
             line_state.append(s)

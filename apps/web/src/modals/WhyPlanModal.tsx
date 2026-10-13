@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Check, ShieldCheck, ShieldX, X as XIcon } from 'lucide-react';
 import clsx from 'clsx';
 import type { CandidateEvaluation, ObjectiveWeights, RunResult, ScoreBreakdown, VerificationCheck } from '@encirra/shared';
@@ -143,6 +143,8 @@ export function WhyPlanModal() {
   const rejected = cands.filter((c) => !c.feasible);
   const runnerUp = plan ? (feasible.find((c) => c.id !== plan.candidateId) ?? null) : null;
   const clockAt = (t: number | null | undefined) => (run && t != null ? (run.frames.find((f) => f.t >= t)?.clock ?? null) : null);
+  const [showAllRejected, setShowAllRejected] = useState(false);
+  const rejectedShown = showAllRejected ? rejected : rejected.slice(0, 6);
 
   return (
     <Modal
@@ -203,6 +205,12 @@ export function WhyPlanModal() {
                   ))}
                 </ul>
               )}
+              {strategy === 'grid-only' && (
+                <p className="mb-2 rounded-md bg-wash px-3 py-2 text-[12px] text-ink">
+                  Grid-only ranks candidates on restored electrical energy alone (score {fmtNum(plan.score, 2)}). The table shows the same plan under the coupled
+                  Encirra objective for comparison.
+                </p>
+              )}
               <Breakdown run={run} chosen={plan.scoreBreakdown} runnerUp={runnerUp} />
               <p className="mt-1.5 text-[11.5px] text-slate">
                 Weighted soft objectives only; hard safety constraints are never traded off against score — a candidate that fails any hard check is rejected outright.
@@ -258,7 +266,7 @@ export function WhyPlanModal() {
             <>
               <H n={rejected.length}>Rejected candidates</H>
               <ul className="space-y-2">
-                {rejected.map((c) => {
+                {rejectedShown.map((c) => {
                   const failed = c.checks.filter((k) => !k.passed && k.hard);
                   return (
                     <li key={c.id} className="rounded-lg border border-fault/20 bg-fault-soft/40 px-3 py-2" data-testid={`rejected-${c.id}`}>
@@ -282,6 +290,11 @@ export function WhyPlanModal() {
                   );
                 })}
               </ul>
+              {rejected.length > rejectedShown.length || showAllRejected ? (
+                <button type="button" className="mt-2 text-[12px] font-semibold text-info hover:underline" onClick={() => setShowAllRejected((v) => !v)}>
+                  {showAllRejected ? 'Show fewer' : `Show all ${rejected.length} rejected candidates`}
+                </button>
+              ) : null}
             </>
           )}
 

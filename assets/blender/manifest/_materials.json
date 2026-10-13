@@ -34,9 +34,9 @@
       "metalness": 0.0
     },
     "glazing": {
-      "baseColor": "#2C3A44",
-      "roughness": 0.16,
-      "metalness": 0.35
+      "baseColor": "#1D2730",
+      "roughness": 0.12,
+      "metalness": 0.45
     },
     "roof": {
       "baseColor": "#B6AFA3",

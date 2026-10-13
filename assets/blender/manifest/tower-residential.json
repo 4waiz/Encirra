@@ -12,7 +12,7 @@
         19.04,
         51.2
       ],
-      "tris": 3236,
+      "tris": 3244,
       "materials": [
         "glazing",
         "facade_alt",
@@ -27,6 +27,7 @@
       "storeyHeight": 3.25,
       "lobbyHeight": 5.0,
       "roofY": 47.75,
+      "stoneTint": "white",
       "anchors": {
         "label": [
           0.0,
@@ -68,6 +69,7 @@
       "storeyHeight": 3.3,
       "lobbyHeight": 5.5,
       "roofY": 48.9,
+      "stoneTint": "beige",
       "anchors": {
         "label": [
           0.0,
@@ -110,6 +112,7 @@
       "storeyHeight": 3.2,
       "lobbyHeight": 5.0,
       "roofY": 47.1,
+      "stoneTint": "cream",
       "anchors": {
         "label": [
           0.0,
@@ -133,11 +136,11 @@
       "variant": 3,
       "node": "tower-residential_v3",
       "nominalSize": [
-        22.08,
-        19.08,
-        48.7
+        22.0,
+        19.0,
+        54.5
       ],
-      "tris": 3332,
+      "tris": 3762,
       "materials": [
         "glazing",
         "facade_alt",
@@ -145,28 +148,28 @@
         "glass_clear",
         "trim",
         "roof",
-        "accent",
         "metal",
         "steel_dark"
       ],
-      "floors": 13,
-      "storeyHeight": 3.25,
+      "floors": 15,
+      "storeyHeight": 3.2,
       "lobbyHeight": 5.0,
-      "roofY": 44.5,
+      "roofY": 50.3,
+      "stoneTint": "white",
       "anchors": {
         "label": [
           0.0,
-          52.7,
+          58.5,
           0.0
         ],
         "roof": [
           0.0,
-          44.5,
+          50.3,
           0.0
         ],
-        "roofY": 44.5
+        "roofY": 50.3
       },
-      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (13 storeys, lobby 5.0 m, storey 3.25 m), u = facade bay.",
+      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (15 storeys, lobby 5.0 m, storey 3.20 m), u = facade bay.",
       "file": "tower-residential.glb",
       "vertexAO": true
     }

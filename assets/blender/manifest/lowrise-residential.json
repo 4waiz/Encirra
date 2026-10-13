@@ -27,6 +27,7 @@
       "storeyHeight": 3.2,
       "lobbyHeight": 3.8,
       "roofY": 10.7,
+      "stoneTint": "beige",
       "anchors": {
         "label": [
           0.0,
@@ -70,6 +71,7 @@
       "storeyHeight": 3.2,
       "lobbyHeight": 3.8,
       "roofY": 10.7,
+      "stoneTint": "white",
       "anchors": {
         "label": [
           0.0,
@@ -97,7 +99,7 @@
         18.06,
         15.95
       ],
-      "tris": 1432,
+      "tris": 1436,
       "materials": [
         "glazing",
         "facade_alt",
@@ -113,6 +115,7 @@
       "storeyHeight": 3.2,
       "lobbyHeight": 3.8,
       "roofY": 13.9,
+      "stoneTint": "cream",
       "anchors": {
         "label": [
           0.0,

@@ -116,8 +116,8 @@ function cableMaterial() {
         vec4 c2 = texelFetch(uLineTex, ivec2(li, 2), 0);
         float w = max(c2.r, 0.2);
         float a = abs(vSide) / w;
-        float core = exp(-a * a * 55.0);
-        float halo = exp(-a * a * 6.0) * 0.22;
+        float core = exp(-a * a * 38.0);
+        float halo = exp(-a * a * 5.0) * 0.26;
         float dash = mix(1.0, step(0.42, fract(vS / 7.5)), c1.b);
         float k = fract((vS - c1.r) / 30.0);
         float kk = c2.a < 0.0 ? 1.0 - k : k;

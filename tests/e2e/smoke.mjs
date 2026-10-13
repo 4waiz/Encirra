@@ -207,10 +207,8 @@ export async function runSmoke({ baseUrl = BASE_URL, viewport = { width: 1600, h
 
     await check('no uncaught errors or unexpected console errors', async () => {
       if (pageErrors.length) throw new Error(`page errors: ${pageErrors.slice(0, 3).join(' | ')}`);
-      // /api/* probes fail by design when the simulation service is offline (replay mode); while the
-      // temporary dev fixture is shown, the replay manifest is missing by definition.
-      const fixture = /DEV FIXTURE/.test(await sel('sim-status').innerText());
-      const expected = (r) => / \/api\//.test(r) || (fixture && / \/replay\/manifest\.json$/.test(r));
+      // /api/* probes fail by design when the simulation service is offline (replay mode)
+      const expected = (r) => / \/api\//.test(r);
       const unexpected = failedResponses.filter((r) => !expected(r));
       const apiOnly = consoleErrors.filter((m) => !/Failed to load resource/.test(m));
       const resourceErrors = consoleErrors.filter((m) => /Failed to load resource/.test(m)).length;

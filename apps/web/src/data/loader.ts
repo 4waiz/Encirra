@@ -11,21 +11,12 @@ type Runs = Record<StrategyId, RunResult>;
 
 const PAGES: PageId[] = ['live', 'analytics', 'scenarios', 'assets', 'reports'];
 
-/** Dev-only fixture loader; resolves to null in production builds (the branch is compiled out). */
-async function loadDevFixture() {
-  if (!import.meta.env.DEV) return null;
-  const mod = await import('./devFixture');
-  return mod.createDevFixture();
-}
-let fixture: Awaited<ReturnType<typeof loadDevFixture>> = null;
-
 async function fetchRuns(scenarioId: ScenarioId, extra?: { params?: Partial<ScenarioParams>; weights?: Partial<ObjectiveWeights> }): Promise<Runs> {
   const s = useTwin.getState();
   if (s.dataSource === 'live') {
     const list = await Promise.all(STRATEGIES.map((strategy) => liveApi.run({ scenarioId, strategy, ...extra })));
     return Object.fromEntries(list.map((r) => [r.strategy, r])) as Runs;
   }
-  if (s.devFixture && fixture) return fixture.runs(scenarioId);
   if (!s.manifest) throw new DataError('Replay manifest not loaded');
   const manifest = s.manifest;
   const list = await Promise.all(STRATEGIES.map((strategy) => replayApi.run(manifest, scenarioId, strategy)));
@@ -36,7 +27,6 @@ async function fetchComparison(scenarioId: ScenarioId): Promise<Comparison | nul
   const s = useTwin.getState();
   try {
     if (s.dataSource === 'live') return await liveApi.compare(scenarioId);
-    if (s.devFixture && fixture) return fixture.comparison(scenarioId);
     if (s.manifest) return await replayApi.comparison(s.manifest, scenarioId);
   } catch (err) {
     console.warn('[encirra] comparison unavailable; the dashboard derives it from the loaded runs', err);
@@ -61,7 +51,7 @@ async function startLive(scenarioId: ScenarioId | null, strategy: StrategyId) {
   const st = useTwin.getState();
   const [topology, scenarios] = await Promise.all([liveApi.topology(), liveApi.scenarios()]);
   const id = scenarioId && scenarios.some((d) => d.id === scenarioId) ? scenarioId : (scenarios[0]?.id ?? 'feeder-fault');
-  st.setData({ dataSource: 'live', topology, scenarios, manifest: null, devFixture: false });
+  st.setData({ dataSource: 'live', topology, scenarios, manifest: null });
   const runs = await fetchRuns(id);
   st.setRuns(runs, strategy, { resetPlayhead: true });
   st.setData({ comparison: await fetchComparison(id) });
@@ -73,23 +63,10 @@ async function startReplay(scenarioId: ScenarioId | null, strategy: StrategyId |
   const topology = await replayApi.topology(manifest);
   const scenarios = manifest.scenarios.map((s) => s.definition);
   const id = scenarioId && scenarios.some((d) => d.id === scenarioId) ? scenarioId : manifest.defaultScenario;
-  st.setData({ dataSource: 'replay', topology, scenarios, manifest, devFixture: false });
+  st.setData({ dataSource: 'replay', topology, scenarios, manifest });
   const runs = await fetchRuns(id);
   st.setRuns(runs, strategy ?? manifest.defaultStrategy, { resetPlayhead: true });
   st.setData({ comparison: await fetchComparison(id) });
-}
-
-async function startFixture(scenarioId: ScenarioId | null, strategy: StrategyId | null): Promise<boolean> {
-  fixture = await loadDevFixture();
-  if (!fixture) return false;
-  const st = useTwin.getState();
-  const { manifest, topology } = fixture;
-  const scenarios = manifest.scenarios.map((s) => s.definition);
-  const id = scenarioId && scenarios.some((d) => d.id === scenarioId) ? scenarioId : manifest.defaultScenario;
-  st.setData({ dataSource: 'replay', topology, scenarios, manifest, devFixture: true });
-  st.setRuns(fixture.runs(id), strategy ?? manifest.defaultStrategy, { resetPlayhead: true });
-  st.setData({ comparison: fixture.comparison(id) });
-  return true;
 }
 
 let booted = false;
@@ -120,12 +97,8 @@ export async function bootstrap(): Promise<void> {
       await startReplay(opts.scenario, opts.strategy);
       loaded = true;
     } catch (err) {
-      const missing = err instanceof DataError && err.status === 404;
-      if (missing) loaded = await startFixture(opts.scenario, opts.strategy);
-      if (!loaded) {
-        st.setData({ dataSource: 'error', dataError: (err as Error).message, busy: null });
-        return;
-      }
+      st.setData({ dataSource: 'error', dataError: (err as Error).message, busy: null });
+      return;
     }
   }
   if (opts.page) st.setPage(opts.page);

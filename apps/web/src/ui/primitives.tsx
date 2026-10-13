@@ -146,13 +146,7 @@ export function Segmented<T extends string>({
 }
 
 /** Small "Replay" / "Live solver" badge used in panel headers. */
-export function SourceChip({ source, devFixture }: { source: string; devFixture?: boolean }) {
-  if (devFixture)
-    return (
-      <span data-tip="Temporary development fixture — not solver output" className="inline-flex items-center gap-1 rounded-full bg-fault-soft px-2 py-[2px] t-micro font-bold text-fault">
-        DEV FIXTURE
-      </span>
-    );
+export function SourceChip({ source }: { source: string }) {
   const live = source === 'live';
   return (
     <span

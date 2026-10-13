@@ -130,6 +130,12 @@ def run_group(name, fn, bake_ao, args):
         t = time.time()
         common.bake_vertex_ao(objs)
         print("  AO baked for %d meshes in %.1fs" % (len(objs), time.time() - t))
+    # per-variant stone tints (multiplied into COLOR_0 on facade/facade_alt faces)
+    for items in files.values():
+        for ob, rec in items:
+            t = rec.get("stoneTint")
+            if t:
+                common.apply_facade_tint(ob, t)
     man_dir = os.path.join(HERE, "manifest")
     os.makedirs(man_dir, exist_ok=True)
     for stem, items in files.items():
@@ -157,9 +163,9 @@ def run_group(name, fn, bake_ao, args):
                 opts = {}
             try:
                 if "custom" in opts:
-                    opts["custom"](roots, os.path.join(prev_dir, stem + ".png"), res)
+                    opts["custom"](roots, os.path.join(prev_dir, stem + ".jpg"), res)
                 else:
-                    pv.preview_lineup(roots, os.path.join(prev_dir, stem + ".png"), res=res,
+                    pv.preview_lineup(roots, os.path.join(prev_dir, stem + ".jpg"), res=res,
                                       azim=opts.get("azim", 30.0), elev=opts.get("elev", 22.0),
                                       gap=opts.get("gap", 6.0), lens=opts.get("lens", 50.0), margin=opts.get("margin", 1.06))
             except Exception as e:

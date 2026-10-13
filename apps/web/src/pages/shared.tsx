@@ -114,7 +114,6 @@ export function ExportButtons({ size = 'md' }: { size?: 'sm' | 'md' }) {
   const scenarios = useTwin((s) => s.scenarios);
   const scenarioId = useTwin((s) => s.scenarioId);
   const dataSource = useTwin((s) => s.dataSource);
-  const devFixture = useTwin((s) => s.devFixture);
   const has = !!runs.encirra || !!runs.none || !!runs['grid-only'];
   const base = `encirra-${scenarioId}`;
   const disclaimer = 'Research Prototype — Synthetic/Benchmark Infrastructure Data. No private utility data is available or authorized.';
@@ -138,7 +137,7 @@ export function ExportButtons({ size = 'md' }: { size?: 'sm' | 'md' }) {
           downloadText(
             `${base}.json`,
             exportJson(
-              { exportedAt: new Date().toISOString(), dataSource: devFixture ? 'dev-fixture' : dataSource, disclaimer },
+              { exportedAt: new Date().toISOString(), dataSource, disclaimer },
               scenarios.find((s) => s.id === scenarioId) ?? null,
               runs,
               comparison,

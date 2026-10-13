@@ -27,6 +27,7 @@
       "storeyHeight": 3.2,
       "lobbyHeight": 4.6,
       "roofY": 27.5,
+      "stoneTint": "cream",
       "anchors": {
         "label": [
           0.0,
@@ -54,7 +55,7 @@
         18.56,
         30.95
       ],
-      "tris": 1984,
+      "tris": 1988,
       "materials": [
         "glazing",
         "facade",
@@ -69,6 +70,7 @@
       "storeyHeight": 3.2,
       "lobbyHeight": 4.6,
       "roofY": 27.5,
+      "stoneTint": "white",
       "anchors": {
         "label": [
           0.0,
@@ -111,6 +113,7 @@
       "storeyHeight": 3.2,
       "lobbyHeight": 4.6,
       "roofY": 27.5,
+      "stoneTint": "beige",
       "anchors": {
         "label": [
           0.0,
@@ -134,39 +137,40 @@
       "variant": 3,
       "node": "midrise-residential_v3",
       "nominalSize": [
-        20.08,
-        18.58,
-        31.85
+        20.0,
+        18.5,
+        30.95
       ],
-      "tris": 1584,
+      "tris": 2166,
       "materials": [
         "glazing",
         "facade_alt",
         "facade",
-        "glass_clear",
-        "trim",
         "roof",
+        "accent",
+        "trim",
         "metal",
         "steel_dark"
       ],
       "floors": 8,
       "storeyHeight": 3.2,
-      "lobbyHeight": 4.8,
-      "roofY": 27.7,
+      "lobbyHeight": 4.6,
+      "roofY": 27.5,
+      "stoneTint": "sand",
       "anchors": {
         "label": [
           0.0,
-          35.85,
+          34.95,
           0.0
         ],
         "roof": [
           0.0,
-          27.7,
+          27.5,
           0.0
         ],
-        "roofY": 27.7
+        "roofY": 27.5
       },
-      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (8 storeys, lobby 4.8 m, storey 3.20 m), u = facade bay.",
+      "notes": "Kit building: scale non-uniformly to the layout footprint/height (+/-30% tolerated). Glazing UV0: v = storey (8 storeys, lobby 4.6 m, storey 3.20 m), u = facade bay.",
       "file": "midrise-residential.glb",
       "vertexAO": true
     }

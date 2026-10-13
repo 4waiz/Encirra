@@ -62,7 +62,6 @@ function ClockAndContext() {
   const run = useTwin((s) => s.run);
   const frame = useFrame();
   const dataSource = useTwin((s) => s.dataSource);
-  const devFixture = useTwin((s) => s.devFixture);
   const amb = district.district.ambient;
   const date = run && frame ? simDate(run.timebase.startISO, run.timebase.startClock, frame.t) : '—';
   const stage = frame ? STAGE_LABEL[frame.stage] : dataSource === 'loading' ? 'Loading…' : '—';
@@ -124,7 +123,6 @@ function ClockAndContext() {
         <span className="shrink-0 font-medium whitespace-nowrap">
           {dataSource === 'loading' ? 'Loading simulation data' : dataSource === 'error' ? 'Data unavailable' : live ? 'Live solver' : 'Replay · precomputed solver output'}
         </span>
-        {devFixture && <span className="shrink-0 rounded bg-fault px-1.5 py-[1px] text-[10px] font-bold tracking-wide whitespace-nowrap text-white">DEV FIXTURE</span>}
         <span className="text-mist narrow:hidden">·</span>
         <span className="truncate font-semibold text-navy narrow:sr-only" data-testid="sim-stage">
           {stage}

@@ -154,7 +154,10 @@ export const DEMO_STEPS: DemoStep[] = [
       const p = e?.plan;
       if (!e || !p) return '';
       const applied = p.appliedAtT != null ? e.frames[frameIndexAtT(e, p.appliedAtT)]?.clock : null;
-      return `${applied ? `${applied}: ` : ''}switching executed — ${p.label}. ${fmtKW(e.summary.loadRestoredKW)} restored (${fmtNum(e.summary.loadRestoredPct, 0)}% of the interrupted load), ${e.summary.pumpsAvailableEnd}/${e.summary.pumpsTotal} pumps available, and the tank refills.`;
+      const at = p.appliedAtT;
+      const happened = at == null ? [] : e.events.filter((ev) => ev.t === at && (ev.kind === 'restoration' || (ev.kind === 'switching' && ev.severity !== 'info'))).map((ev) => ev.title);
+      const s = e.summary;
+      return `${applied ? `${applied}: ` : ''}switching executed — ${p.label}${happened.length ? ` (${happened.join(' · ')})` : ''}. By the end of the horizon ${fmtKW(s.loadRestoredKW)} is back on supply (${fmtNum(s.loadRestoredPct, 0)}% of the interrupted demand) and ${s.pumpsAvailableEnd}/${s.pumpsTotal} pumps are available.`;
     },
     cues: [
       { at: 0, strategy: 'encirra', whyPlan: false, overview: 'power', camera: { shot: 'recovery-path', durationS: 3 } },
@@ -170,9 +173,10 @@ export const DEMO_STEPS: DemoStep[] = [
     caption: (c) => {
       const e = run(c)?.summary;
       const n = run(c, 'none')?.summary;
+      const g = run(c, 'grid-only')?.summary;
       if (!e) return '';
       const vs = n
-        ? `Unserved energy ${fmtInt(e.unservedEnergyKWh)} kWh vs ${fmtInt(n.unservedEnergyKWh)} kWh without intervention; ${fmtInt(e.minutesBelowServicePressure)} vs ${fmtInt(n.minutesBelowServicePressure)} minutes below service pressure at critical facilities. `
+        ? `Unserved energy: Encirra ${fmtInt(e.unservedEnergyKWh)} kWh${g ? `, grid-only ${fmtInt(g.unservedEnergyKWh)}` : ''}, no intervention ${fmtInt(n.unservedEnergyKWh)}. Minutes below service pressure at critical facilities: ${fmtInt(e.minutesBelowServicePressure)}${g ? ` / ${fmtInt(g.minutesBelowServicePressure)}` : ''} / ${fmtInt(n.minutesBelowServicePressure)}. `
         : '';
       const verified = run(c)?.plan?.verification.passed;
       return `${vs}${fmtInt(e.constraintViolations)} hard-constraint violations${verified ? ' — plan Simulation Verified' : ''}. Full comparison in Reports.`;

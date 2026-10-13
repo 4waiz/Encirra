@@ -5,14 +5,14 @@ import { useSource } from '@/data/hooks';
 import { SourceChip } from '@/ui/primitives';
 
 export function PageFrame({ title, subtitle, actions, children, testId }: { title: string; subtitle?: ReactNode; actions?: ReactNode; children: ReactNode; testId?: string }) {
-  const { dataSource, devFixture } = useSource();
+  const { dataSource } = useSource();
   return (
     <div className="enc-panel enc-panel-strong flex h-full min-h-0 flex-col rounded-[12px]" data-testid={testId}>
       <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line px-[clamp(14px,1.3vw,24px)] pt-[clamp(10px,1.4vh,16px)] pb-3">
         <div className="min-w-0">
           <div className="flex items-center gap-3">
             <h2 className="text-[clamp(18px,1.3vw,22px)] font-semibold tracking-[-0.01em] text-navy">{title}</h2>
-            <SourceChip source={dataSource} devFixture={devFixture} />
+            <SourceChip source={dataSource} />
           </div>
           {subtitle && <div className="mt-0.5 text-[13px] text-slate">{subtitle}</div>}
         </div>

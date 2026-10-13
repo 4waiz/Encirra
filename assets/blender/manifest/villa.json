@@ -27,6 +27,7 @@
       "storeyHeight": 3.4,
       "lobbyHeight": 3.85,
       "roofY": 7.4,
+      "stoneTint": "white",
       "anchors": {
         "label": [
           0.0,
@@ -69,6 +70,7 @@
       "storeyHeight": 3.3,
       "lobbyHeight": 3.55,
       "roofY": 6.85,
+      "stoneTint": "sand",
       "anchors": {
         "label": [
           0.0,

@@ -50,7 +50,7 @@ function OverlayLegend({ items, className }: { items: Parameters<typeof LegendKe
 
 export function PowerPanel() {
   const ctx = useRunCtx();
-  const { dataSource, devFixture } = useSource();
+  const { dataSource } = useSource();
   if (!ctx) return <Card className="h-full" />;
   const { run, frame } = ctx;
   const p = frame.power;
@@ -62,7 +62,7 @@ export function PowerPanel() {
   ];
   return (
     <Card className={PANEL} data-testid="power-panel">
-      <PanelHeader icon={<Zap size={18} className="fill-power text-power" />} title="Power Network" right={<SourceChip source={dataSource} devFixture={devFixture} />} />
+      <PanelHeader icon={<Zap size={18} className="fill-power text-power" />} title="Power Network" right={<SourceChip source={dataSource} />} />
       <div className="mt-[clamp(4px,0.8vh,8px)] grid grid-cols-4 gap-2 short:[&_.t-label]:line-clamp-1">
         <Metric value={fmtInt(p.demandKW)} unit="kW" label="Total demand" short="Demand" bp="xs" />
         <Metric value={fmtInt(p.servedKW)} unit="kW" label="Served" testId="m-served" />
@@ -92,7 +92,7 @@ export function PowerPanel() {
 // ───────────────────────────────────────────────────────────── Water network
 export function WaterPanel() {
   const ctx = useRunCtx();
-  const { dataSource, devFixture } = useSource();
+  const { dataSource } = useSource();
   if (!ctx) return <Card className="h-full" />;
   const { run, frame, topology } = ctx;
   const w = frame.water;
@@ -111,7 +111,7 @@ export function WaterPanel() {
   ];
   return (
     <Card className={PANEL} data-testid="water-panel">
-      <PanelHeader icon={<Droplet size={18} className="fill-water text-water" />} title="Water Network" right={<SourceChip source={dataSource} devFixture={devFixture} />} />
+      <PanelHeader icon={<Droplet size={18} className="fill-water text-water" />} title="Water Network" right={<SourceChip source={dataSource} />} />
       <div className="mt-[clamp(4px,0.8vh,8px)] grid grid-cols-4 gap-2 short:[&_.t-label]:line-clamp-1">
         <Metric value={fmtInt(lpsToM3h(w.deliveredLps))} unit="m³/h" label="Delivered" />
         <Metric value={fmtNum(w.minPressureM, 1)} unit="m" label={`Min · ${w.minPressureNode}`} />
@@ -176,14 +176,14 @@ const KIND_COLOR: Partial<Record<FacilityKind, string>> = {
 
 export function FacilitiesPanel() {
   const ctx = useRunCtx();
-  const { dataSource, devFixture } = useSource();
+  const { dataSource } = useSource();
   const selected = useTwin((s) => s.selected);
   const setSelected = useTwin((s) => s.setSelected);
   const requestCamera = useTwin((s) => s.requestCamera);
   const rows = useMemo(() => (ctx ? facilityRows(ctx.topology, ctx.frame) : []), [ctx?.topology, ctx?.frame]);
   return (
     <Card className={clsx(PANEL, 'pb-[clamp(8px,0.6vw,12px)]')} data-testid="facilities-panel">
-      <PanelHeader icon={<Building2 size={18} className="text-info" />} title="Critical Facilities" right={<SourceChip source={dataSource} devFixture={devFixture} />} />
+      <PanelHeader icon={<Building2 size={18} className="text-info" />} title="Critical Facilities" right={<SourceChip source={dataSource} />} />
       <div className="enc-scroll mt-[clamp(4px,0.8vh,8px)] min-h-0 flex-1 overflow-y-auto rounded-md border border-line/70">
         <table className="w-full border-collapse text-left t-micro">
           <thead className="sticky top-0 z-[1] bg-[#f3f6f9]">

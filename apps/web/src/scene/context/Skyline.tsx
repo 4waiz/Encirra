@@ -89,12 +89,12 @@ float h1 = encH13(vec3(ci, seed + (abs(vLN.x) > 0.5 ? 3.0 : 0.0) + sign(vLN.x + 
 float lit = step(h1, litF);
 if (glassy) lit = step(encH13(vec3(ci.y, seed, 1.0)) * 0.75 + h1 * 0.25, litF);
 lit = mix(lit, litF, farF);
-vec3 warm = mix(vec3(1.0, 0.56, 0.25), vec3(1.0, 0.8, 0.55), encH13(vec3(ci, seed + 5.0)));
+vec3 warm = mix(vec3(1.0, 0.56, 0.25), vec3(1.0, 0.8, 0.55), mix(encH13(vec3(ci, seed + 5.0)), 0.5, farF));
 if (glassy) warm = mix(warm, vec3(0.85, 0.92, 1.0), 0.35);
 vec3 wallA = glassy ? mix(vec3(0.05, 0.07, 0.085), vec3(0.14, 0.16, 0.17), fract(seed * 0.37)) : (tone < 0.75 ? mix(vec3(0.42, 0.4, 0.37), vec3(0.6, 0.58, 0.55), fract(seed * 0.71)) : mix(vec3(0.36, 0.28, 0.2), vec3(0.52, 0.42, 0.31), fract(seed * 0.71)));
 vec3 glassC = glassy ? vec3(0.02, 0.035, 0.05) : vec3(0.025, 0.027, 0.03);
 diffuseColor.rgb = roof ? vec3(0.35, 0.34, 0.33) : mix(wallA, glassC, m);
-vec3 tEm = warm * (0.6 + 1.1 * encH13(vec3(ci, seed + 9.0))) * lit * m;
+vec3 tEm = warm * (0.6 + 1.1 * mix(encH13(vec3(ci, seed + 9.0)), 0.5, farF)) * lit * m;
 // crown light band on taller towers
 float crown = smoothstep(vH - 6.0, vH - 4.0, v) * (1.0 - smoothstep(vH - 2.5, vH - 1.5, v)) * step(90.0, vH) * step(0.5, fract(seed * 1.3));
 tEm += vec3(1.0, 0.85, 0.65) * crown * 2.5 * (roof ? 0.0 : 1.0);

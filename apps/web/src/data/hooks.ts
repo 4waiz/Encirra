@@ -20,6 +20,5 @@ export function useRunCtx(): RunCtx | null {
 
 export function useSource() {
   const dataSource = useTwin((s) => s.dataSource);
-  const devFixture = useTwin((s) => s.devFixture);
-  return { dataSource, devFixture, live: dataSource === 'live' };
+  return { dataSource, live: dataSource === 'live' };
 }

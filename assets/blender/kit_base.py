@@ -563,7 +563,7 @@ def _preview_custom(roots, path, res):
         from mathutils import Vector
         pv.frame_camera(Vector(lo), Vector(hi), azim_deg=-28.0, elev_deg=14.0, lens=50.0, margin=1.0)
         pv.render_to(path)
-        p2 = path.replace(".png", "_overview.png")
+        p2 = path.replace(".jpg", "_overview.jpg")
         pv.frame_camera(Vector((-250, -160, -42)), Vector((250, 160, 0)), azim_deg=-20.0, elev_deg=26.0, lens=40.0, margin=1.02)
         pv.render_to(p2)
     finally:

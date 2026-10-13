@@ -84,8 +84,6 @@ export interface TwinState {
   // ── authoritative data
   dataSource: DataSource;
   dataError: string | null;
-  /** true while the temporary development fixture is shown (dev server only, never shipped) */
-  devFixture: boolean;
   /** /api/health response when the live simulation service is reachable */
   health: HealthResponse | null;
   topology: NetworkTopology | null;
@@ -127,7 +125,6 @@ export interface TwinState {
         TwinState,
         | 'dataSource'
         | 'dataError'
-        | 'devFixture'
         | 'health'
         | 'topology'
         | 'manifest'
@@ -171,7 +168,6 @@ export const useTwin = create<TwinState>()((set, get) => ({
 
   dataSource: 'loading',
   dataError: null,
-  devFixture: false,
   health: null,
   topology: null,
   manifest: null,

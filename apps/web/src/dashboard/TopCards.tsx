@@ -185,8 +185,19 @@ export function RecoveryCard() {
             </div>
           </div>
           <div className="flex items-center justify-between gap-2">
-            <div className="t-body min-w-0 truncate text-slate" title={model.subtitle} data-testid="recovery-subtitle">
-              {model.subtitle}
+            <div className="flex min-w-0 items-center gap-1.5">
+              <div className="t-body min-w-0 truncate text-slate" title={model.subtitle} data-testid="recovery-subtitle">
+                {model.subtitle}
+              </div>
+              {model.verified && model.tone !== 'ok' && (
+                <span
+                  className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-ok-soft px-1.5 py-[1px] t-micro font-semibold text-ok-deep"
+                  data-tip="The selected plan passed every hard check in an independent re-simulation"
+                  data-testid="plan-verified-pill"
+                >
+                  <ShieldCheck size={11} /> Verified
+                </span>
+              )}
             </div>
             <button
               type="button"
@@ -262,13 +273,13 @@ const STEP_STYLE: Record<StepStatus, string> = {
 
 export function TimelineCard() {
   const ctx = useRunCtx();
-  const { dataSource, devFixture } = useSource();
+  const { dataSource } = useSource();
   const items = useMemo(() => (ctx ? timelineStatus(ctx.run.timeline, ctx.frame.t) : []), [ctx?.run, ctx?.frame]);
   return (
     <Card className="@container flex h-full flex-col p-[clamp(10px,0.8vw,15px)]" data-testid="timeline-card">
       <div className="flex items-center justify-between gap-2">
         <h3 className="t-title">Recovery Timeline</h3>
-        <SourceChip source={dataSource} devFixture={devFixture} />
+        <SourceChip source={dataSource} />
       </div>
       <ol className="relative mt-auto mb-auto grid pt-1" style={{ gridTemplateColumns: `repeat(${Math.max(1, items.length)}, minmax(0, 1fr))` }}>
         {items.map(({ step, status }, i) => {
@@ -294,8 +305,8 @@ export function TimelineCard() {
                 ) : null}
               </span>
               <span className={clsx('mt-1.5 line-clamp-2 px-0.5 t-label leading-tight', status === 'pending' || status === 'skipped' ? 'text-mist' : 'text-navy')} title={step.label}>
-                <span className="@max-[319px]:hidden">{step.label}</span>
-                <span className="@min-[320px]:hidden">{STEP_SHORT[step.id] ?? step.label}</span>
+                <span className="@max-[299px]:hidden">{step.label}</span>
+                <span className="@min-[300px]:hidden">{STEP_SHORT[step.id] ?? step.label}</span>
               </span>
               <span className={clsx('mt-0.5 t-micro tabular', status === 'active' ? 'font-semibold text-info' : status === 'failed' ? 'text-fault' : 'text-slate')}>
                 {status === 'pending' ? '—' : status === 'active' ? 'in progress' : status === 'skipped' ? 'not attempted' : (step.clock ?? '—')}

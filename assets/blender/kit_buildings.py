@@ -207,7 +207,7 @@ def residential(mb, W, D, fr, P):
             z = fr.z(k)
             thick = band_every and (k % band_every == 0)
             t = 0.62 if thick else SLAB_T
-            mb.box(x0, y0, z - t, x1, y1, z, sec if thick else prim, c=0.05)
+            mb.box(x0, y0, z - t, x1, y1, z, sec if thick else prim, c=0.08)
         # balconies parapets
         for k in range(max(k0, 1), k1):
             if not P.get("parapets", True):
@@ -267,9 +267,9 @@ def residential(mb, W, D, fr, P):
                 sy = 1 if py == y0 else -1
                 ax, bx = sorted((px, px + sx * pier_w))
                 ay, by = sorted((py, py + sy * pier_w))
-                mb.box(ax, ay, zA if k0 > 0 else 0.0, bx, by, zB + (1.65 if top_tier else 0.5), prim, c=0.06)
+                mb.box(ax, ay, zA if k0 > 0 else 0.0, bx, by, zB + (1.65 if top_tier else 0.5), prim, c=0.11)
         # tier roof
-        mb.box(x0, y0, zB, x1, y1, zB + 0.5, prim, c=0.06, mats={"top": "roof"})
+        mb.box(x0, y0, zB, x1, y1, zB + 0.5, prim, c=0.09, mats={"top": "roof"})
         par_h = 1.15
         if top_tier:
             edge_parapet(mb, (x0, x1, y0, y1), zB + 0.5, par_h, 0.28, prim, gap=0.0)
@@ -290,6 +290,99 @@ def crown_frame(mb, rect, z, h, mat, depth=0.6):
     mb.box(x0, y0, z + h - 0.7, x0 + depth, y1, z + h, mat, c=0.05)
     mb.box(x1 - depth, y0, z + h - 0.7, x1, y1, z + h, mat, c=0.05)
 
+
+
+# ---------------------------------------------------------------------------
+# rounded "marina" residential (rounded balcony slabs wrapping a glazed core)
+# ---------------------------------------------------------------------------
+
+def rounded_rect_poly(x0, x1, y0, y1, r, seg=3):
+    r = max(0.05, min(r, (x1 - x0) / 2 - 0.01, (y1 - y0) / 2 - 0.01))
+    pts = []
+    corners = [(x1 - r, y0 + r, -math.pi / 2), (x1 - r, y1 - r, 0.0), (x0 + r, y1 - r, math.pi / 2), (x0 + r, y0 + r, math.pi)]
+    for (cx, cy, a0) in corners:
+        for k in range(seg + 1):
+            a = a0 + (math.pi / 2) * k / seg
+            pts.append((cx + r * math.cos(a), cy + r * math.sin(a)))
+    return pts
+
+
+def ring_band(mb, outer, inner, z0, z1, mat, top=True, bottom=False, inner_wall=True):
+    """Closed band between two polygons with equal vertex counts (convex, CCW)."""
+    n = len(outer)
+    cx = sum(p[0] for p in outer) / n
+    cy = sum(p[1] for p in outer) / n
+    zc = (z0 + z1) / 2
+    for i in range(n):
+        j = (i + 1) % n
+        a, b = outer[i], outer[j]
+        mb.face([(a[0], a[1], z0), (b[0], b[1], z0), (b[0], b[1], z1), (a[0], a[1], z1)], mat, inside=(cx, cy, zc))
+        c, d = inner[i], inner[j]
+        if inner_wall:
+            mx, my = (c[0] + d[0]) / 2, (c[1] + d[1]) / 2
+            out_pt = (mx + (mx - cx) * 0.2, my + (my - cy) * 0.2, zc)
+            mb.face([(c[0], c[1], z0), (d[0], d[1], z0), (d[0], d[1], z1), (c[0], c[1], z1)], mat, inside=out_pt)
+        if top:
+            mb.face([(a[0], a[1], z1), (b[0], b[1], z1), (d[0], d[1], z1), (c[0], c[1], z1)], mat, inside=(cx, cy, z1 - 1))
+        if bottom:
+            mb.face([(a[0], a[1], z0), (b[0], b[1], z0), (d[0], d[1], z0), (c[0], c[1], z0)], mat, inside=(cx, cy, z0 + 1))
+
+
+def residential_rounded(mb, W, D, fr, P):
+    prim = P.get("primary", "facade")
+    sec = P.get("secondary", "facade_alt")
+    bal = P.get("bal", 1.6)
+    rc = P.get("radius", 4.5)
+    rail = P.get("rail", "glass")
+    band_every = P.get("band_every", 0)
+    seg = 3
+    x0, x1, y0, y1 = -W / 2, W / 2, -D / 2, D / 2
+    top = fr.roof
+    core = rounded_rect_poly(x0 + bal, x1 - bal, y0 + bal, y1 - bal, max(0.6, rc - bal), seg)
+    # lobby: deeper recess behind slim columns
+    lob = rounded_rect_poly(x0 + bal + 0.8, x1 - bal - 0.8, y0 + bal + 0.8, y1 - bal - 0.8, max(0.5, rc - bal - 0.8), seg)
+    mb.prism(lob, 0.0, fr.z(1) - SLAB_T, "glazing", top=False)
+    mb.prism(rounded_rect_poly(x0 + bal + 0.7, x1 - bal - 0.7, y0 + bal + 0.7, y1 - bal - 0.7, max(0.5, rc - bal - 0.7), seg), 0.0, 0.45, sec, top=True)
+    for i in range(0, len(core), 2):
+        px, py = core[i]
+        mb.cylinder(px * 0.98, py * 0.98, 0.0, fr.z(1) - SLAB_T, 0.32, prim, seg=10)
+    mb.prism(core, fr.z(1) - SLAB_T, top, "glazing", top=False)
+    outer = rounded_rect_poly(x0, x1, y0, y1, rc, seg)
+    for k in range(1, fr.n + 1):
+        z = fr.z(k)
+        thick = band_every and k % band_every == 0
+        t = 0.55 if thick else SLAB_T
+        mb.prism(outer, z - t, z, sec if thick else prim, top=True, bottom=True)
+        rin = rounded_rect_poly(x0 + 0.06, x1 - 0.06, y0 + 0.06, y1 - 0.06, rc - 0.06, seg)
+        if rail == "glass":
+            n = len(rin)
+            for i in range(n):
+                a, b = rin[i], rin[(i + 1) % n]
+                mb.face([(a[0], a[1], z), (b[0], b[1], z), (b[0], b[1], z + 1.0), (a[0], a[1], z + 1.0)], "glass_clear")
+            rin2 = rounded_rect_poly(x0 + 0.12, x1 - 0.12, y0 + 0.12, y1 - 0.12, rc - 0.12, seg)
+            ring_band(mb, rin, rin2, z + 1.0, z + 1.08, "trim", top=True, inner_wall=True)
+        else:
+            rin2 = rounded_rect_poly(x0 + 0.24, x1 - 0.24, y0 + 0.24, y1 - 0.24, rc - 0.24, seg)
+            ring_band(mb, outer, rin2, z, z + 1.0, prim, top=True, inner_wall=True)
+    # balcony dividers (sand fins) on the long sides
+    for fx in (-0.18, 0.18):
+        x = fx * W
+        mb.box(x - 0.13, y0 + 0.1, fr.z(1) - SLAB_T, x + 0.13, y0 + bal, top, sec)
+        mb.box(x - 0.13, y1 - bal, fr.z(1) - SLAB_T, x + 0.13, y1 - 0.1, top, sec)
+    # roof slab + solid parapet + crown halo on posts
+    mb.prism(outer, top, top + 0.5, prim, top=False, bottom=True)
+    mb.prism(rounded_rect_poly(x0 + 0.3, x1 - 0.3, y0 + 0.3, y1 - 0.3, rc - 0.3, seg), top + 0.49, top + 0.5, "roof", top=True)
+    inner_par = rounded_rect_poly(x0 + 0.3, x1 - 0.3, y0 + 0.3, y1 - 0.3, rc - 0.3, seg)
+    ring_band(mb, outer, inner_par, top + 0.5, top + 1.6, prim, top=True)
+    halo_o = rounded_rect_poly(x0 + 0.4, x1 - 0.4, y0 + 0.4, y1 - 0.4, rc - 0.4, seg)
+    halo_i = rounded_rect_poly(x0 + 1.4, x1 - 1.4, y0 + 1.4, y1 - 1.4, rc - 1.4, seg)
+    hz = top + P.get("halo", 4.2)
+    if P.get("halo", 4.2) > 0:
+        ring_band(mb, halo_o, halo_i, hz, hz + 0.7, sec, top=True, bottom=True)
+        for i in range(0, len(halo_o), 2):
+            px, py = halo_o[i]
+            mb.box(px * 0.97 - 0.2, py * 0.97 - 0.2, top + 1.6, px * 0.97 + 0.2, py * 0.97 + 0.2, hz, sec)
+    return {"roof_z": top + 0.5, "roof_rect": (x0 + 1, x1 - 1, y0 + 1, y1 - 1)}
 
 # ---------------------------------------------------------------------------
 # office tower generator
@@ -613,22 +706,11 @@ def variant_specs():
 
     def tr3(mb):
         W, D = 22.0, 19.0
-        fr = Frame(5.0, 3.25, 12)
+        fr = Frame(5.0, 3.2, 14)
         mb.glazing_uv = glazing_uv_fn(W, D, fr, 3.0, 3.0)
-        # two offset wings: left wing taller, right wing lower with terrace
-        tiers_left = [dict(k0=0, k1=13, rect=(-W / 2, 0.6, -D / 2, D / 2 - 2.0))]
-        info = residential(mb, W, D, fr, dict(bal=(1.8, 1.4, 0.0, 0.0), bal_style="mixed", dividers=(0.5,), pier_w=1.0,
-                                                 band_every=0, side_fins=2, seed=14, tiers=tiers_left))
-        z_left_roof = info["roof_z"]
-        tiers_right = [dict(k0=0, k1=10, rect=(0.6, W / 2, -D / 2 + 2.0, D / 2))]
-        info2 = residential(mb, W, D, fr, dict(primary="facade_alt", secondary="facade", bal=(1.6, 1.6, 0.0, 1.6), bal_style="glass",
-                                                  dividers=(0.5,), pier_w=1.0, band_every=3, arcade=0, seed=15, tiers=tiers_right))
-        # crown on the tall wing
-        pergola(mb, -W / 2 + 1.5, -1.0, -D / 2 + 2.5, D / 2 - 4.5, z_left_roof + 1.15, 2.6, "accent", post_mat="facade")
-        roof_plant(mb, -W / 4, 0, z_left_roof, W / 2 - 3, D - 6, 6, tanks=1, units=2, overrun=True)
-        rr = info2["roof_rect"]
-        roof_plant(mb, (rr[0] + rr[1]) / 2, (rr[2] + rr[3]) / 2, info2["roof_z"], rr[1] - rr[0] - 2, rr[3] - rr[2] - 2, 8, tanks=2, units=1, overrun=False)
-        return dict(info, frame=fr, W=W, D=D, roof_rect=(-W / 2, 0.6, -D / 2, D / 2 - 2.0))
+        info = residential_rounded(mb, W, D, fr, dict(bal=1.7, radius=5.5, rail="glass", band_every=5, halo=4.0))
+        roof_plant(mb, 0.0, 0.0, info["roof_z"], W - 9, D - 9, 14, tanks=2, units=2, overrun=True)
+        return dict(info, frame=fr, W=W, D=D)
     specs.append(("tower-residential", 3, tr3))
 
     # ---------------- tower-office (nominal 21 x 18, ~55 m) ----------------
@@ -710,12 +792,11 @@ def variant_specs():
 
     def mr3(mb):
         W, D = 20.0, 18.5
-        fr = Frame(4.8, 3.2, 7)
+        fr = Frame(4.6, 3.2, 7)
         mb.glazing_uv = glazing_uv_fn(W, D, fr, 3.0, 3.0)
-        info = residential(mb, W, D, fr, dict(primary="facade", secondary="facade_alt", bal=(1.9, 0.0, 0.0, 1.9), bal_style="mixed",
-                                                 dividers=(0.5,), pier_w=1.2, band_every=4, side_fins=2, seed=24))
-        crown_frame(mb, (-W / 2 + 0.6, W / 2 - 0.6, -D / 2 + 0.6, D / 2 - 0.6), info["roof_z"] + 1.15, 3.0, "facade_alt", depth=0.7)
-        roof_plant(mb, 0, 0, info["roof_z"], W - 5, D - 5, 24, tanks=2, units=3)
+        info = residential_rounded(mb, W, D, fr, dict(primary="facade", secondary="facade_alt", bal=1.5, radius=4.2, rail="solid", band_every=0, halo=0.0))
+        pergola(mb, -W / 2 + 2.5, -1.0, -D / 2 + 2.5, D / 2 - 6.0, info["roof_z"], 2.6, "accent", post_mat="facade")
+        roof_plant(mb, 3.0, 1.0, info["roof_z"], 8.0, 9.0, 24, tanks=2, units=2)
         return dict(info, frame=fr, W=W, D=D)
     specs.append(("midrise-residential", 3, mr3))
 
@@ -785,6 +866,16 @@ def variant_specs():
     return specs
 
 
+TINTS = {
+    ("tower-residential", 0): "white", ("tower-residential", 1): "beige", ("tower-residential", 2): "cream", ("tower-residential", 3): "white",
+    ("tower-office", 0): "white", ("tower-office", 1): "cream", ("tower-office", 2): "beige", ("tower-office", 3): "white",
+    ("midrise-residential", 0): "cream", ("midrise-residential", 1): "white", ("midrise-residential", 2): "beige", ("midrise-residential", 3): "sand",
+    ("lowrise-residential", 0): "beige", ("lowrise-residential", 1): "white", ("lowrise-residential", 2): "cream",
+    ("villa", 0): "white", ("villa", 1): "sand",
+    ("commercial-podium", 0): "cream", ("commercial-podium", 1): "white", ("commercial-podium", 2): "beige",
+}
+
+
 def build_all(collection_for_kind):
     """Build every kit variant. Returns {kind: [(obj, record), ...]}."""
     out = {}
@@ -806,6 +897,7 @@ def build_all(collection_for_kind):
             storeyHeight=round(fr.fh, 2) if fr else None,
             lobbyHeight=round(fr.L, 2) if fr else None,
             roofY=round(info.get("roof_z", H), 2),
+            stoneTint=TINTS.get((kind, v), "white"),
             anchors={
                 "label": [0.0, round(H + 4.0, 2), 0.0],
                 "roof": [0.0, round(info.get("roof_z", H), 2), 0.0],

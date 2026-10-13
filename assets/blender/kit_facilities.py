@@ -1065,7 +1065,7 @@ def _pump_preview(roots, path, res):
     if g:
         g.location.z = -60.0
     try:
-        pv.preview_lineup(roots, path.replace(".png", "_cutaway.png"), res=res, azim=18.0, elev=8.0, gap=8.0, lens=50.0, margin=1.04)
+        pv.preview_lineup(roots, path.replace(".jpg", "_cutaway.jpg"), res=res, azim=18.0, elev=8.0, gap=8.0, lens=50.0, margin=1.04)
     finally:
         if g:
             g.location.z = gz
