@@ -427,7 +427,7 @@ def verify(req: VerificationRequest) -> VerificationReport:
     checks.append(_chk("radiality", "Radial operation", True, rad_ok, "radial" if rad_ok else "meshed", "no closed loops", rad_detail))
     # 7. fault isolation
     fl = next(ln for ln in grid.lines if ln["id"] == req.fault_line)
-    live = [k for k in frames if fault_active[k] and (fl["to"] in energised[k] or (states[k][fl["switch"]] and fl["from"] in energised[k]))]
+    live = [k for k in frames if fault_active[k] and states[k][fl["switch"]] and (fl["from"] in energised[k] or fl["to"] in energised[k])]
     checks.append(
         _chk(
             "fault-isolation",

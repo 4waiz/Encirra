@@ -56,7 +56,7 @@ from .coupling import CoupledResult, Segment, SimSetup, SwitchingTimeline, simul
 from .electrical import PowerNetwork
 from .models import CandidateMetrics, ObjectiveWeights, ScoreBreakdown, SwitchAction, VerificationCheck
 from .profiles import clock_str
-from .screening import propose_shed_set
+from .screening import impedance_table, lindistflow_feasible, propose_shed_set
 from .topology import FaultPlan, check_radiality, energized_buses
 from .water import pump_power_kw
 
@@ -139,10 +139,7 @@ def topologies(ctx: PlanningContext) -> list[tuple[tuple[int, ...], tuple[int, .
     ties = [
         ln.id
         for ln in d.lines
-        if ln.kind == "tie"
-        and not base[ln.id]
-        and (ln.from_bus in region or ln.to_bus in region)
-        and not (ln.from_bus in section or ln.to_bus in section)
+        if ln.kind == "tie" and not base[ln.id] and (ln.from_bus in region or ln.to_bus in region or ln.from_bus in section or ln.to_bus in section)
     ]
     sects = [
         ln.id
@@ -164,7 +161,7 @@ def topologies(ctx: PlanningContext) -> list[tuple[tuple[int, ...], tuple[int, .
                         closed[o] = False
                     closed_t = tuple(closed)
                     en = energized_buses(d, closed_t, oos)
-                    if not any(b in en for b in region):
+                    if not any(b in en for b in region) and not any(b in en for b in section):
                         continue
                     # identical energised set and identical set of live closed lines ⇒ same electrical state
                     sig = (frozenset(en), frozenset(i for i, c in enumerate(closed_t) if c and d.lines[i].from_bus in en))
@@ -349,7 +346,7 @@ def topology_checks(ctx: PlanningContext, spec: CandidateSpec) -> tuple[list[Ver
     en = energized_buses(d, spec.closed, oos)
     fl = d.lines[ctx.fault.fault_line]
     live_section = sorted(b for b in ctx.fault.section_buses if b in en)
-    fault_live = (fl.to_bus in en) or (spec.closed[fl.id] and fl.from_bus in en)
+    fault_live = spec.closed[fl.id] and (fl.from_bus in en or fl.to_bus in en)
     ok = not live_section and not fault_live
     checks.append(
         _check(
@@ -550,6 +547,7 @@ def _evaluate_one(ctx: PlanningContext, spec: CandidateSpec, frames: list[int], 
             switch_ops=spec.ops,
         )
         return CandidateOutcome("", spec, label, actions, False, list(pre_reasons), list(pre_checks), metrics, None, restored, en)
+    interrupts = [b for b in spec.shed if b not in region]
     cr = simulate(ctx.setup, ctx.candidate_timeline(spec), ctx.net, pf_frames=frames)
     e_checks, e_reasons, stats = electrical_checks(ctx, cr, frames, restored)
     w_checks = water_checks(ctx, cr, k0)
@@ -584,11 +582,70 @@ def _evaluate_one(ctx: PlanningContext, spec: CandidateSpec, frames: list[int], 
         switch_ops=spec.ops,
     )
     terms = objective_terms(ctx, cr, k0)
-    return CandidateOutcome("", spec, label, actions, not reasons, reasons, checks, metrics, terms, restored, en, cr=cr)
+    out = CandidateOutcome("", spec, label, actions, not reasons, reasons, checks, metrics, terms, restored, en, cr=cr)
+    out.extra["interrupts"] = interrupts
+    return out
+
+
+VOLTAGE_REASONS = ("pu <", "trip on undervoltage", "cannot run")
+
+
+def _voltage_only(reasons: list[str]) -> bool:
+    """True when every hard-check failure is an undervoltage / pump-undervoltage issue."""
+    return bool(reasons) and all(any(t in r for t in VOLTAGE_REASONS) and "rating" not in r and "loop" not in r for r in reasons)
+
+
+def headroom_buses(ctx: PlanningContext, ties: tuple[int, ...], k: int = 3) -> list[int]:
+    """Energised, non-critical buses outside the dark region whose load most depresses the voltage at
+    the source end of the closed tie(s). Ranked by the LinDistFlow sensitivity
+    sum over the shared supply path of (r*P_b + x*Q_b): bus b's share of the voltage drop."""
+    d = ctx.district
+    region = ctx.fault.downstream_dark
+    section = ctx.fault.section_buses
+    oos = [ctx.fault.fault_line]
+    z = impedance_table(d)
+    g = nx.Graph()
+    g.add_node(d.substation_bus)
+    for ln in d.lines:
+        if ctx.closed_iso[ln.id] and ln.id not in oos:
+            g.add_edge(ln.from_bus, ln.to_bus, line=ln.id)
+    tree = nx.bfs_tree(g, d.substation_bus)
+    path: dict[int, set[int]] = {d.substation_bus: set()}
+    for u, v in nx.bfs_edges(tree, d.substation_bus):
+        path[v] = path[u] | {g.edges[u, v]["line"]}
+    sources = []
+    for t in ties:
+        ln = d.lines[t]
+        for b in (ln.from_bus, ln.to_bus):
+            if b in path and b not in region:
+                sources.append(b)
+    lf = float(ctx.setup.load_factor[min(ctx.k_switch, ctx.setup.n_frames - 1)])
+    scores = []
+    for b, p in path.items():
+        bus = d.buses[b]
+        if b in region or b in section or bus.critical or bus.load_kw <= 0:
+            continue
+        sc = 0.0
+        for src in sources:
+            for lid in p & path.get(src, set()):
+                r, x = z[lid]
+                sc += (r * bus.load_kw + x * bus.load_kvar) * lf
+        if sc > 0:
+            scores.append((sc, b))
+    scores.sort(key=lambda t: (-t[0], t[1]))
+    return [b for _, b in scores[:k]]
 
 
 def evaluate_all(ctx: PlanningContext) -> list[CandidateOutcome]:
-    """Enumerate and evaluate every candidate (exhaustive constrained search with dominance pruning)."""
+    """Enumerate and evaluate every candidate (exhaustive constrained search with dominance pruning).
+
+    For each topology: shed sets of non-critical buses in the dark region (up to MAX_SHED_BUSES)
+    are evaluated exactly. If none is feasible and every failure is voltage-related, shed sets that
+    also interrupt some of the most voltage-relevant *energised* non-critical buses (headroom
+    shedding, top 3 by LinDistFlow sensitivity) are evaluated; such sets are first screened with the
+    lossless LinDistFlow model (if even the lossless model violates a limit, the AC model must too).
+    Beyond the enumeration bound, CP-SAT proposes one larger shed set per topology.
+    """
     d = ctx.district
     region = ctx.fault.downstream_dark
     oos = [ctx.fault.fault_line]
@@ -599,6 +656,7 @@ def evaluate_all(ctx: PlanningContext) -> list[CandidateOutcome]:
     for pu in d.pumps:  # design-point motor input as the screening estimate of pump demand
         kw = float(pump_power_kw(pu.design_flow_lps / 1000.0, pu.design_head_m, pu.efficiency))
         pump_extra[pu.bus] = (kw, kw * tanphi)
+    vmin = float(d.limits["vMinPu"])
     outcomes: list[CandidateOutcome] = []
     for ties, opens, closed in topologies(ctx):
         spec0 = CandidateSpec(ties, opens, (), closed)
@@ -609,31 +667,43 @@ def evaluate_all(ctx: PlanningContext) -> list[CandidateOutcome]:
         en = energized_buses(d, closed, oos)
         sheddable = sorted(b for b in region if b in en and not d.buses[b].critical and d.buses[b].load_kw > 0)
         feasible_sheds: list[set[int]] = []
+        voltage_only = True
         for nshed in range(0, MAX_SHED_BUSES + 1):
             for dset in itertools.combinations(sheddable, nshed):
                 spec = CandidateSpec(ties, opens, tuple(dset), closed)
-                if spec.ops > MAX_SWITCH_OPS:
-                    continue
-                if any(f <= set(dset) for f in feasible_sheds):
+                if spec.ops > MAX_SWITCH_OPS or any(f <= set(dset) for f in feasible_sheds):
                     continue
                 checks, reasons = topology_checks(ctx, spec)
                 o = _evaluate_one(ctx, spec, frames, checks, reasons)
                 outcomes.append(o)
                 if o.feasible:
                     feasible_sheds.append(set(dset))
+                elif not _voltage_only(o.reasons):
+                    voltage_only = False
+        # Voltage headroom: interrupt energised non-critical load on the tie's supply path.
+        if not feasible_sheds and voltage_only:
+            extra = headroom_buses(ctx, ties)
+            pool = sorted(set(sheddable) | set(extra))
+            for nshed in range(1, MAX_SHED_BUSES + 1):
+                for dset in itertools.combinations(pool, nshed):
+                    if not any(b in extra for b in dset):
+                        continue
+                    spec = CandidateSpec(ties, opens, tuple(dset), closed)
+                    if spec.ops > MAX_SWITCH_OPS or any(f <= set(dset) for f in feasible_sheds):
+                        continue
+                    if not lindistflow_feasible(d, closed, oos, dset, peak_lf, pump_extra, vmin):
+                        continue
+                    checks, reasons = topology_checks(ctx, spec)
+                    o = _evaluate_one(ctx, spec, frames, checks, reasons)
+                    o.extra["origin"] = "headroom"
+                    outcomes.append(o)
+                    if o.feasible:
+                        feasible_sheds.append(set(dset))
+            sheddable = pool
         # Beyond the enumeration bound: CP-SAT proposes the best larger shed set (LinDistFlow).
         budget = MAX_SWITCH_OPS - len(ties) - len(opens)
         if not feasible_sheds and len(sheddable) > MAX_SHED_BUSES and budget > MAX_SHED_BUSES:
-            prop = propose_shed_set(
-                d,
-                closed,
-                oos,
-                sheddable,
-                peak_lf,
-                pump_extra,
-                float(d.limits["vMinPu"]),
-                max_shed=budget,
-            )
+            prop = propose_shed_set(d, closed, oos, sheddable, peak_lf, pump_extra, vmin, max_shed=budget)
             if prop is not None and len(prop) > MAX_SHED_BUSES:
                 spec = CandidateSpec(ties, opens, prop, closed)
                 checks, reasons = topology_checks(ctx, spec)
@@ -663,19 +733,26 @@ def score_and_rank(outcomes: list[CandidateOutcome], w: ObjectiveWeights) -> dic
     for o in outcomes:
         if o.feasible and o.terms is not None:
             bd = score_encirra(o.terms, o.spec.ops, w)
-            out[o.cid] = Scored(o, bd.total, bd, score_grid_only(o.terms, o.spec.ops, w))
+            grid = score_grid_only(o.terms, o.spec.ops, w) if grid_only_admissible(o) else None
+            out[o.cid] = Scored(o, bd.total, bd, grid)
         else:
             out[o.cid] = Scored(o, None, None, None)
     feas = [s for s in out.values() if s.outcome.feasible]
     for rank, s in enumerate(sorted(feas, key=lambda x: (-x.score_encirra, x.outcome.spec.ops, x.outcome.cid)), start=1):
         s.rank_encirra = rank
-    for rank, s in enumerate(sorted(feas, key=lambda x: (-x.score_grid, x.outcome.spec.ops, x.outcome.cid)), start=1):
+    grid_feas = [s for s in feas if s.score_grid is not None]
+    for rank, s in enumerate(sorted(grid_feas, key=lambda x: (-x.score_grid, x.outcome.spec.ops, x.outcome.cid)), start=1):
         s.rank_grid = rank
     return out
+
+
+def grid_only_admissible(o: CandidateOutcome) -> bool:
+    """Conventional FLISR policy: restoration never interrupts customers that currently have supply."""
+    return not o.extra.get("interrupts")
 
 
 def ranked(scored: dict[str, Scored], strategy: str) -> list[Scored]:
     feas = [s for s in scored.values() if s.outcome.feasible]
     if strategy == "encirra":
         return sorted(feas, key=lambda x: x.rank_encirra)
-    return sorted(feas, key=lambda x: x.rank_grid)
+    return sorted((s for s in feas if s.rank_grid is not None), key=lambda x: x.rank_grid)

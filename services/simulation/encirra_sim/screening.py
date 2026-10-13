@@ -121,3 +121,56 @@ def propose_shed_set(
     if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
         return None
     return tuple(sorted(b for b, xv in x.items() if solver.Value(xv) == 0))
+
+
+def impedance_table(d: District) -> dict[int, tuple[float, float]]:
+    """Series impedance (R, X in ohm) of every line, from the benchmark data."""
+    return _impedance(d)
+
+
+def lindistflow_feasible(
+    d: District,
+    closed: Sequence[bool],
+    out_of_service: Iterable[int],
+    shed: Iterable[int],
+    load_factor: float,
+    extra_kw: dict[int, tuple[float, float]],
+    v_min: float,
+    base_kv: float = 12.66,
+) -> bool:
+    """Lossless LinDistFlow check of a fixed shed set (voltage floor and line octagon limits).
+
+    Neglecting losses can only overestimate voltages and underestimate flows, so a configuration
+    that fails here also fails the AC power flow; passing here is *not* sufficient (AC decides)."""
+    oos = set(out_of_service)
+    shed_set = set(shed)
+    g = nx.Graph()
+    g.add_node(d.substation_bus)
+    for ln in d.lines:
+        if closed[ln.id] and ln.id not in oos:
+            g.add_edge(ln.from_bus, ln.to_bus, line=ln.id)
+    comp = nx.node_connected_component(g, d.substation_bus)
+    if g.subgraph(comp).number_of_edges() != len(comp) - 1:
+        return False
+    tree = nx.bfs_tree(g, d.substation_bus)
+    z = _impedance(d)
+    p = {b: 0.0 if b in shed_set else d.buses[b].load_kw * load_factor + extra_kw.get(b, (0.0, 0.0))[0] for b in comp}
+    q = {b: 0.0 if b in shed_set else d.buses[b].load_kvar * load_factor + extra_kw.get(b, (0.0, 0.0))[1] for b in comp}
+    order = list(nx.topological_sort(tree))
+    pf = dict(p)
+    qf = dict(q)
+    for b in reversed(order):  # subtree sums
+        for c in tree.successors(b):
+            pf[b] += pf[c]
+            qf[b] += qf[c]
+    v = {d.substation_bus: 1.0}
+    for u, b in nx.bfs_edges(tree, d.substation_bus):
+        lid = g.edges[u, b]["line"]
+        r, x = z[lid]
+        v[b] = v[u] - 2.0 * (r * pf[b] + x * qf[b]) / 1000.0 / base_kv**2
+        if v[b] < v_min**2:
+            return False
+        s_max = math.sqrt(3.0) * base_kv * d.lines[lid].rating_a  # kVA at nominal voltage
+        if pf[b] > s_max or qf[b] > s_max or pf[b] + qf[b] > math.sqrt(2.0) * s_max:
+            return False
+    return True
