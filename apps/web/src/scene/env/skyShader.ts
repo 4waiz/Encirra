@@ -50,7 +50,7 @@ vec3 encSkyGrad(vec3 d, float withSun, float squash) {
   col *= mix(${v3('#BFC8DE')} * 0.92, ${v3('#FFE4C6')} * 1.12, azW * lowW + (1.0 - lowW) * 0.42);
   float sdot = max(dot(d, ENC_SUN_DIR), 0.0);
   vec3 glowCol = ${v3('#FFC898')};
-  col += glowCol * (pow(sdot, 4.0) * 0.32 + pow(sdot, 22.0) * 0.85 + pow(sdot, 180.0) * 1.6) * withSun;
+  col += glowCol * (pow(sdot, 5.0) * 0.24 + pow(sdot, 26.0) * 0.8 + pow(sdot, 180.0) * 1.5) * withSun;
   vec3 cGround = ${v3('#5E5F6C')} * 0.55;
   col = mix(col, mix(cHor * 0.8, cGround, smoothstep(0.02, 0.25, -h)), smoothstep(0.0, 0.02, -h));
   return col;
@@ -60,7 +60,7 @@ vec3 encHaze(vec3 d) {
   // aerial perspective: warm towards the glow, blue-grey elsewhere
   vec3 sh = normalize(vec3(ENC_SUN_DIR.x, 0.0, ENC_SUN_DIR.z));
   float az = dot(normalize(vec3(d.x, 0.0, d.z) + vec3(1e-5, 0.0, 0.0)), sh) * 0.5 + 0.5;
-  return encSkyBase(dd, 0.35) * mix(vec3(0.56, 0.61, 0.72), vec3(0.84, 0.77, 0.7), az * az);
+  return encSkyBase(dd, 0.35) * mix(vec3(0.5, 0.55, 0.66), vec3(0.66, 0.62, 0.6), az * az);
 }
 #endif
 `;
@@ -128,7 +128,7 @@ export function installHazeFog() {
   float encMist = (1.0 - smoothstep(-70.0, -30.0, encWy)) * smoothstep(150.0, 900.0, vFogDepth) * 0.5;
   vec3 encFogCol = encHaze(normalize(vFogWorld)) * fogColor;
   // the mist is a dimmer, cooler blue-grey dusk haze than the bright horizon glow
-  vec3 encMistCol = encFogCol * vec3(0.34, 0.38, 0.48);
+  vec3 encMistCol = encFogCol * vec3(0.26, 0.3, 0.4);
   encFogCol = mix(encFogCol, encMistCol, encMist / max(1.0 - (1.0 - fogFactor) * (1.0 - encMist), 1e-3) * (1.0 - fogFactor));
   fogFactor = 1.0 - (1.0 - fogFactor) * (1.0 - encMist);
   gl_FragColor.rgb = mix( gl_FragColor.rgb, encFogCol, fogFactor );

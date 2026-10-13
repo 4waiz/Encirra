@@ -131,9 +131,10 @@ export const NODE_POS = new Map<string, [number, number, number]>([
 
 /** Visual radius (m) for a pipe — exaggerated for legibility. */
 export function pipeRadius(diameterMM: number, kind: string) {
-  // ≈0.9 m for the 300 mm mains (matches the kit's gallery saddles)
+  // distribution mains ≈0.8 m; the exposed transmission / suction mains are drawn heavier
+  // (≈1.2–1.35 m) so the cut-away reads from the home view (they still sit in the gallery saddles)
   const base = 0.5 + (diameterMM / 1000) * 1.35;
-  return kind === 'distribution' ? base * 0.92 : base;
+  return kind === 'distribution' ? base * 0.92 : base * 1.3;
 }
 
 // ───────────────────────────────────────────── nominal (healthy) defaults when no run is loaded

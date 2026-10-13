@@ -162,7 +162,8 @@ float tMetal = roof ? 0.0 : mix(glassy ? 0.25 : 0.0, 0.3, m);`,
         '#include <lights_fragment_end>',
         `#include <lights_fragment_end>
 #ifdef ENC_LOW
-reflectedLight.directDiffuse *= 0.42;
+reflectedLight.directDiffuse *= 0.34;
+reflectedLight.indirectDiffuse *= 0.8;
 #else
 // distant towers: soft dusk light only (no broad specular glints from the low key light)
 reflectedLight.directDiffuse *= 0.32;
