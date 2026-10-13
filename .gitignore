@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Builds
+dist/
+build/
+apps/web/dist/
+*.tsbuildinfo
+.vite/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Local tool state (never commit)
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+.agent-scratch/
+
+# Blender autosave/backups
+*.blend1
+*.blend2
+
+# Simulation caches (re-creatable)
+services/simulation/.cache/
+services/simulation/cache/
+
+# QA scratch captures (curated screenshots live in docs/screenshots)
+tests/e2e/output/
+tests/e2e/.tmp/
+screenshots-tmp/
+
+# Logs
+*.log
+npm-debug.log*

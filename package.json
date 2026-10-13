@@ -1,0 +1,34 @@
+{
+  "name": "encirra",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Encirra: coupled power + water resilience digital twin (research prototype, synthetic/benchmark data).",
+  "license": "MIT",
+  "type": "module",
+  "workspaces": [
+    "packages/shared",
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n sim,web -c cyan,magenta \"npm:dev:sim\" \"npm:dev:web\"",
+    "dev:web": "npm run dev -w apps/web",
+    "dev:sim": "node scripts/run-sim.mjs serve",
+    "setup:sim": "node scripts/run-sim.mjs setup",
+    "build": "npm run build -w apps/web",
+    "preview": "npm run preview -w apps/web",
+    "test": "npm run test:web && npm run test:sim",
+    "test:web": "npm run test -w apps/web",
+    "test:sim": "node scripts/run-sim.mjs test",
+    "test:e2e": "node tests/e2e/run-e2e.mjs",
+    "typecheck": "npm run typecheck -w apps/web",
+    "sim:export": "node scripts/run-sim.mjs export",
+    "layout": "node packages/shared/scripts/build-layout.mjs",
+    "assets:build": "node scripts/build-assets.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

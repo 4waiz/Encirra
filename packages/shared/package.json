@@ -1,0 +1,17 @@
+{
+  "name": "@encirra/shared",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Typed API contract, district configuration and layout generator shared by the web app and the simulation service.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./district.json": "./config/district.json",
+    "./layout.json": "./generated/city-layout.json"
+  },
+  "scripts": {
+    "layout": "node scripts/build-layout.mjs"
+  }
+}
