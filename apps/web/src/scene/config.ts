@@ -31,21 +31,39 @@ export const LIN = {
   waterIdle: new Color(COLORS.waterIdle),
 };
 
-/** Sun direction (towards the sun) — low warm dusk sun in the west-south-west. */
+/**
+ * Key light (towards the light) — low warm golden-hour sun from the west-south-west, i.e. from
+ * behind-left of the home camera, so the camera-facing facades are lit and long shadows fall away.
+ */
 export const SUN = {
-  azimuthDeg: 250, // compass-like: 0 = -Z (north), 90 = +X (east), 180 = +Z (south), 270 = -X (west)
-  elevationDeg: 12.5,
-  color: '#FFB877',
+  azimuthDeg: 248, // compass-like: 0 = -Z (north), 90 = +X (east), 180 = +Z (south), 270 = -X (west)
+  elevationDeg: 15,
+  color: '#FFD3A6',
 };
 
-export function sunDirection(): [number, number, number] {
-  const az = (SUN.azimuthDeg * Math.PI) / 180;
-  const el = (SUN.elevationDeg * Math.PI) / 180;
+/**
+ * Sky glow (art direction, as in the reference): the bright dusk glow sits low on the horizon
+ * behind the skyline, slightly left of the home view direction, so the towers read as silhouettes
+ * against it while the district itself stays front-lit by the key light.
+ */
+export const SKY_GLOW = {
+  azimuthDeg: 24,
+  elevationDeg: 2.5,
+};
+
+function dirFrom(azDeg: number, elDeg: number): [number, number, number] {
+  const az = (azDeg * Math.PI) / 180;
+  const el = (elDeg * Math.PI) / 180;
   // north = -Z, east = +X
-  const x = Math.sin(az) * Math.cos(el);
-  const z = -Math.cos(az) * Math.cos(el);
-  const y = Math.sin(el);
-  return [x, y, z];
+  return [Math.sin(az) * Math.cos(el), Math.sin(el), -Math.cos(az) * Math.cos(el)];
+}
+
+export function sunDirection(): [number, number, number] {
+  return dirFrom(SUN.azimuthDeg, SUN.elevationDeg);
+}
+
+export function skyGlowDirection(): [number, number, number] {
+  return dirFrom(SKY_GLOW.azimuthDeg, SKY_GLOW.elevationDeg);
 }
 
 export const WORLD = {

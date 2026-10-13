@@ -52,16 +52,18 @@ function makeSkyMaterial(clouds: boolean) {
           vec2 cp = d.xz / (d.y + 0.08) * 0.55 + vec2(uTime * 0.004, uTime * 0.001);
           float n = encFbm(cp * 1.6);
           float n2 = encFbm(cp * 4.0 + 3.1);
-          float cov = smoothstep(0.52, 0.86, n * 0.8 + n2 * 0.25) * smoothstep(0.015, 0.12, d.y) * (1.0 - smoothstep(0.45, 0.85, d.y));
+          float cov = smoothstep(0.48, 0.84, n * 0.8 + n2 * 0.25) * smoothstep(0.015, 0.1, d.y) * (1.0 - smoothstep(0.5, 0.9, d.y));
           vec3 sh = normalize(vec3(ENC_SUN_DIR.x, 0.0, ENC_SUN_DIR.z));
           float az = dot(normalize(vec3(d.x, 0.0, d.z)), sh) * 0.5 + 0.5;
-          vec3 cLit = mix(vec3(0.95, 0.66, 0.55), vec3(1.35, 0.92, 0.66), az);
-          vec3 cShade = vec3(0.55, 0.5, 0.6);
+          float az2 = az * az;
+          // grey-blue cloud bodies with pink / peach edges lit by the low glow
+          vec3 cLit = mix(vec3(0.62, 0.52, 0.58), vec3(1.25, 0.88, 0.66), az2);
+          vec3 cShade = mix(vec3(0.2, 0.23, 0.31), vec3(0.42, 0.36, 0.4), az2);
           vec3 cloud = mix(cShade, cLit, smoothstep(0.35, 0.9, n2));
-          col = mix(col, cloud * mix(0.9, 1.15, az), cov * 0.5);
+          col = mix(col, cloud, cov * 0.62);
           // long thin streaks near the horizon
           float streak = smoothstep(0.62, 0.9, encFbm(vec2(cp.x * 0.6, cp.y * 5.0))) * smoothstep(0.01, 0.05, d.y) * (1.0 - smoothstep(0.08, 0.2, d.y));
-          col = mix(col, mix(vec3(1.0, 0.7, 0.55), vec3(1.4, 0.95, 0.7), az), streak * 0.35);
+          col = mix(col, mix(vec3(0.62, 0.55, 0.62), vec3(1.3, 0.9, 0.68), az2), streak * 0.3);
         }`
             : ''
         }
@@ -116,13 +118,13 @@ export function SkyEnvironment() {
   const sd = sunDirection();
   useEffect(() => () => mat.dispose(), [mat]);
   return (
-    <Environment resolution={256} frames={1} environmentIntensity={0.48}>
+    <Environment resolution={256} frames={1} environmentIntensity={0.6}>
       <mesh material={mat} scale={500} renderOrder={-1}>
         <sphereGeometry args={[1, 64, 32]} />
       </mesh>
       {/* warm sun-side card and a cool zenith card to shape reflections */}
-      <Lightformer form="rect" intensity={6} color="#FFC08A" position={[sd[0] * 300, sd[1] * 300 + 20, sd[2] * 300]} scale={[260, 60, 1]} target={[0, 0, 0]} />
-      <Lightformer form="rect" intensity={0.8} color="#B8C6DA" position={[0, 400, 0]} scale={[500, 500, 1]} rotation-x={Math.PI / 2} />
+      <Lightformer form="rect" intensity={4} color="#FFD2A8" position={[sd[0] * 300, sd[1] * 300 + 20, sd[2] * 300]} scale={[260, 60, 1]} target={[0, 0, 0]} />
+      <Lightformer form="rect" intensity={1.1} color="#AFC0DC" position={[0, 400, 0]} scale={[500, 500, 1]} rotation-x={Math.PI / 2} />
     </Environment>
   );
 }
@@ -165,7 +167,7 @@ export function Lights() {
   }, [target, mapSize]);
 
   useEffect(() => {
-    scene.fog = new FogExp2(new Color('#ffffff'), 0.00042);
+    scene.fog = new FogExp2(new Color('#ffffff'), 0.00034);
     return () => {
       scene.fog = null;
     };
@@ -206,13 +208,13 @@ export function Lights() {
       <directionalLight
         ref={sun}
         color={SUN.color}
-        intensity={4.6}
+        intensity={4.2}
         position={[sd[0] * 900, sd[1] * 900, sd[2] * 900]}
         castShadow={tier !== 'low'}
       />
       {/* cool sky fill from the opposite side to separate facades */}
-      <directionalLight color="#9DB4DA" intensity={0.38} position={[-sd[0] * 600, 500, -sd[2] * 600]} />
-      <hemisphereLight args={['#A9BBD6', '#6A5240', 0.5]} />
+      <directionalLight color="#93ABDA" intensity={0.55} position={[-sd[0] * 600, 500, -sd[2] * 600]} />
+      <hemisphereLight args={['#9FB4DA', '#4B4A4E', 0.8]} />
     </>
   );
 }

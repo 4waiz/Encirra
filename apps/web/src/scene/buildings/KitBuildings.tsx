@@ -73,20 +73,21 @@ export function resolvePlacements(m: KitManifest, loaded: Record<string, GLTF>):
 }
 
 // colour variation (multipliers on the kit base colours)
+// near-white / cream stone with a few beige and cool-grey accents (kit COLOR_0 adds a per-variant stone tint)
 const FACADE_TINTS: [number, number, number][] = [
-  [1.05, 1.05, 1.07],
-  [1.0, 1.0, 1.0],
-  [1.02, 0.97, 0.9],
-  [0.96, 0.9, 0.79],
-  [0.94, 0.95, 0.97],
-  [1.03, 1.0, 0.95],
+  [1.08, 1.08, 1.1],
+  [1.04, 1.04, 1.06],
+  [1.02, 1.0, 0.97],
+  [0.98, 0.96, 0.92],
+  [1.06, 1.06, 1.09],
+  [0.95, 0.96, 1.0],
 ];
 const ALT_TINTS: [number, number, number][] = [
   [1.0, 1.0, 1.0],
-  [1.07, 1.05, 1.0],
+  [1.06, 1.05, 1.03],
+  [0.96, 0.95, 0.93],
   [0.92, 0.89, 0.84],
-  [0.86, 0.8, 0.72],
-  [1.04, 0.98, 0.9],
+  [1.03, 1.01, 0.98],
 ];
 const GLAZING_TINTS: [number, number, number][] = [
   [1.0, 1.0, 1.0],
