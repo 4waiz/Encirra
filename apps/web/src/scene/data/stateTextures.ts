@@ -24,7 +24,7 @@ function tex(w: number, h: number) {
 }
 
 export const busTex = tex(N_BUS, 1);
-export const lineTex = tex(N_LINE, 3);
+export const lineTex = tex(N_LINE, 4);
 export const pipeTex = tex(N_PIPE, 2);
 
 const busAnim = {
@@ -144,6 +144,7 @@ export function updateStateTextures(t: number, dt: number) {
     ld[2 * W + o + 1] = code === CODE.restoring ? 1 : 0;
     ld[2 * W + o + 2] = live.planSwitchLines.has(i) ? 1 : 0;
     ld[2 * W + o + 3] = live.lineDir[i] < 0 ? -1 : 1;
+    ld[3 * W + o] = code === CODE.restored ? 1 : 0;
   }
   lineTex.needsUpdate = true;
 

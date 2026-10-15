@@ -14,6 +14,7 @@ import { BUILDING_BY_FACILITY, BUILDING_BY_ID, FACILITY_BY_ID, LINES, N_LINE, PU
 import { CODE, live } from '../data/live';
 import { COLORS } from '../config';
 import { fx } from '../runtime';
+import { motion } from '../anim/motion';
 import './labels.css';
 
 type Tone = 'fault' | 'warn' | 'ok' | 'water' | 'info';
@@ -287,7 +288,7 @@ export function Labels() {
       offsets.set(l.key + ':s', nextS);
       el.style.setProperty('--lift', `${next.toFixed(1)}px`);
       el.style.setProperty('--shiftx', `${nextS.toFixed(1)}px`);
-      el.style.opacity = String(1 - fx.xray * 0.15);
+      el.style.opacity = String((1 - fx.xray * 0.15) * motion.labels);
     }
   });
 

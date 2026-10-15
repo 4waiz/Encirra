@@ -7,6 +7,7 @@
  */
 import { Color, DataTexture, DoubleSide, type Material, MeshStandardMaterial } from 'three';
 import type { KitManifest } from './kit';
+import { patchBuildingShader } from '../anim/patch';
 
 export interface KitUniforms {
   uState: { value: DataTexture };
@@ -60,7 +61,7 @@ export function kitMaterialKind(name: string): Kind {
  * Build the batched material for a kit material name.
  * `src` is the GLTF material (PBR values are taken from it, falling back to the manifest).
  */
-export function createKitMaterial(name: string, src: Material | null, manifest: KitManifest | null, uniforms: KitUniforms, opts: { darkenOutage?: boolean; skyline?: boolean } = {}) {
+export function createKitMaterial(name: string, src: Material | null, manifest: KitManifest | null, uniforms: KitUniforms, opts: { darkenOutage?: boolean; skyline?: boolean; tiles?: boolean } = {}) {
   const pbr = manifest?.materialPBR?.[name] ?? {};
   const s = src as MeshStandardMaterial | null;
   const kind = kitMaterialKind(name);
@@ -99,7 +100,7 @@ export function createKitMaterial(name: string, src: Material | null, manifest: 
     if (kind === 'standard') mat.color.multiply(new Color(0.3, 0.33, 0.39));
     mat.envMapIntensity = 0.35;
   }
-  mat.customProgramCacheKey = () => `encirra-kit-${kind}-${name === 'water' ? 'w' : ''}${darken ? 'd' : ''}${mat.map ? 'm' : ''}${mat.normalMap ? 'n' : ''}${opts.skyline ? 's' : ''}`;
+  mat.customProgramCacheKey = () => `encirra-kit-${kind}-${name === 'water' ? 'w' : ''}${darken ? 'd' : ''}${mat.map ? 'm' : ''}${mat.normalMap ? 'n' : ''}${opts.skyline ? 's' : ''}${opts.tiles ? 't' : ''}`;
   mat.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
@@ -192,6 +193,7 @@ diffuseColor.rgb *= mix(vec3(0.72, 0.7, 0.76), vec3(1.0), clamp(vBState.r * 1.4,
     );
     frag = frag.replace('#include <dithering_fragment>', '#include <dithering_fragment>\ngl_FragColor.a *= uFade;');
     shader.fragmentShader = frag;
+    if (opts.tiles) patchBuildingShader(shader, 'aBld');
   };
   return mat;
 }

@@ -21,6 +21,9 @@
  *   --cinematic          enable the cinematic auto-orbit
  *   --eval <js>          extra JS evaluated in the page before capture
  *   --gpu <igpu|dgpu>    GPU for headless Edge (default igpu = integrated, the stricter target)
+ *   --intro              let the intro assembly play (skipped by default)
+ *   --introAt <s>        freeze the intro assembly at s seconds (mid-animation captures)
+ *   --reducedMotion      emulate prefers-reduced-motion: reduce
  *
  * Writes PNGs to tests/e2e/output/ and prints console errors/warnings, fps and renderer stats.
  */
@@ -48,6 +51,9 @@ if (url === 'qa') url = 'http://127.0.0.1:5173/src/scene/qa/index.html';
 const quality = opt('quality', null);
 if (quality) url += (url.includes('?') ? '&' : '?') + `quality=${quality}`;
 if (opt('gputime', false)) url += (url.includes('?') ? '&' : '?') + 'gputime=1';
+// intro assembly: skipped by default (stable captures); --intro plays it, --introAt <s> freezes it at s
+const introAt = opt('introAt', null);
+if (!opt('intro', false) && introAt == null) url += (url.includes('?') ? '&' : '?') + 'intro=0';
 const sizes = String(opt('sizes', '1600x900,1920x1080'))
   .split(',')
   .map((s) => s.split('x').map(Number));
@@ -80,7 +86,7 @@ const browser = await chromium.launch({
 
 let failed = false;
 for (const [w, h] of sizes) {
-  const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });
+  const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1, reducedMotion: opt('reducedMotion', false) ? 'reduce' : 'no-preference' });
   const logs = [];
   page.on('console', (m) => {
     if (m.type() === 'error' || m.type() === 'warning') logs.push(`[${m.type()}] ${m.text()}`);
@@ -89,6 +95,10 @@ for (const [w, h] of sizes) {
   const t0 = Date.now();
   await page.goto(url, { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ content: 'vite-error-overlay{display:none!important}' }).catch(() => {});
+  if (introAt != null) {
+    await page.waitForFunction(() => window.__encirra?.motion, null, { timeout: 60000 });
+    await page.evaluate((h) => (window.__encirra.motion.introHold = h), Number(introAt));
+  }
   try {
     await page.waitForFunction(() => window.__encirra?.fx?.frames > 20, null, { timeout: 90000 });
   } catch {

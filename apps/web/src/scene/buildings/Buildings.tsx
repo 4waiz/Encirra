@@ -60,9 +60,11 @@ export function useXrayFade(materials: Material[], min = 0.14, onShadow?: (cast:
       const want = transparent || base;
       if (m.transparent !== want) {
         m.transparent = want;
-        m.depthWrite = !transparent && !base;
         m.needsUpdate = true;
       }
+      // exploded view: half-transparent ghosts that still depth-write (read as solids, no inner faces)
+      const dw = !base && fade > 0.4;
+      if (m.depthWrite !== dw) m.depthWrite = dw;
       const u = (m.userData as { uniforms?: { uFade?: { value: number } } }).uniforms;
       if (u?.uFade) u.uFade.value = fade;
       else m.opacity = fade * ((m.userData.baseOpacity as number | undefined) ?? 1);
@@ -74,7 +76,7 @@ export function useXrayFade(materials: Material[], min = 0.14, onShadow?: (cast:
 export function Buildings({ skip }: { skip?: Set<number> }) {
   const key = skip ? [...skip].sort((a, b) => a - b).join(',') : '';
   const geometry = useMemo(() => buildDistrictBuildings(skip ? (b) => !skip.has(b.index) : undefined), [key]); // eslint-disable-line react-hooks/exhaustive-deps
-  const material = useMemo(() => createFacadeMaterial(bldStateTex), []);
+  const material = useMemo(() => createFacadeMaterial(bldStateTex, { tiles: true }), []);
   const handlers = useBuildingPicking(geometry, 'aExtra');
 
   useEffect(() => () => geometry.dispose(), [geometry]);
@@ -82,7 +84,7 @@ export function Buildings({ skip }: { skip?: Set<number> }) {
   useFrame((state) => {
     material.userData.uniforms.uTime.value = state.clock.elapsedTime;
   });
-  useXrayFade([material], 0.14);
+  useXrayFade([material], 0.5);
 
   if (geometry.getAttribute('position').count === 0) return null;
   return <mesh geometry={geometry} material={material} castShadow receiveShadow {...handlers} />;

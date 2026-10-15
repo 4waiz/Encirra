@@ -17,6 +17,7 @@ import { collectMeshes, mergeItems, type MergeItem } from '../assets/merge';
 import { createKitMaterial, type KitUniforms } from '../assets/kitMaterials';
 import { bldStateTex } from './buildingState';
 import { useBuildingPicking, useXrayFade } from './Buildings';
+import { patchWorldTiles, withPatch } from '../anim/patch';
 
 export const KIT_BUILDING_FILES = [
   'tower-residential.glb',
@@ -162,7 +163,7 @@ function buildBatches(placements: Placement[], loaded: Record<string, GLTF>, m: 
   for (const [, g] of groups) {
     const geometry = mergeItems(g.items);
     if (!geometry) continue;
-    const material = createKitMaterial(g.name, g.src, m, uniforms, { darkenOutage: !g.underground });
+    const material = createKitMaterial(g.name, g.src, m, uniforms, { darkenOutage: !g.underground, tiles: !g.underground });
     material.userData.baseTransparent = material.transparent;
     material.userData.baseOpacity = material.opacity;
     batches.push({ name: g.name, geometry, material, underground: g.underground });
@@ -190,7 +191,7 @@ export function KitBuildings({ placements, signature }: { placements: Placement[
 
   const surfaceMats = useMemo(() => (built?.batches ?? []).filter((b) => !b.underground).map((b) => b.material), [built]);
   const meshRefs = useRef<(Mesh | null)[]>([]);
-  useXrayFade(surfaceMats, 0.12, (cast) => {
+  useXrayFade(surfaceMats, 0.5, (cast) => {
     meshRefs.current.forEach((mm) => {
       if (mm && !mm.userData.underground) mm.castShadow = cast;
     });
@@ -238,6 +239,7 @@ function WaterLevels({ levels }: { levels: { tank: number; mesh: Mesh; base: Mat
         mesh.matrixAutoUpdate = false;
         const mat = (Array.isArray(mesh.material) ? mesh.material[0] : mesh.material).clone() as Material & { emissiveIntensity?: number };
         if ('emissiveIntensity' in mat) mat.emissiveIntensity = 1.4;
+        withPatch(mat, 'tiles-pop', (s) => patchWorldTiles(s, { pop: true }));
         mesh.material = mat;
         return { ...l, mesh, mat };
       }),

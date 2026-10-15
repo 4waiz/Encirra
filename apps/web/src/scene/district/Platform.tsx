@@ -9,7 +9,7 @@ import { BufferAttribute, BufferGeometry, Color, type Material, Mesh, MeshStanda
 import { useKitFile, useKitSignature } from '../assets/kit';
 import { PLATFORM, DEPTH } from '../data/twin';
 import { createGalleryTexture, createStrataTexture, STRATA_U_METRES } from './textures';
-import { createSurfaceMaterial } from './surfaceShader';
+import { createSurfaceMaterial, createTileSurfaceGeometry } from './surfaceShader';
 import { fx } from '../runtime';
 import { GeoBuilder, lin } from '../lib/GeoBuilder';
 
@@ -125,14 +125,15 @@ function galleryFurniture() {
   return { conc: conc.build(), steel: steel.build(), lamps: lamps.build() };
 }
 
-function useFade(materials: Material[], min = 0.12) {
+/** keepDepth: partially transparent but still depth-writing (floating exploded tiles read as solid ghosts) */
+function useFade(materials: Material[], min = 0.12, keepDepth = false) {
   useFrame(() => {
     const fade = 1 - (1 - min) * fx.xray;
     const transparent = fade < 0.999;
     for (const m of materials) {
       if (m.transparent !== transparent) {
         m.transparent = transparent;
-        m.depthWrite = !transparent;
+        m.depthWrite = !transparent || keepDepth;
         m.needsUpdate = true;
       }
       m.opacity = fade;
@@ -145,18 +146,20 @@ function useFade(materials: Material[], min = 0.12) {
 /** Landscaped top surface (roads, blocks, outage tint). Sits 3 cm above the base top face. */
 function Surface() {
   const surfaceMat = useMemo(() => createSurfaceMaterial(), []);
-  useFade([surfaceMat], 0.1);
+  const geo = useMemo(() => createTileSurfaceGeometry(), []);
+  useFade([surfaceMat], 0.5, true);
   useFrame((state) => {
     surfaceMat.userData.uniforms.uTime.value = state.clock.elapsedTime;
   });
-  useEffect(() => () => surfaceMat.dispose(), [surfaceMat]);
-  const w = maxX - minX;
-  const d = maxZ - minZ;
-  return (
-    <mesh material={surfaceMat} rotation-x={-Math.PI / 2} position={[(minX + maxX) / 2, 0.03, (minZ + maxZ) / 2]} receiveShadow>
-      <planeGeometry args={[w, d, 1, 1]} />
-    </mesh>
+  useEffect(
+    () => () => {
+      surfaceMat.dispose();
+      geo.dispose();
+    },
+    [surfaceMat, geo],
   );
+  // the tiles move in the vertex shader: never frustum-cull them on their rest bounds
+  return <mesh geometry={geo} material={surfaceMat} receiveShadow frustumCulled={false} />;
 }
 
 /** Procedural slab: strata cut faces, soil-walled galleries and gallery furniture (fallback). */

@@ -24,6 +24,7 @@ import { CODE, live } from '../data/live';
 import { busTex, lineTex } from '../data/stateTextures';
 import { fx } from '../runtime';
 import { LIN } from '../config';
+import { motionUniforms } from '../anim/motion';
 
 const HALF_W = 3.2; // ribbon half-width (m) — core + halo are shaped in the shader
 
@@ -32,6 +33,7 @@ function ribbonGeometry() {
   const line: number[] = [];
   const sArr: number[] = [];
   const side: number[] = [];
+  const lens: number[] = [];
   const idx: number[] = [];
   for (const l of LINES) {
     const pts = l.route;
@@ -73,6 +75,7 @@ function ribbonGeometry() {
       if (i > 0) s += Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]);
       pos.push(p[0] + nx * m, y, p[1] + nz * m, p[0] - nx * m, y, p[1] - nz * m);
       line.push(l.id, l.id);
+      lens.push(l.length, l.length);
       sArr.push(s, s);
       side.push(1, -1);
     }
@@ -86,6 +89,7 @@ function ribbonGeometry() {
   g.setAttribute('aLine', new BufferAttribute(new Float32Array(line), 1));
   g.setAttribute('aS', new BufferAttribute(new Float32Array(sArr), 1));
   g.setAttribute('aSide', new BufferAttribute(new Float32Array(side), 1));
+  g.setAttribute('aLen', new BufferAttribute(new Float32Array(lens), 1));
   g.setIndex(idx);
   g.computeBoundingSphere();
   return g;
@@ -98,18 +102,25 @@ function cableMaterial() {
     blending: AdditiveBlending,
     side: DoubleSide,
     fog: false,
-    uniforms: { uLineTex: { value: lineTex }, uTime: { value: 0 }, uOpacity: { value: 1 } },
+    uniforms: { uLineTex: { value: lineTex }, uTime: { value: 0 }, uOpacity: { value: 1 }, uDraw: motionUniforms.uDraw, uLayerLift: motionUniforms.uLayerLift, uPulse: motionUniforms.uPulse },
     vertexShader: /* glsl */ `
-      attribute float aLine; attribute float aS; attribute float aSide;
-      varying float vLine; varying float vS; varying float vSide;
+      attribute float aLine; attribute float aS; attribute float aSide; attribute float aLen;
+      uniform float uLayerLift;
+      varying float vLine; varying float vS; varying float vSide; varying float vLen;
       void main() {
-        vLine = aLine; vS = aS; vSide = aSide;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        vLine = aLine; vS = aS; vSide = aSide; vLen = aLen;
+        vec3 p = position;
+        p.y += uLayerLift;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
       }`,
     fragmentShader: /* glsl */ `
-      uniform sampler2D uLineTex; uniform float uTime; uniform float uOpacity;
-      varying float vLine; varying float vS; varying float vSide;
+      uniform sampler2D uLineTex; uniform float uTime; uniform float uOpacity; uniform float uDraw; uniform vec2 uPulse;
+      varying float vLine; varying float vS; varying float vSide; varying float vLen;
       void main() {
+        // intro: the cable draws on along its route, with a bright leading spark
+        float head = uDraw * (vLen + 12.0);
+        if (vS > head) discard;
+        float lead = (uDraw < 1.0) ? exp(-pow((head - vS) / 6.0, 2.0)) * 4.0 : 0.0;
         int li = int(vLine + 0.5);
         vec4 c0 = texelFetch(uLineTex, ivec2(li, 0), 0);
         vec4 c1 = texelFetch(uLineTex, ivec2(li, 1), 0);
@@ -126,7 +137,16 @@ function cableMaterial() {
         float fp = c1.a > 0.5 ? 0.45 + 0.55 * (0.5 + 0.5 * sin(uTime * 7.0)) : 1.0;
         float rb = c2.g > 0.5 ? 0.55 + 0.45 * (0.5 + 0.5 * sin(uTime * 4.0)) : 1.0;
         float inten = (core * (1.0 + flow * pulse * 3.0) + halo * (1.0 + flow * pulse * 1.2)) * dash * fp * rb;
-        gl_FragColor = vec4(c0.rgb * inten * uOpacity, 1.0);
+        // restoration: a green energy pulse sweeps along every restored cable
+        vec4 c3 = texelFetch(uLineTex, ivec2(li, 3), 0);
+        float age = uTime - uPulse.x;
+        float sweep = 0.0;
+        if (c3.r > 0.5 && age > 0.0 && age < 4.5) {
+          float d = (vS - age * 120.0) / 14.0;
+          sweep = exp(-d * d) * (1.0 - age / 4.5) * (core * 5.0 + halo * 2.5);
+        }
+        vec3 col = c0.rgb * inten + vec3(0.2, 1.6, 0.7) * sweep + vec3(1.0, 0.85, 0.5) * lead * (core + halo);
+        gl_FragColor = vec4(col * uOpacity, 1.0);
       }`,
   });
 }
@@ -138,19 +158,21 @@ function glyphMaterial() {
     depthWrite: false,
     blending: AdditiveBlending,
     fog: false,
-    uniforms: { uTime: { value: 0 }, uOpacity: { value: 1 }, uBusTex: { value: busTex } },
+    uniforms: { uTime: { value: 0 }, uOpacity: { value: 1 }, uBusTex: { value: busTex }, uLayerLift: motionUniforms.uLayerLift, uPropT: motionUniforms.uPropT },
     vertexShader: /* glsl */ `
       attribute vec4 aGlyph;   // x, y, z, size
       attribute vec4 aColor;   // rgb, kind (0 bus node, 1 switch closed, 2 switch open, 3 hidden)
       attribute float aBus;
-      uniform sampler2D uBusTex;
+      uniform sampler2D uBusTex; uniform float uLayerLift; uniform float uPropT;
       varying vec2 vUv; varying vec4 vColor; varying vec4 vBus;
       void main() {
         vUv = uv * 2.0 - 1.0;
         vColor = aColor;
         vBus = aBus >= 0.0 ? texelFetch(uBusTex, ivec2(int(aBus + 0.5), 0), 0) : vec4(0.0, 0.0, 1.0, 0.0);
-        vec4 mv = modelViewMatrix * vec4(aGlyph.xyz, 1.0);
-        float sz = aColor.a > 2.5 ? 0.0 : aGlyph.w;
+        vec3 gpos = aGlyph.xyz;
+        gpos.y += uLayerLift;
+        vec4 mv = modelViewMatrix * vec4(gpos, 1.0);
+        float sz = aColor.a > 2.5 ? 0.0 : aGlyph.w * clamp(uPropT / 0.5, 0.0, 1.0);
         mv.xy += position.xy * sz;
         gl_Position = projectionMatrix * mv;
       }`,
@@ -388,9 +410,10 @@ function FaultMarker() {
     if (idx >= 0) {
       const l = LINES[idx];
       const [x, z] = pointAlong(l.route, l.length / 2);
-      ring.current?.position.set(x, CABLE_Y + 0.4, z);
-      beam.current?.position.set(x, 30, z);
-      spark.current?.position.set(x, 26, z);
+      const lift = motionUniforms.uLayerLift.value;
+      ring.current?.position.set(x, CABLE_Y + 0.4 + lift, z);
+      beam.current?.position.set(x, 30 + lift, z);
+      spark.current?.position.set(x, 26 + lift, z);
     }
     if (ring.current) ring.current.visible = vis;
     if (beam.current) {

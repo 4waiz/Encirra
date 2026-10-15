@@ -29,6 +29,7 @@ import { buildTubes, type TubeSpec } from '../lib/tubes';
 import { GeoBuilder, lin } from '../lib/GeoBuilder';
 import { LIN } from '../config';
 import { useKitSignature } from '../assets/kit';
+import { motionUniforms } from '../anim/motion';
 
 /**
  * Cut-away reveal: the gallery mains sit ~8 m behind the cut face under a soil lip. When the camera
@@ -54,13 +55,15 @@ function haloMaterial() {
     depthWrite: false,
     blending: AdditiveBlending,
     fog: false,
-    uniforms: { uPipeTex: { value: pipeTex }, uOpacity: { value: 1 } },
+    uniforms: { uPipeTex: { value: pipeTex }, uOpacity: { value: 1 }, uDraw: motionUniforms.uDraw },
     vertexShader: /* glsl */ `
-      attribute float aId;
+      attribute float aId; attribute float aS; attribute float aLen;
+      uniform float uDraw; varying float vCut;
       varying float vId; varying vec3 vN; varying vec3 vV; varying vec3 vVp; varying float vPull;
       ${PULL_GLSL}
       void main() {
         vId = aId;
+        vCut = aS - uDraw * (aLen + 10.0);
         vec4 wp = modelMatrix * vec4(position, 1.0);
         vN = normalize(mat3(modelMatrix) * normal);
         vV = normalize(cameraPosition - wp.xyz);
@@ -71,8 +74,9 @@ function haloMaterial() {
       }`,
     fragmentShader: /* glsl */ `
       uniform sampler2D uPipeTex; uniform float uOpacity; uniform mat4 projectionMatrix;
-      varying float vId; varying vec3 vN; varying vec3 vV; varying vec3 vVp; varying float vPull;
+      varying float vId; varying vec3 vN; varying vec3 vV; varying vec3 vVp; varying float vPull; varying float vCut;
       void main() {
+        if (vCut > 0.0) discard;
         float dz = -vVp.z;
         vec3 pv = vVp * ((dz - min(13.0 * vPull, dz - 1.0)) / max(dz, 1.0));
         vec4 cp = projectionMatrix * vec4(pv, 1.0);
@@ -93,13 +97,15 @@ function flowMaterial() {
     depthWrite: false,
     blending: AdditiveBlending,
     fog: false,
-    uniforms: { uPipeTex: { value: pipeTex }, uTime: { value: 0 }, uOpacity: { value: 1 } },
+    uniforms: { uPipeTex: { value: pipeTex }, uTime: { value: 0 }, uOpacity: { value: 1 }, uDraw: motionUniforms.uDraw },
     vertexShader: /* glsl */ `
-      attribute float aId; attribute float aS; attribute float aAround;
+      attribute float aId; attribute float aS; attribute float aAround; attribute float aLen;
+      uniform float uDraw; varying float vCut;
       varying float vId; varying float vS; varying vec3 vN; varying vec3 vV; varying vec3 vVp; varying float vPull;
       ${PULL_GLSL}
       void main() {
         vId = aId; vS = aS;
+        vCut = aS - uDraw * (aLen + 10.0);
         vec4 wp = modelMatrix * vec4(position, 1.0);
         vN = normalize(mat3(modelMatrix) * normal);
         vV = normalize(cameraPosition - wp.xyz);
@@ -110,8 +116,9 @@ function flowMaterial() {
       }`,
     fragmentShader: /* glsl */ `
       uniform sampler2D uPipeTex; uniform float uTime; uniform float uOpacity; uniform mat4 projectionMatrix;
-      varying float vId; varying float vS; varying vec3 vN; varying vec3 vV; varying vec3 vVp; varying float vPull;
+      varying float vId; varying float vS; varying vec3 vN; varying vec3 vV; varying vec3 vVp; varying float vPull; varying float vCut;
       void main() {
+        if (vCut > 0.0) discard;
         // depth pull (see encGalleryPull): move the fragment up to 13 m towards the camera
         float dz = -vVp.z;
         vec3 pv = vVp * ((dz - min(13.0 * vPull, dz - 1.0)) / max(dz, 1.0));
@@ -192,7 +199,7 @@ function arrowMaterial() {
     blending: AdditiveBlending,
     side: DoubleSide,
     fog: false,
-    uniforms: { uPipeTex: { value: pipeTex }, uTime: { value: 0 }, uOpacity: { value: 1 } },
+    uniforms: { uPipeTex: { value: pipeTex }, uTime: { value: 0 }, uOpacity: { value: 1 }, uDraw: motionUniforms.uDraw },
     vertexShader: /* glsl */ `
       attribute vec3 aPos; attribute vec3 aAxis; attribute vec3 aOut; attribute vec4 aMeta;
       uniform sampler2D uPipeTex;
@@ -215,7 +222,7 @@ function arrowMaterial() {
         gl_Position = projectionMatrix * vp;
       }`,
     fragmentShader: /* glsl */ `
-      uniform float uTime; uniform float uOpacity; uniform mat4 projectionMatrix;
+      uniform float uTime; uniform float uOpacity; uniform mat4 projectionMatrix; uniform float uDraw;
       varying vec2 vUv; varying vec4 vC0; varying vec4 vC1; varying float vS; varying vec3 vVp; varying float vPull;
       void main() {
         float dz = -vVp.z;
@@ -228,7 +235,7 @@ function arrowMaterial() {
         float dir = vC1.a < 0.0 ? -1.0 : 1.0;
         float k = fract((vS * dir - vC1.r * dir) / 13.0 / 3.0);
         float travel = 0.55 + 0.45 * smoothstep(0.0, 0.3, k) * (1.0 - smoothstep(0.3, 0.6, k));
-        float a = chev * travel * vC1.g * 1.8;
+        float a = chev * travel * vC1.g * 1.8 * step(0.999, uDraw);
         gl_FragColor = vec4(vC0.rgb * a * uOpacity, 1.0);
         if (a < 0.002) discard;
       }`,
@@ -306,7 +313,21 @@ function clearwellGeometry() {
 export function WaterNetwork() {
   const pipeGeo = useMemo(() => buildTubes(tubeSpecs, 14, true, 1), []);
   const flowGeo = useMemo(() => buildTubes(tubeSpecs, 14, true, 1.12), []);
-  const pipeMat = useMemo(() => new MeshStandardMaterial({ color: '#8E9AA3', metalness: 0.78, roughness: 0.32, envMapIntensity: 1.2 }), []);
+  const pipeMat = useMemo(() => {
+    const m = new MeshStandardMaterial({ color: '#8E9AA3', metalness: 0.78, roughness: 0.32, envMapIntensity: 1.2 });
+    // intro: pipes draw on along their routes
+    m.onBeforeCompile = (shader) => {
+      shader.uniforms.uDraw = motionUniforms.uDraw;
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', '#include <common>\nattribute float aS; attribute float aLen; uniform float uDraw; varying float vCut;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvCut = aS - uDraw * (aLen + 10.0);');
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', '#include <common>\nvarying float vCut;')
+        .replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\nif (vCut > 0.0) discard;');
+    };
+    m.customProgramCacheKey = () => 'encirra-pipe-draw';
+    return m;
+  }, []);
   const flowMat = useMemo(() => flowMaterial(), []);
   const haloGeo = useMemo(() => buildTubes(tubeSpecs.filter((t) => PIPES[t.id].kind !== 'distribution'), 12, false, 1.75), []);
   const haloMat = useMemo(() => haloMaterial(), []);

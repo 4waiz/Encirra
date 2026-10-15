@@ -24,6 +24,8 @@ import { Labels } from './labels/Labels';
 import { XrayGrid } from './district/XrayGrid';
 import { Galleries } from './district/Galleries';
 import { GpuTimer } from './GpuTimer';
+import { DistrictRig, MotionDirector } from './anim/MotionDirector';
+import { motion } from './anim/motion';
 
 const GPU_TIMER = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('gputime') === '1';
 
@@ -34,7 +36,8 @@ function LiveSampler() {
     fx.time = state.clock.elapsedTime;
     sampleLive();
     const layers = useTwin.getState().layers;
-    const k = Math.min(1, d * 3.2);
+    // reduced motion: layer changes are instant
+    const k = motion.reduced ? 1 : Math.min(1, d * 3.2);
     fx.xray += ((layers.underground ? 1 : 0) - fx.xray) * k;
     if (Math.abs(fx.xray - (layers.underground ? 1 : 0)) < 0.002) fx.xray = layers.underground ? 1 : 0;
     fx.electrical += ((layers.electrical ? 1 : 0) - fx.electrical) * k;
@@ -70,16 +73,19 @@ export function Scene() {
         <LowerPalms />
         <WaterReflection />
       </group>
-      <Platform />
-      <XrayGrid />
-      <group visible={surface}>
-        <BuildingsLayer />
-        <Props />
-      </group>
-      <Electrical />
-      <WaterNetwork />
-      <Galleries />
-      <Labels />
+      <MotionDirector />
+      <DistrictRig>
+        <Platform />
+        <XrayGrid />
+        <group visible={surface}>
+          <BuildingsLayer />
+          <Props />
+        </group>
+        <Electrical />
+        <WaterNetwork />
+        <Galleries />
+        <Labels />
+      </DistrictRig>
       <CameraRig />
       <Effects />
       {GPU_TIMER && <GpuTimer />}

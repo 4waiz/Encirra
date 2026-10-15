@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Encirra — NEECON 2026 poster</title>
+<style>
+  @page { size: 594mm 841mm; margin: 0; }
+  :root {
+    --navy: #15283c; --ink: #2b3d50; --slate: #5b6b7c; --line: #dde3ea; --wash: #f3f6f9;
+    --power: #f5a623; --water: #00a8d0; --fault: #f04438; --ok: #17a769; --brand: #2a6cb5; --brand-deep: #1d4f86;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 594mm; height: 841mm; overflow: hidden;
+    font-family: 'Inter Variable', 'Inter', 'Segoe UI', system-ui, sans-serif;
+    color: var(--navy); background: #fbfaf7;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    font-size: 13.6pt; line-height: 1.34;
+  }
+  .poster { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
+
+  /* ── header ── */
+  header {
+    position: relative; padding: 15mm 20mm 11mm; color: #fff;
+    background: linear-gradient(115deg, #10243a 0%, #1d4f86 58%, #2a6cb5 100%);
+    overflow: hidden;
+  }
+  header::after {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 92% 18%, rgba(245,166,35,.35), transparent 32%),
+      radial-gradient(circle at 78% 110%, rgba(0,191,234,.30), transparent 38%);
+  }
+  .head-row { position: relative; z-index: 1; display: flex; gap: 12mm; align-items: center; }
+  .logo { width: 44mm; height: 54mm; flex: none; }
+  .brand { font-size: 30pt; font-weight: 800; letter-spacing: -.01em; opacity: .95; }
+  h1 { margin: 2mm 0 3mm; font-size: 49pt; line-height: 1.06; font-weight: 800; letter-spacing: -.02em; }
+  .tagline { font-size: 21pt; font-weight: 500; color: #cfe2f6; }
+  .people { position: relative; z-index: 1; margin-top: 9mm; display: flex; justify-content: space-between; align-items: flex-end; gap: 10mm; }
+  .authors { font-size: 22pt; font-weight: 700; }
+  .affil { margin-top: 1.5mm; font-size: 16pt; color: #d6e4f3; font-weight: 500; }
+  .event { text-align: right; font-size: 15pt; color: #d6e4f3; }
+  .event b { display: block; font-size: 19pt; color: #fff; }
+  .chips { margin-top: 3mm; display: flex; gap: 3mm; justify-content: flex-end; }
+  .chip { padding: 1.4mm 4mm; border-radius: 99px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28); font-size: 12.5pt; color: #fff; font-weight: 600; }
+
+  /* ── hero ── */
+  .hero { position: relative; margin: 8mm 20mm 0; border-radius: 6mm; overflow: hidden; box-shadow: 0 10mm 22mm -10mm rgba(21,40,60,.45); }
+  .hero img { display: block; width: 100%; height: 226mm; object-fit: cover; object-position: 50% 52%; }
+  .hero .cap {
+    position: absolute; left: 6mm; bottom: 6mm; max-width: 60%;
+    background: rgba(16,36,58,.86); color: #fff; padding: 4mm 6mm; border-radius: 3.5mm; font-size: 14pt;
+  }
+  .hero .cap b { color: #ffd38a; }
+
+  /* ── body grid ── */
+  main { flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8mm; padding: 8mm 20mm 0; min-height: 0; }
+  .col { display: flex; flex-direction: column; gap: 6mm; min-height: 0; }
+  section { background: #fff; border: 1px solid var(--line); border-radius: 5mm; padding: 5.5mm 6.5mm; box-shadow: 0 3mm 8mm -5mm rgba(21,40,60,.18); }
+  h2 { margin: 0 0 2.5mm; font-size: 19pt; line-height: 1.15; letter-spacing: -.01em; display: flex; align-items: center; gap: 3mm; }
+  h2 .n { flex: none; width: 10mm; height: 10mm; border-radius: 2.5mm; background: var(--brand); color: #fff; display: grid; place-items: center; font-size: 14pt; }
+  p { margin: 0 0 3mm; }
+  p:last-child { margin-bottom: 0; }
+  ul { margin: 0; padding-left: 6mm; }
+  li { margin: 0 0 1.6mm; }
+  .muted { color: var(--slate); }
+  .small { font-size: 12.5pt; }
+  .tiny { font-size: 11pt; }
+  .k-power { color: #c47f06; font-weight: 700; }
+  .k-water { color: #0287a6; font-weight: 700; }
+  .k-fault { color: var(--fault); font-weight: 700; }
+  .k-ok { color: #0f7f4f; font-weight: 700; }
+
+  .bigstat { display: flex; gap: 5mm; margin: 3mm 0 1mm; }
+  .stat { flex: 1; border-radius: 3.5mm; padding: 3.5mm 4mm; background: var(--wash); }
+  .stat b { display: block; font-size: 29pt; line-height: 1; letter-spacing: -.02em; }
+  .stat span { font-size: 11.5pt; color: var(--slate); }
+
+  .eq { margin: 3mm 0; padding: 3.5mm 4mm; border-radius: 3mm; background: #0f2236; color: #fff; font-size: 18pt; text-align: center; font-family: 'Cambria Math', 'Times New Roman', serif; }
+  .eq small { display: block; font-family: inherit; font-size: 11pt; color: #b8cce0; margin-top: 1mm; font-family: 'Segoe UI', sans-serif; }
+
+  figure { margin: 0; }
+  figure img { display: block; width: 100%; border-radius: 3mm; border: 1px solid var(--line); }
+  figcaption { margin-top: 2mm; font-size: 11.5pt; color: var(--slate); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12.5pt; }
+  th, td { padding: 1.8mm 2mm; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  th { background: var(--wash); font-weight: 700; color: var(--ink); font-size: 11.5pt; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.win td { background: #eef9f3; }
+
+  .bars { display: grid; gap: 3.2mm; margin-top: 2mm; }
+  .bar-row { display: grid; grid-template-columns: 26mm 1fr 33mm; align-items: center; gap: 3mm; font-size: 12pt; }
+  .track { height: 7mm; border-radius: 2mm; background: var(--wash); overflow: hidden; }
+  .fill { height: 100%; border-radius: 2mm; }
+  .bar-title { font-weight: 700; font-size: 13.5pt; margin-top: 3mm; }
+
+  .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5mm 4mm; font-size: 12.5pt; margin-top: 2mm; }
+  .checks div::before { content: '✓'; color: var(--ok); font-weight: 800; margin-right: 2mm; }
+
+  .flow { width: 100%; height: auto; display: block; margin: 1mm 0 2mm; }
+
+  footer {
+    margin: 7mm 20mm 0; padding: 5mm 0 10mm; border-top: 1px solid var(--line);
+    display: grid; grid-template-columns: 1.6fr 1fr auto auto; gap: 9mm; align-items: center;
+  }
+  .qr { text-align: center; font-size: 11pt; color: var(--slate); }
+  .qr img { width: 34mm; height: 34mm; display: block; margin: 0 auto 1.5mm; }
+  .disclaimer { font-size: 11.5pt; color: var(--slate); }
+  .disclaimer b { color: var(--navy); }
+  .credit { font-size: 13pt; font-weight: 700; color: var(--brand-deep); margin-top: 2mm; }
+  .refs { font-size: 10pt; color: var(--slate); line-height: 1.3; }
+  .refs ol { margin: 0; padding-left: 5mm; }
+</style>
+</head>
+<body>
+<div class="poster">
+  <header>
+    <div class="head-row">
+      <svg class="logo" viewBox="0 0 52 64" aria-hidden="true">
+        <defs>
+          <linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8cc4f5"/><stop offset="1" stop-color="#d9ecff"/></linearGradient>
+          <linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#cfdbe6"/><stop offset="1" stop-color="#a9bccd"/></linearGradient>
+          <linearGradient id="c" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#5aa6e6"/><stop offset="1" stop-color="#bfe0ff"/></linearGradient>
+        </defs>
+        <path d="M4 6 L13 6 L13 58 L4 58 Z" fill="url(#a)"/>
+        <path d="M13 6 L41 6 L35 16 L13 16 Z" fill="url(#a)"/>
+        <path d="M13 27 L31 27 L26.5 37 L13 37 Z" fill="url(#b)"/>
+        <path d="M13 48 L36 48 L44 36 L48 36 L48 58 L13 58 Z" fill="url(#c)"/>
+        <path d="M41.5 11 L32 32 L46 40" fill="none" stroke="#f5a623" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="41.5" cy="11" r="3.4" fill="#10243a" stroke="#f5a623" stroke-width="1.8"/>
+        <circle cx="32" cy="32" r="3.4" fill="#10243a" stroke="#00bfea" stroke-width="1.8"/>
+        <circle cx="46" cy="40" r="3.4" fill="#10243a" stroke="#f5a623" stroke-width="1.8"/>
+      </svg>
+      <div>
+        <div class="brand">Encirra</div>
+        <h1>A Coupled Power–Water Digital Twin for Verified Recovery from Cascading Urban Infrastructure Failures</h1>
+        <div class="tagline">See more. Recover faster. Safer cities for tomorrow.</div>
+      </div>
+    </div>
+    <div class="people">
+      <div>
+        <div class="authors">Awaiz Ahmed · Mohammad Umar · Bilal Feroz Khan · Huda Mueen</div>
+        <div class="affil">Al Ain University, United Arab Emirates &nbsp;·&nbsp; Supervisor: Dr. Khubaib Alam</div>
+      </div>
+      <div class="event">
+        <b>NEECON 2026 Undergraduate Innovation Challenge</b>
+        Engineering Tomorrow: Smart, Sustainable &amp; AI-Powered Solutions
+        <div class="chips"><span class="chip">Smart Cities &amp; IoT</span><span class="chip">Sustainable Engineering</span><span class="chip">Open Engineering Innovation</span></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="hero">
+    <img src="hero.png" alt="Encirra 3D twin during a feeder fault and verified recovery" />
+    <div class="cap">
+      <b>17:20 · Feeder F3 fault, Encirra recovery applied.</b> Red: isolated faulted section. Green: cables re-energised by the verified plan.
+      Amber: healthy supply. Cyan: water mains in the exposed underground. Labels and colours are driven by the power-flow and hydraulic solutions.
+    </div>
+  </div>
+
+  <main>
+    <!-- ───────────── column 1 ───────────── -->
+    <div class="col">
+      <section>
+        <h2><span class="n">1</span>The problem: failures cross domains</h2>
+        <p>Urban water networks depend on electrically driven pumps. When a distribution feeder trips, the
+          <span class="k-power">power</span> outage is visible immediately, but the <span class="k-water">water</span>
+          consequence is hidden: elevated tanks keep pressure up for tens of minutes, then critical facilities such as hospitals lose supply.</p>
+        <p>Conventional fault restoration maximises restored electrical load. It treats a pump as an ordinary load and counts a hospital on its standby generator as “served”,
+          so it can choose a plan that is electrically optimal and still lets the hospital run out of water.</p>
+        <div class="bigstat">
+          <div class="stat"><b class="k-fault">72 min</b><span>from pump trip to hospital pressure &lt; 20 m (simulated)</span></div>
+          <div class="stat"><b class="k-ok">0 min</b><span>below service pressure with Encirra’s verified plan</span></div>
+        </div>
+      </section>
+
+      <section>
+        <h2><span class="n">2</span>What Encirra is</h2>
+        <p>A physics-driven, optimization-assisted digital twin that <b>models</b> the coupled networks, <b>predicts</b> the cascade,
+          <b>evaluates</b> recovery plans across both domains and <b>independently verifies</b> them before they are recommended.</p>
+        <ul>
+          <li><b>Electrical:</b> IEEE 33-bus distribution feeder (Baran &amp; Wu) solved with AC power flow in pandapower; 37 switchable lines, 5 normally-open ties.</li>
+          <li><b>Hydraulic:</b> two-zone network (2 pumping stations, 2 elevated tanks, desalination supply) solved as a pressure-driven extended-period simulation with EPANET 2.2 via WNTR.</li>
+          <li><b>3D twin:</b> a Dubai-inspired district with an exposed underground; every building is mapped to the bus that supplies it.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2><span class="n">3</span>Coupling the two models</h2>
+        <svg class="flow" viewBox="0 0 520 210" font-family="Segoe UI, sans-serif" font-size="13">
+          <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5b6b7c"/></marker></defs>
+          <rect x="6" y="20" width="150" height="62" rx="10" fill="#fef4e2" stroke="#f5a623"/>
+          <text x="81" y="45" text-anchor="middle" font-weight="700" fill="#15283c">Switching state</text>
+          <text x="81" y="64" text-anchor="middle" fill="#5b6b7c">bus energisation</text>
+          <rect x="185" y="20" width="150" height="62" rx="10" fill="#fef4e2" stroke="#f5a623"/>
+          <text x="260" y="45" text-anchor="middle" font-weight="700" fill="#15283c">AC power flow</text>
+          <text x="260" y="64" text-anchor="middle" fill="#5b6b7c">V ≥ 0.90 pu at pump?</text>
+          <rect x="364" y="20" width="150" height="62" rx="10" fill="#e0f6fc" stroke="#00a8d0"/>
+          <text x="439" y="45" text-anchor="middle" font-weight="700" fill="#15283c">Pump schedule</text>
+          <text x="439" y="64" text-anchor="middle" fill="#5b6b7c">on / tripped</text>
+          <rect x="364" y="130" width="150" height="62" rx="10" fill="#e0f6fc" stroke="#00a8d0"/>
+          <text x="439" y="155" text-anchor="middle" font-weight="700" fill="#15283c">Hydraulic EPS</text>
+          <text x="439" y="174" text-anchor="middle" fill="#5b6b7c">Q, H, pressure, tanks</text>
+          <rect x="185" y="130" width="150" height="62" rx="10" fill="#f3f6f9" stroke="#5b6b7c"/>
+          <text x="260" y="155" text-anchor="middle" font-weight="700" fill="#15283c">Pump power</text>
+          <text x="260" y="174" text-anchor="middle" fill="#5b6b7c">P = ρgQH/η → bus load</text>
+          <path d="M156 51 H182" stroke="#5b6b7c" stroke-width="2" marker-end="url(#ar)"/>
+          <path d="M335 51 H361" stroke="#5b6b7c" stroke-width="2" marker-end="url(#ar)"/>
+          <path d="M439 82 V127" stroke="#5b6b7c" stroke-width="2" marker-end="url(#ar)"/>
+          <path d="M364 161 H338" stroke="#5b6b7c" stroke-width="2" marker-end="url(#ar)"/>
+          <path d="M260 130 V85" stroke="#5b6b7c" stroke-width="2" marker-end="url(#ar)"/>
+          <text x="96" y="165" text-anchor="middle" fill="#2a6cb5" font-weight="700">fixed-point loop</text>
+          <text x="96" y="183" text-anchor="middle" fill="#5b6b7c">until the pump</text>
+          <text x="96" y="199" text-anchor="middle" fill="#5b6b7c">schedule stops changing</text>
+        </svg>
+        <div class="eq">P<sub>pump</sub> = ρ · g · Q · H / η<small>electrical demand from the hydraulic solution (W → kW), fed back into the AC power flow</small></div>
+        <p class="small muted">If a pump’s bus is de-energised or below 0.90 pu, the pump stops and the hydraulic model is re-solved, so flow, pressure and tank levels always come from the recalculated simulation, never from a scripted curve.</p>
+      </section>
+    </div>
+
+    <!-- ───────────── column 2 ───────────── -->
+    <div class="col">
+      <section>
+        <h2><span class="n">4</span>Recovery planning</h2>
+        <p>After protection isolates the fault, Encirra generates radial reconfigurations from remote-operable switches (closing up to two ties, opening a sectionaliser,
+          optionally shedding non-critical load) and simulates every candidate on the coupled model over the remaining horizon.</p>
+        <table>
+          <tr><th>Strategy</th><th>Decision rule</th></tr>
+          <tr><td><b>None</b></td><td>Baseline: the outage persists.</td></tr>
+          <tr><td><b>Grid-only</b></td><td>Conventional restoration: maximise restored electrical energy within hard limits.</td></tr>
+          <tr class="win"><td><b>Encirra</b></td><td>Weighted objective over served load, critical load, water delivered, critical-facility water service, pressure/storage margin and switching cost.</td></tr>
+        </table>
+        <p class="small muted" style="margin-top:3mm">Weights are visible and configurable. Hard safety constraints are never traded off against the score: a candidate that fails any of them is rejected outright.</p>
+      </section>
+
+      <section>
+        <h2><span class="n">5</span>Independent verification</h2>
+        <p>The selected plan is re-simulated minute by minute on networks rebuilt through a separate code path. Only plans that pass every hard check are labelled <b class="k-ok">Simulation Verified</b>.</p>
+        <div class="checks">
+          <div>Power-flow convergence</div><div>Voltage band 0.90–1.05 pu</div>
+          <div>Thermal line ratings</div><div>Radiality &amp; connectivity</div>
+          <div>Fault stays isolated</div><div>Pump supply available</div>
+          <div>Critical pressure ≥ 20 m</div><div>Tank above minimum</div>
+          <div>Remote switching only</div><div>Critical facility service</div>
+        </div>
+        <p class="small" style="margin-top:3mm">Feeder-fault scenario: <b>80 candidates</b> evaluated, <b>59 rejected</b> with their physical reason, e.g.
+          <span class="k-fault">V(B29) = 0.775 pu &lt; 0.90 pu</span> or <span class="k-fault">line B25–B29 loaded 130 % &gt; 100 %</span>.</p>
+      </section>
+
+      <section>
+        <h2><span class="n">6</span>Results</h2>
+        <table>
+          <tr><th>Scenario</th><th>Strategy</th><th class="num">Net restored</th><th>PS-2</th><th class="num">Hospital min. p</th><th class="num">Min &lt; 20 m</th></tr>
+          <tr><td rowspan="3">Feeder fault</td><td>None</td><td class="num">0 %</td><td>off</td><td class="num">0.0 m</td><td class="num">79</td></tr>
+          <tr><td>Grid-only</td><td class="num">69.2 %</td><td>off</td><td class="num">0.0 m</td><td class="num">79</td></tr>
+          <tr class="win"><td><b>Encirra</b></td><td class="num"><b>78.7 %</b></td><td><b>on</b></td><td class="num"><b>37.8 m</b></td><td class="num"><b>0</b></td></tr>
+          <tr><td rowspan="2">Pump power loss</td><td>Grid-only</td><td class="num">91.7 %</td><td>off</td><td class="num">0.0 m</td><td class="num">79</td></tr>
+          <tr class="win"><td><b>Encirra</b></td><td class="num">91.2 %</td><td><b>on</b></td><td class="num"><b>37.8 m</b></td><td class="num"><b>0</b></td></tr>
+          <tr><td>High demand</td><td>Both (same plan)</td><td class="num">78.6 %</td><td>on</td><td class="num">37.1 m</td><td class="num">0</td></tr>
+        </table>
+        <div class="bar-title">Feeder fault: hospital water service over the 3-hour horizon</div>
+        <div class="bars">
+          <div class="bar-row"><span>None</span><div class="track"><div class="fill" style="width:56%;background:var(--fault)"></div></div><span class="num">101 / 180 min</span></div>
+          <div class="bar-row"><span>Grid-only</span><div class="track"><div class="fill" style="width:56%;background:var(--power)"></div></div><span class="num">101 / 180 min</span></div>
+          <div class="bar-row"><span><b>Encirra</b></span><div class="track"><div class="fill" style="width:100%;background:var(--ok)"></div></div><span class="num"><b>180 / 180 min</b></span></div>
+        </div>
+        <p class="small muted" style="margin-top:3mm">Every selected plan passed every hard check. Under high demand both planners converge on the same plan, and Encirra’s advantage depends on the synthetic tie-line capacity; both findings are reported with a sensitivity analysis.</p>
+      </section>
+    </div>
+
+    <!-- ───────────── column 3 ───────────── -->
+    <div class="col">
+      <section>
+        <h2><span class="n">7</span>The cascade, side by side</h2>
+        <figure>
+          <img src="../screenshots/grid-only-hospital-water-loss.jpg" alt="Grid-only plan at 18:20" />
+          <figcaption><b>Grid-only at 18:20.</b> Electrically verified, yet PS-2 stays dark: Tank T2 has emptied and hospital pressure is 0 m, 72 minutes after the trip.</figcaption>
+        </figure>
+        <figure style="margin-top:4mm">
+          <img src="../screenshots/why-this-plan.jpg" alt="Why this plan evidence view" />
+          <figcaption><b>“Why this plan?”</b> Every candidate, its score breakdown, rejected alternatives with their failed checks, and the verification result.</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2><span class="n">8</span>Contribution &amp; next steps</h2>
+        <ul class="small">
+          <li>An open, reproducible coupled power–water co-simulation with explicit pump-power feedback.</li>
+          <li>Cross-domain recovery that protects critical water service, with independent verification and transparent evidence for every decision.</li>
+          <li>Validated on a published benchmark (Vmin 0.913 pu at B18, 202.7 kW losses reproduced); 90 simulation, 45 interface and 15 browser tests.</li>
+          <li><b>Next:</b> valve actions in the planner, larger and real-topology networks, uncertainty in demand and repair times, and utility partnership for validation.</li>
+        </ul>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div>
+      <div class="disclaimer"><b>Research prototype — synthetic/benchmark infrastructure data.</b> The electrical model is the IEEE 33-bus test feeder; the water network and district are synthetic and only Dubai-inspired. No private utility data is used; “Simulation Verified” is not a field certification.</div>
+      <div class="credit">Built by Team Kanban</div>
+    </div>
+    <div class="refs">
+      <ol>
+        <li>M. E. Baran, F. F. Wu, “Network reconfiguration in distribution systems for loss reduction and load balancing,” <i>IEEE Trans. Power Delivery</i>, 1989.</li>
+        <li>L. Thurner et al., “pandapower — an open-source Python tool for convenient modeling, analysis, and optimization of electric power systems,” <i>IEEE Trans. Power Systems</i>, 2018.</li>
+        <li>K. A. Klise et al., “A software framework for assessing the resilience of drinking water systems to disasters with an example earthquake case study,” <i>Environ. Model. Softw.</i>, 2017 (WNTR).</li>
+        <li>L. Rossman et al., <i>EPANET 2.2 User Manual</i>, U.S. EPA, 2020.</li>
+      </ol>
+    </div>
+    <div class="qr"><img src="qr-live.svg" alt="QR code to the live demo" />Live demo<br/>encirra.kanbanstudios.ae</div>
+    <div class="qr"><img src="qr-github.svg" alt="QR code to the source code" />Source code<br/>github.com/4waiz/Encirra</div>
+  </footer>
+</div>
+</body>
+</html>

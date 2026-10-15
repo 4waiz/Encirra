@@ -5,9 +5,11 @@
  * restoration) sampled from a bus-ownership map.
  */
 import { district } from '@encirra/shared';
-import { DataTexture, LinearFilter, MeshStandardMaterial, NearestFilter, RedFormat, RGBAFormat, UnsignedByteType } from 'three';
+import { DataTexture, LinearFilter, MeshStandardMaterial, NearestFilter, RedFormat, RGBAFormat, UnsignedByteType, BufferAttribute, BufferGeometry } from 'three';
 import { BUILDINGS, PLATFORM } from '../data/twin';
 import { busTex } from '../data/stateTextures';
+import { motionUniforms, TILES } from '../anim/motion';
+import { patchSurfaceShader } from '../anim/patch';
 import { NOISE_GLSL } from '../env/skyShader';
 
 const AV = district.streets.avenuesZ;
@@ -178,9 +180,10 @@ export function createSurfaceMaterial() {
     uTime: { value: 0 },
     uFade: { value: 1 },
     uTint: { value: 1 },
+    uRipple: motionUniforms.uRipple,
   };
   mat.userData.uniforms = uniforms;
-  mat.customProgramCacheKey = () => 'encirra-surface-v2';
+  mat.customProgramCacheKey = () => 'encirra-surface-v3-tiles';
   mat.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
@@ -197,6 +200,7 @@ uniform sampler2D uBusState;
 uniform float uTime;
 uniform float uFade;
 uniform float uTint;
+uniform vec4 uRipple;
 ${SURFACE_GLSL}`,
       )
       .replace(
@@ -217,11 +221,59 @@ if (busIdx >= 0.0) {
   tintEm += vec3(0.1, 0.9, 0.35) * bs.g * busW * 0.35;
   diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.12, 0.72, 0.7), bs.r * busW * 0.45);
 }
-tintEm *= uTint;`,
+tintEm *= uTint;
+// fault (red) / restore (green) ripple: an expanding ring from the event location
+{
+  float age = uTime - uRipple.z;
+  if (age > 0.0 && age < 3.2 && uRipple.w > 0.5) {
+    float rr = age * 110.0;
+    float dd = abs(length(vSurfW.xz - uRipple.xy) - rr);
+    float ring = exp(-dd * dd / 30.0) * (1.0 - age / 3.2);
+    vec3 rc = uRipple.w < 1.5 ? vec3(1.0, 0.12, 0.06) : vec3(0.1, 1.0, 0.45);
+    tintEm += rc * ring * 1.6;
+  }
+}
+// slab sides (below the top face) read as dark concrete edges
+if (vSurfW.y < -0.2) { diffuseColor.rgb = vec3(0.16, 0.15, 0.14); }`,
       )
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>\nroughnessFactor = surfRough;`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>\ntotalEmissiveRadiance += tintEm;`)
       .replace('#include <dithering_fragment>', `#include <dithering_fragment>\ngl_FragColor.a *= uFade;`);
+    patchSurfaceShader(shader);
   };
   return mat;
+}
+
+/** Block-surface tiles (top face + 3 m slab sides), each vertex tagged with its tile index. */
+export function createTileSurfaceGeometry() {
+  const pos: number[] = [];
+  const nor: number[] = [];
+  const tile: number[] = [];
+  const idx: number[] = [];
+  const Y = 0.03;
+  const B = -3;
+  const quad = (p: number[][], n: number[], t: number) => {
+    const b = pos.length / 3;
+    for (const v of p) {
+      pos.push(v[0], v[1], v[2]);
+      nor.push(n[0], n[1], n[2]);
+      tile.push(t);
+    }
+    idx.push(b, b + 1, b + 2, b, b + 2, b + 3);
+  };
+  for (const t of TILES) {
+    const { x0, x1, z0, z1, index: i } = t;
+    quad([[x0, Y, z1], [x1, Y, z1], [x1, Y, z0], [x0, Y, z0]], [0, 1, 0], i);
+    quad([[x0, B, z1], [x1, B, z1], [x1, Y, z1], [x0, Y, z1]], [0, 0, 1], i);
+    quad([[x1, B, z0], [x0, B, z0], [x0, Y, z0], [x1, Y, z0]], [0, 0, -1], i);
+    quad([[x1, B, z1], [x1, B, z0], [x1, Y, z0], [x1, Y, z1]], [1, 0, 0], i);
+    quad([[x0, B, z0], [x0, B, z1], [x0, Y, z1], [x0, Y, z0]], [-1, 0, 0], i);
+  }
+  const g = new BufferGeometry();
+  g.setAttribute('position', new BufferAttribute(new Float32Array(pos), 3));
+  g.setAttribute('normal', new BufferAttribute(new Float32Array(nor), 3));
+  g.setAttribute('aTile', new BufferAttribute(new Float32Array(tile), 1));
+  g.setIndex(idx);
+  g.computeBoundingSphere();
+  return g;
 }

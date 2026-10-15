@@ -14,6 +14,7 @@ import { kitFiles, kitManifest, useKitSignature } from '../assets/kit';
 import { KIT_BUILDING_FILES, resolvePlacements } from '../buildings/KitBuildings';
 import { useXrayFade } from '../buildings/Buildings';
 import { useSceneQuality } from '../runtime';
+import { patchWorldTiles, withPatch } from '../anim/patch';
 
 const PALMS = cityLayout.props.palms;
 const LIGHTS = cityLayout.props.streetLights;
@@ -41,6 +42,7 @@ function instanced(gltf: GLTF, nodeName: string, matrices: Matrix4[], mats: Map<
         };
         m.customProgramCacheKey = () => 'encirra-lamp-bus';
       }
+      withPatch(m, 'tiles-pop', (s) => patchWorldTiles(s, { pop: true }));
       mats.set(mm.name, m);
       mat = m;
     }
@@ -122,7 +124,7 @@ export function KitProps({ palms, lights }: { palms: boolean; lights: boolean })
     },
     [built],
   );
-  useXrayFade(built?.mats ?? [], 0.12);
+  useXrayFade(built?.mats ?? [], 0.5);
 
   if (!built) return null;
   return (

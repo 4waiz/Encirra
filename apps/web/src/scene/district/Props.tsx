@@ -29,6 +29,8 @@ import { GeoBuilder, lin } from '../lib/GeoBuilder';
 import { fx } from '../runtime';
 import { useKitSignature } from '../assets/kit';
 import { KitProps } from './KitProps';
+import { patchWorldTiles, withPatch } from '../anim/patch';
+import { motionUniforms, TILE_VERT_GLSL } from '../anim/motion';
 
 const PALMS = cityLayout.props.palms;
 const LIGHTS = cityLayout.props.streetLights;
@@ -113,17 +115,21 @@ export function Props() {
   const frondTex = useMemo(() => createFrondTexture(), []);
   const trunk = useMemo(() => trunkGeometry(), []);
   const crown = useMemo(() => crownGeometry(), []);
-  const trunkMat = useMemo(() => new MeshStandardMaterial({ color: '#7A6248', roughness: 0.95 }), []);
+  const trunkMat = useMemo(() => withPatch(new MeshStandardMaterial({ color: '#7A6248', roughness: 0.95 }), 'tiles-pop', (s) => patchWorldTiles(s, { pop: true })), []);
   const crownMat = useMemo(
     () =>
-      new MeshStandardMaterial({
-        map: frondTex,
-        alphaTest: 0.45,
-        side: DoubleSide,
-        roughness: 0.8,
-        color: '#9DBA6E',
-        emissive: '#0B1404',
-      }),
+      withPatch(
+        new MeshStandardMaterial({
+          map: frondTex,
+          alphaTest: 0.45,
+          side: DoubleSide,
+          roughness: 0.8,
+          color: '#9DBA6E',
+          emissive: '#0B1404',
+        }),
+        'tiles-pop',
+        (s) => patchWorldTiles(s, { pop: true }),
+      ),
     [frondTex],
   );
   const palms = useMemo(() => {
@@ -145,7 +151,7 @@ export function Props() {
 
   // street lights
   const poleGeo = useMemo(() => lightPoleGeometry(), []);
-  const poleMat = useMemo(() => new MeshStandardMaterial({ vertexColors: true, metalness: 0.6, roughness: 0.45 }), []);
+  const poleMat = useMemo(() => withPatch(new MeshStandardMaterial({ vertexColors: true, metalness: 0.6, roughness: 0.45 }), 'tiles-pop', (s) => patchWorldTiles(s, { pop: true })), []);
   const lightBus = useMemo(() => LIGHTS.map(([x, z]) => propBusIndex(x, z)), []);
   const poles = useMemo(() => {
     const m = new Matrix4();
@@ -184,19 +190,25 @@ export function Props() {
         depthWrite: false,
         blending: AdditiveBlending,
         fog: false,
-        uniforms: { uBusTex: { value: busTex }, uMode: { value: 0 }, uFade: { value: 1 } },
+        uniforms: { uBusTex: { value: busTex }, uMode: { value: 0 }, uFade: { value: 1 }, uTileTex: motionUniforms.uTileTex, uBldAnim: motionUniforms.uBldAnim, uPropT: motionUniforms.uPropT },
         vertexShader: /* glsl */ `
           attribute vec4 aLight; uniform sampler2D uBusTex; uniform float uMode;
           varying vec2 vUv; varying float vOn;
+          ${TILE_VERT_GLSL}
           void main() {
             vUv = uv * 2.0 - 1.0;
             vOn = texelFetch(uBusTex, ivec2(int(aLight.w + 0.5), 0), 0).b;
+            float pop = encPropPop(aLight.xz);
+            float ti = encTileOf(aLight.xz);
+            vec3 nn = vec3(0.0, 1.0, 0.0);
             if (uMode < 0.5) {
-              vec4 mv = modelViewMatrix * vec4(aLight.xyz, 1.0);
-              mv.xy += position.xy * 3.2;
+              vec3 c = encTile(ti, aLight.xyz, nn);
+              vec4 mv = modelViewMatrix * vec4(c, 1.0);
+              mv.xy += position.xy * 3.2 * pop;
               gl_Position = projectionMatrix * mv;
             } else {
-              vec3 p = vec3(aLight.x + position.x * 16.0, 0.12, aLight.z - position.y * 16.0);
+              vec3 p = vec3(aLight.x + position.x * 16.0 * pop, 0.12, aLight.z - position.y * 16.0 * pop);
+              p = encTile(ti, p, nn);
               gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
             }
           }`,
@@ -216,6 +228,10 @@ export function Props() {
     const m = glowMat.clone();
     m.uniforms.uMode.value = 1;
     m.uniforms.uBusTex.value = busTex;
+    // clone() copies uniform values: re-link the shared animation uniforms
+    m.uniforms.uTileTex = motionUniforms.uTileTex;
+    m.uniforms.uBldAnim = motionUniforms.uBldAnim;
+    m.uniforms.uPropT = motionUniforms.uPropT;
     return m;
   }, [glowMat]);
 

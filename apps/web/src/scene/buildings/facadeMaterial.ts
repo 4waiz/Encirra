@@ -10,6 +10,7 @@
  *   A = emergency lighting (de-energized / backup)
  */
 import { DataTexture, FloatType, MeshStandardMaterial, NearestFilter, RGBAFormat, type IUniform } from 'three';
+import { patchBuildingShader } from '../anim/patch';
 
 export function createStateTexture(n: number) {
   const w = Math.max(1, n);
@@ -34,8 +35,7 @@ float encHash13(vec3 p3){ p3 = fract(p3 * .1031); p3 += dot(p3, p3.zyx + 31.32);
 float encBoxAA(float x, float a, float b, float w){ return clamp(smoothstep(a - w, a + w, x) - smoothstep(b - w, b + w, x), 0.0, 1.0); }
 `;
 
-export function createFacadeMaterial(stateTex: DataTexture, opts: { shadows?: boolean } = {}) {
-  void opts;
+export function createFacadeMaterial(stateTex: DataTexture, opts: { shadows?: boolean; tiles?: boolean } = {}) {
   const mat = new MeshStandardMaterial({ vertexColors: true, roughness: 0.82, metalness: 0.0, envMapIntensity: 1.0 });
   const uniforms: FacadeUniforms = {
     uState: { value: stateTex },
@@ -44,7 +44,7 @@ export function createFacadeMaterial(stateTex: DataTexture, opts: { shadows?: bo
     uLitBoost: { value: 1 },
   };
   mat.userData.uniforms = uniforms;
-  mat.customProgramCacheKey = () => 'encirra-facade-v3';
+  mat.customProgramCacheKey = () => (opts.tiles ? 'encirra-facade-v3-tiles' : 'encirra-facade-v3');
   mat.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
@@ -235,6 +235,7 @@ totalEmissiveRadiance += vec3(0.25, 0.75, 1.0) * highlight * (0.18 + 1.6 * rim);
         /* glsl */ `#include <dithering_fragment>
 gl_FragColor.a *= uFade;`,
       );
+    if (opts.tiles) patchBuildingShader(shader, 'aExtra.x');
   };
   return mat;
 }

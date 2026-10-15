@@ -16,6 +16,7 @@ export function buildTubes(specs: TubeSpec[], radial = 12, joints = true, radius
   const aId: number[] = [];
   const aS: number[] = [];
   const aAround: number[] = [];
+  const aLen: number[] = [];
   const idx: number[] = [];
   const a = new Vector3();
   const b = new Vector3();
@@ -26,6 +27,9 @@ export function buildTubes(specs: TubeSpec[], radial = 12, joints = true, radius
   for (const spec of specs) {
     const r = spec.radius * radiusScale;
     let s = 0;
+    let total = 0;
+    for (let i = 0; i < spec.points.length - 1; i++) total += Math.hypot(spec.points[i + 1][0] - spec.points[i][0], spec.points[i + 1][1] - spec.points[i][1], spec.points[i + 1][2] - spec.points[i][2]);
+    const v0 = pos.length / 3;
     for (let i = 0; i < spec.points.length - 1; i++) {
       a.set(...spec.points[i]);
       b.set(...spec.points[i + 1]);
@@ -91,6 +95,8 @@ export function buildTubes(specs: TubeSpec[], radial = 12, joints = true, radius
         }
       }
     }
+    // total route length for every vertex of this tube (draw-on animation)
+    for (let k = v0; k < pos.length / 3; k++) aLen.push(total);
   }
   const g = new BufferGeometry();
   g.setAttribute('position', new BufferAttribute(new Float32Array(pos), 3));
@@ -98,6 +104,7 @@ export function buildTubes(specs: TubeSpec[], radial = 12, joints = true, radius
   g.setAttribute('aId', new BufferAttribute(new Float32Array(aId), 1));
   g.setAttribute('aS', new BufferAttribute(new Float32Array(aS), 1));
   g.setAttribute('aAround', new BufferAttribute(new Float32Array(aAround), 1));
+  g.setAttribute('aLen', new BufferAttribute(new Float32Array(aLen), 1));
   g.setIndex(pos.length / 3 > 65535 ? new BufferAttribute(new Uint32Array(idx), 1) : new BufferAttribute(new Uint16Array(idx), 1));
   g.computeBoundingSphere();
   return g;
