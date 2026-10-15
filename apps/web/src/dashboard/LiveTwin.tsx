@@ -1,10 +1,45 @@
-import { useEffect, useRef, type RefObject } from 'react';
-import { motion } from 'motion/react';
+import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
+import { motion, useAnimate, useReducedMotion } from 'motion/react';
 import { useTwin, type OverlayLayout, type ScreenRect } from '@/state/store';
 import { FaultCard, FeederStatusCard, RecoveryCard, TimelineCard } from './TopCards';
 import { CityOverviewPanel, FacilitiesPanel, PowerPanel, WaterPanel } from './BottomPanels';
 import { PlaybackBar, SceneToolbar } from './Controls';
 import { DemoOverlay } from '@/demo/DemoOverlay';
+
+/**
+ * Dashboard tile entrance: each card flies in from a scattered offset with a slight 3D tilt and
+ * snaps into place with a staggered spring ("tiles coming together"). Replays on store.introNonce.
+ */
+function Tile({ i, row, children }: { i: number; row: 'top' | 'bottom'; children: ReactNode }) {
+  const nonce = useTwin((s) => s.introNonce);
+  const reduce = useReducedMotion();
+  const [scope, animate] = useAnimate<HTMLDivElement>();
+  useEffect(() => {
+    const el = scope.current;
+    if (!el || reduce) return;
+    const dir = row === 'top' ? -1 : 1;
+    const spread = [-1.4, -0.5, 0.5, 1.4][i] ?? 0;
+    const controls = animate(
+      el,
+      {
+        opacity: [0, 1],
+        x: [spread * 70, 0],
+        y: [dir * 90, 0],
+        transformPerspective: [900, 900],
+        rotateX: [dir * -28, 0],
+        rotateZ: [spread * 4, 0],
+        scale: [0.86, 1],
+      },
+      { type: 'spring', stiffness: 140, damping: 17, mass: 0.9, delay: 0.25 + (row === 'top' ? 0 : 0.18) + Math.abs(spread) * 0.07 + i * 0.03 },
+    );
+    return () => controls.stop();
+  }, [nonce, reduce, animate, scope, i, row]);
+  return (
+    <div ref={scope} className="grid min-h-0 min-w-0" style={{ gridTemplateRows: 'minmax(0, 1fr)' }}>
+      {children}
+    </div>
+  );
+}
 
 const OCCLUDERS = ['scene-toolbar', 'playback-bar', 'demo-overlay', 'inspector'];
 
@@ -101,19 +136,27 @@ export function LiveTwin() {
         aria-label="Incident and recovery status"
         inert={focus}
       >
-        <FaultCard />
-        <FeederStatusCard />
-        <RecoveryCard />
-        <TimelineCard />
+        <Tile i={0} row="top">
+          <FaultCard />
+        </Tile>
+        <Tile i={1} row="top">
+          <FeederStatusCard />
+        </Tile>
+        <Tile i={2} row="top">
+          <RecoveryCard />
+        </Tile>
+        <Tile i={3} row="top">
+          <TimelineCard />
+        </Tile>
       </section>
       <section ref={middle} className="relative min-h-0" aria-label="3D twin controls" data-testid="twin-safe-area">
         <div className="pointer-events-none absolute top-0 left-0 flex max-w-[calc(100%-420px)] min-w-[360px]">
           <DemoOverlay />
         </div>
-        <div className="pointer-events-none absolute top-0 z-30 flex justify-end transition-[right] duration-200" style={{ right: inspecting ? 'min(372px, calc(100vw - 24px))' : 0 }}>
+        <div className="pointer-events-none absolute top-0 z-30 flex justify-end transition-[right] duration-200" style={{ right: inspecting ? 'calc(min(360px, 100vw - 24px) + var(--gap))' : 0 }}>
           <SceneToolbar />
         </div>
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center">
+        <div className="pointer-events-none absolute bottom-0 left-0 flex justify-center transition-[right] duration-200" style={{ right: inspecting ? 'calc(min(360px, 100vw - 24px) + var(--gap))' : 0 }}>
           <PlaybackBar />
         </div>
       </section>
@@ -123,10 +166,18 @@ export function LiveTwin() {
         aria-label="Network panels"
         inert={focus}
       >
-        <PowerPanel />
-        <WaterPanel />
-        <FacilitiesPanel />
-        <CityOverviewPanel />
+        <Tile i={0} row="bottom">
+          <PowerPanel />
+        </Tile>
+        <Tile i={1} row="bottom">
+          <WaterPanel />
+        </Tile>
+        <Tile i={2} row="bottom">
+          <FacilitiesPanel />
+        </Tile>
+        <Tile i={3} row="bottom">
+          <CityOverviewPanel />
+        </Tile>
       </section>
     </motion.div>
   );

@@ -137,6 +137,8 @@ export interface TwinState {
   autoOrbit: boolean;
   /** Live Twin: hide the card rows so the 3D twin fills the view. */
   focusTwin: boolean;
+  /** Increments to (re)play the assembly intro animation (scene + dashboard tiles). */
+  introNonce: number;
   /** free screen area for 3D callouts (see OverlayLayout); written by the dashboard */
   overlayLayout: OverlayLayout | null;
   demo: DemoState;
@@ -182,6 +184,7 @@ export interface TwinState {
   setCameraMode: (mode: 'orbit' | 'cinematic') => void;
   setAutoOrbit: (on: boolean) => void;
   setFocusTwin: (on: boolean) => void;
+  playIntro: () => void;
   setOverlayLayout: (layout: OverlayLayout | null) => void;
   setDemo: (patch: Partial<DemoState>) => void;
   setWhyPlanOpen: (open: boolean) => void;
@@ -222,6 +225,7 @@ export const useTwin = create<TwinState>()((set, get) => ({
   camera: { mode: 'orbit', request: null },
   autoOrbit: false,
   focusTwin: false,
+  introNonce: 1,
   overlayLayout: null,
   demo: { active: false, paused: false, stepIndex: 0, stepStartedAt: 0, elapsedS: 0 },
   whyPlanOpen: false,
@@ -274,6 +278,7 @@ export const useTwin = create<TwinState>()((set, get) => ({
   setCameraMode: (mode) => set((s) => ({ camera: { ...s.camera, mode } })),
   setAutoOrbit: (autoOrbit) => set({ autoOrbit }),
   setFocusTwin: (focusTwin) => set({ focusTwin }),
+  playIntro: () => set((s) => ({ introNonce: s.introNonce + 1 })),
   setOverlayLayout: (overlayLayout) => set({ overlayLayout }),
   setDemo: (patch) => set((s) => ({ demo: { ...s.demo, ...patch } })),
   setWhyPlanOpen: (whyPlanOpen) => set({ whyPlanOpen }),

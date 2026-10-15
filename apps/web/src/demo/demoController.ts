@@ -73,6 +73,8 @@ export function startDemo() {
   s.setSelected(null);
   s.setPlaying(false);
   s.setAboutOpen(false);
+  s.setFocusTwin(false);
+  s.playIntro();
   s.setCameraMode('cinematic');
   s.setDemo({ active: true, paused: false, stepIndex: 0, elapsedS: 0, stepStartedAt: performance.now() });
   seekTo(0);

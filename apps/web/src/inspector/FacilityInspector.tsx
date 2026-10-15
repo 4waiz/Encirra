@@ -380,17 +380,24 @@ export function FacilityInspector() {
   const setSelected = useTwin((s) => s.setSelected);
   const requestCamera = useTwin((s) => s.requestCamera);
   const ctx = useRunCtx();
+  const page = useTwin((s) => s.page);
+  const focus = useTwin((s) => s.focusTwin);
   const head = sel && ctx ? titleFor(sel, ctx.topology) : null;
+  // Docked inside the free band between the top cards and the bottom panels (or the whole area in
+  // focus mode) so it never covers another card; the toolbar and playback bar make room for it.
+  const top = focus ? 'calc(var(--header-h) + var(--gap))' : 'calc(var(--header-h) + var(--top-h) + var(--gap))';
+  const bottom = focus ? 'calc(var(--footer-h) + var(--gap))' : 'calc(var(--footer-h) + var(--bottom-h) + var(--gap) * 2)';
   return (
     <AnimatePresence>
-      {sel && ctx && head && (
+      {sel && ctx && head && page === 'live' && (
         <motion.aside
           key="inspector"
           initial={{ x: 24, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: 24, opacity: 0 }}
           transition={{ duration: 0.22, ease: [0.2, 0.7, 0.2, 1] }}
-          className="enc-panel enc-panel-strong absolute top-[calc(var(--header-h)+var(--top-h)+var(--gap))] right-[var(--pad-x)] bottom-[calc(var(--footer-h)+var(--bottom-h)+var(--gap)*2)] z-30 flex w-[min(360px,calc(100vw-24px))] min-h-[260px] flex-col rounded-[12px]"
+          className="absolute right-[var(--pad-x)] z-30 flex w-[min(360px,calc(100vw-24px))] flex-col overflow-hidden rounded-[12px] border border-line-strong bg-white shadow-[0_18px_44px_-14px_rgba(21,40,60,0.45),0_3px_10px_-3px_rgba(21,40,60,0.18)] transition-[top,bottom] duration-300"
+          style={{ top, bottom }}
           data-testid="inspector"
           aria-label="Asset inspector"
         >
