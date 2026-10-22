@@ -2,10 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
   connectionsWithoutSupply,
   criticalProgress,
+  facilityMinutesBelowService,
   facilityPressure,
   facilityRows,
   faultCardModel,
   frameIndexAtT,
+  impactComparison,
+  incidentModel,
   lostPumpStations,
   recoveryCardModel,
   restoredShare,
@@ -221,5 +224,72 @@ describe('other derivations', () => {
       { ...base, id: 'C1', label: '', feasible: true, metrics, scoreEncirra: 9, rankEncirra: 1 },
     ];
     expect(sortedCandidates(run).map((c) => c.id)).toEqual(['C1', 'C2', 'C3']);
+  });
+});
+
+describe('impact: Encirra vs Grid-only', () => {
+  const enc = makeRun('encirra');
+  const grid = makeRun('grid-only', { plan: makePlan({ strategy: 'grid-only', label: 'Close SW-01-02', appliedAtT: null, outcome: 'partial' }) });
+  grid.summary = { ...grid.summary, loadRestoredKW: 100, remainingUnservedKW: 100, pumpsAvailableEnd: 0 };
+
+  it('counts minutes a facility is below the service threshold from the frames', () => {
+    expect(facilityMinutesBelowService(enc, topo, 'hosp')).toBe(4); // frames 2–5 at 18 m
+    expect(facilityMinutesBelowService(grid, topo, 'hosp')).toBe(6); // never restored: frames 2–7
+    expect(facilityMinutesBelowService(enc, topo, 'sub')).toBeNull();
+  });
+  it('pairs both strategies with signed deltas and verdicts', () => {
+    const m = impactComparison({ encirra: enc, 'grid-only': grid }, null, topo)!;
+    const row = (k: string) => m.rows.find((r) => r.key === k)!;
+    expect(row('hospital-water')).toMatchObject({ grid: 6, encirra: 4, verdict: 'better', deltaText: '−2 min', label: 'Hospital water outage' });
+    expect(row('restored')).toMatchObject({ grid: 50, encirra: 100, verdict: 'better', deltaText: '+50.0 pts' });
+    expect(row('pumps')).toMatchObject({ grid: 0, encirra: 1, verdict: 'better', deltaText: '+1', encirraText: '1/1' });
+    expect(row('violations')).toMatchObject({ verdict: 'same', deltaText: 'Same' });
+    expect(m.samePlan).toBe(false);
+    expect(m.allSame).toBe(false);
+  });
+  it('reports "same plan" honestly when both strategies converge', () => {
+    const m = impactComparison({ encirra: enc, 'grid-only': makeRun('grid-only') }, null, topo)!;
+    expect(m.samePlan).toBe(true);
+    expect(m.allSame).toBe(true);
+    expect(m.rows.every((r) => r.deltaText === 'Same')).toBe(true);
+  });
+  it('marks a row where Grid-only does better as worse (never hidden)', () => {
+    const better = makeRun('grid-only');
+    better.summary = { ...better.summary, loadRestoredKW: 300, remainingUnservedKW: 0 };
+    const enc2 = makeRun('encirra');
+    enc2.summary = { ...enc2.summary, loadRestoredKW: 180, remainingUnservedKW: 20 };
+    const r = impactComparison({ encirra: enc2, 'grid-only': better }, null, topo)!.rows.find((x) => x.key === 'restored')!;
+    expect(r.verdict).toBe('worse');
+    expect(r.deltaText).toBe('−10.0 pts');
+  });
+  it('falls back to the comparison summaries when runs are missing', () => {
+    const m = impactComparison({}, { summaries: { none: enc.summary, 'grid-only': grid.summary, encirra: enc.summary } }, topo)!;
+    expect(m.rows[0].label).toBe('Critical water outage');
+    expect(m.rows[0].encirra).toBe(enc.summary.minutesBelowServicePressure);
+  });
+});
+
+describe('incidentModel (left rail hero)', () => {
+  it('is green before the fault', () => {
+    expect(incidentModel(makeRun('encirra'), topo, 0)).toMatchObject({ tone: 'ok', title: 'Normal operation', active: false });
+  });
+  it('reports a critical facility below the service pressure first', () => {
+    const m = incidentModel(makeRun('encirra'), topo, 3);
+    expect(m.tone).toBe('fault');
+    expect(m.title).toBe('City Hospital below 20 m');
+    expect(m.sentence).toBe('Feeder F3 tripped at 17:02: 200 kW and Pumping Station PS-2 lost supply.');
+  });
+  it('turns green only when a verified plan restored every critical facility and pump', () => {
+    expect(incidentModel(makeRun('encirra'), topo, 6)).toMatchObject({ tone: 'ok', title: 'Recovery complete' });
+  });
+  it('shows the stage, the stopped pump and a grey baseline when pressure holds', () => {
+    const frames = [0, 1, 2, 3, 4].map((m) =>
+      makeFrame({ min: m, stage: m >= 3 ? 'no-intervention' : m >= 2 ? 'fault-detected' : 'ready', lost: m >= 2, pressure: 30 }),
+    );
+    const none = makeRun('none', { frames });
+    expect(incidentModel(none, topo, 2)).toMatchObject({ tone: 'fault', title: 'Feeder fault detected' });
+    const m = incidentModel(none, topo, 3);
+    expect(m).toMatchObject({ tone: 'neutral', title: 'Outage persists · baseline' });
+    expect(m.watch).toBe('PS-2 stopped · Tank T2 at 67%');
   });
 });

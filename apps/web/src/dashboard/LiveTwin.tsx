@@ -1,58 +1,26 @@
-import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
-import { motion, useAnimate, useReducedMotion } from 'motion/react';
+import { useEffect, useRef, type RefObject } from 'react';
+import { motion } from 'motion/react';
 import { useTwin, type OverlayLayout, type ScreenRect } from '@/state/store';
-import { FaultCard, FeederStatusCard, RecoveryCard, TimelineCard } from './TopCards';
-import { CityOverviewPanel, FacilitiesPanel, PowerPanel, WaterPanel } from './BottomPanels';
-import { PlaybackBar, SceneToolbar } from './Controls';
 import { DemoOverlay } from '@/demo/DemoOverlay';
+import { LeftRail } from './LeftRail';
+import { RightRail } from './RightRail';
+import { BottomBar } from './BottomBar';
 
-/**
- * Dashboard tile entrance: each card flies in from a scattered offset with a slight 3D tilt and
- * snaps into place with a staggered spring ("tiles coming together"). Replays on store.introNonce.
- */
-function Tile({ i, row, children }: { i: number; row: 'top' | 'bottom'; children: ReactNode }) {
-  const nonce = useTwin((s) => s.introNonce);
-  const reduce = useReducedMotion();
-  const [scope, animate] = useAnimate<HTMLDivElement>();
-  useEffect(() => {
-    const el = scope.current;
-    if (!el || reduce) return;
-    const dir = row === 'top' ? -1 : 1;
-    const spread = [-1.4, -0.5, 0.5, 1.4][i] ?? 0;
-    const controls = animate(
-      el,
-      {
-        opacity: [0, 1],
-        x: [spread * 70, 0],
-        y: [dir * 90, 0],
-        transformPerspective: [900, 900],
-        rotateX: [dir * -28, 0],
-        rotateZ: [spread * 4, 0],
-        scale: [0.86, 1],
-      },
-      { type: 'spring', stiffness: 140, damping: 17, mass: 0.9, delay: 0.25 + (row === 'top' ? 0 : 0.18) + Math.abs(spread) * 0.07 + i * 0.03 },
-    );
-    return () => controls.stop();
-  }, [nonce, reduce, animate, scope, i, row]);
-  return (
-    <div ref={scope} className="grid min-h-0 min-w-0" style={{ gridTemplateRows: 'minmax(0, 1fr)' }}>
-      {children}
-    </div>
-  );
-}
-
-const OCCLUDERS = ['scene-toolbar', 'playback-bar', 'demo-overlay', 'inspector'];
+const OCCLUDERS = ['demo-overlay', 'inspector', 'welcome'];
 
 const rect = (b: DOMRect): ScreenRect => ({ x: Math.round(b.left), y: Math.round(b.top), width: Math.round(b.width), height: Math.round(b.height) });
 
 /**
- * Publishes store.overlayLayout: the unobstructed band between the top cards and the bottom
- * panels plus the floating controls inside it, so the 3D scene can keep its callouts visible.
+ * Publishes store.overlayLayout: the unobstructed centre between the rails, the header and the
+ * bottom bar, plus floating elements over it (demo captions, welcome card, inspector), so the 3D
+ * scene can centre the district and keep its callouts visible.
  */
 function useOverlayLayout(middle: RefObject<HTMLElement | null>) {
   const setOverlayLayout = useTwin((s) => s.setOverlayLayout);
   const selected = useTwin((s) => s.selected);
   const demoActive = useTwin((s) => s.demo.active);
+  const welcome = useTwin((s) => s.welcomeOpen);
+  const focus = useTwin((s) => s.focusTwin);
   const measureRef = useRef<() => void>(() => {});
 
   useEffect(() => {
@@ -88,32 +56,38 @@ function useOverlayLayout(middle: RefObject<HTMLElement | null>) {
     };
   }, [middle, setOverlayLayout]);
 
-  // floating controls move/appear with the inspector and the demo captions (after their transitions)
+  // floating elements appear / move with their transitions: re-measure after they settle
   useEffect(() => {
     measureRef.current();
-    const t = setTimeout(() => measureRef.current(), 350);
-    return () => clearTimeout(t);
-  }, [selected, demoActive]);
+    const t1 = setTimeout(() => measureRef.current(), 380);
+    const t2 = setTimeout(() => measureRef.current(), 700);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [selected, demoActive, welcome, focus]);
 
   useEffect(() => () => setOverlayLayout(null), [setOverlayLayout]);
 }
 
+const EASE = 'cubic-bezier(.4,0,.2,1)';
+
 /**
- * Live Twin overlay, matching the reference composition: header (shell) · four top cards ·
- * the 3D city (pointer events pass through) · four bottom panels.
+ * Live Twin overlay — command centre with side rails: the story on the left, live telemetry on
+ * the right, the transport bar along the bottom and the 3D city in the centre (pointer events
+ * pass through). Focus mode slides both rails out and shrinks the bar to a pill.
  */
 export function LiveTwin() {
   const inspecting = useTwin((s) => s.selected != null);
   const focus = useTwin((s) => s.focusTwin);
   const middle = useRef<HTMLElement>(null);
   useOverlayLayout(middle);
-  // Focus mode collapses both card rows (animated grid tracks) so the twin fills the view; the
-  // safe-area observer reports the larger band and the camera re-centres on it.
-  const rowStyle = (hidden: boolean, dir: 1 | -1) => ({
+  const rail = (side: 'left' | 'right', hidden: boolean) => ({
+    width: 'var(--rail-w)',
+    justifySelf: side === 'left' ? ('end' as const) : ('start' as const),
+    transform: hidden ? `translateX(${side === 'left' ? 'calc(-100% - 24px)' : 'calc(100% + 24px)'})` : 'none',
     opacity: hidden ? 0 : 1,
-    transform: hidden ? `translateY(${dir * 14}px)` : 'none',
-    overflow: hidden ? ('hidden' as const) : ('visible' as const),
-    transition: 'opacity 260ms ease, transform 320ms ease',
+    transition: `transform 380ms ${EASE}, opacity 260ms ease`,
   });
   return (
     <motion.div
@@ -121,64 +95,43 @@ export function LiveTwin() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="pointer-events-none absolute inset-x-0 top-[var(--header-h)] bottom-[var(--footer-h)] z-10 grid px-[var(--pad-x)] pb-[var(--gap)]"
+      className="ui-dark pointer-events-none absolute inset-x-0 top-[var(--header-h)] bottom-[var(--footer-h)] z-10 grid px-[var(--pad-x)] pt-[var(--gap)] pb-[var(--gap)]"
       style={{
-        gridTemplateRows: focus ? '0px minmax(0, 1fr) 0px' : 'var(--top-h) minmax(0, 1fr) var(--bottom-h)',
-        rowGap: focus ? 0 : 'var(--gap)',
-        transition: 'grid-template-rows 360ms cubic-bezier(.4,0,.2,1), row-gap 360ms ease',
+        gridTemplateColumns: focus ? '0px minmax(0, 1fr) 0px' : 'var(--rail-w) minmax(0, 1fr) var(--rail-w)',
+        gridTemplateRows: focus ? 'minmax(0, 1fr) 52px' : 'minmax(0, 1fr) var(--bar-h)',
+        columnGap: focus ? 0 : 'var(--gap)',
+        rowGap: 'var(--gap)',
+        transition: `grid-template-columns 380ms ${EASE}, grid-template-rows 380ms ${EASE}, column-gap 380ms ease`,
       }}
       data-testid="live-twin"
       data-focus={focus ? 'on' : 'off'}
     >
-      <section
-        className="grid min-h-0 gap-[var(--gap)]"
-        style={{ gridTemplateColumns: '1.27fr 0.98fr 1.42fr 1.06fr', gridTemplateRows: 'minmax(0, 1fr)', ...rowStyle(focus, -1) }}
-        aria-label="Incident and recovery status"
+      <aside
+        className="rail-scroll pointer-events-auto flex min-h-0 flex-col gap-[var(--gap)]"
+        style={rail('left', focus)}
+        aria-label="Incident, recovery and impact"
+        data-testid="rail-left"
         inert={focus}
       >
-        <Tile i={0} row="top">
-          <FaultCard />
-        </Tile>
-        <Tile i={1} row="top">
-          <FeederStatusCard />
-        </Tile>
-        <Tile i={2} row="top">
-          <RecoveryCard />
-        </Tile>
-        <Tile i={3} row="top">
-          <TimelineCard />
-        </Tile>
-      </section>
-      <section ref={middle} className="relative min-h-0" aria-label="3D twin controls" data-testid="twin-safe-area">
-        <div className="pointer-events-none absolute top-0 left-0 flex max-w-[calc(100%-420px)] min-w-[360px]">
+        <LeftRail />
+      </aside>
+      <section ref={middle} className="relative min-h-0 min-w-0" aria-label="3D twin" data-testid="twin-safe-area">
+        <div className="pointer-events-none absolute top-0 left-0 flex w-full max-w-[680px] justify-start">
           <DemoOverlay />
         </div>
-        <div className="pointer-events-none absolute top-0 z-30 flex justify-end transition-[right] duration-200" style={{ right: inspecting ? 'calc(min(360px, 100vw - 24px) + var(--gap))' : 0 }}>
-          <SceneToolbar />
-        </div>
-        <div className="pointer-events-none absolute bottom-0 left-0 flex justify-center transition-[right] duration-200" style={{ right: inspecting ? 'calc(min(360px, 100vw - 24px) + var(--gap))' : 0 }}>
-          <PlaybackBar />
-        </div>
       </section>
-      <section
-        className="grid min-h-0 gap-[var(--gap)]"
-        style={{ gridTemplateColumns: '1fr 1fr 1.21fr 1.18fr', gridTemplateRows: 'minmax(0, 1fr)', ...rowStyle(focus, 1) }}
-        aria-label="Network panels"
-        inert={focus}
+      <aside
+        className="rail-scroll pointer-events-auto flex min-h-0 flex-col gap-[var(--gap)]"
+        style={rail('right', focus || inspecting)}
+        aria-label="Live telemetry"
+        data-testid="rail-right"
+        inert={focus || inspecting}
       >
-        <Tile i={0} row="bottom">
-          <PowerPanel />
-        </Tile>
-        <Tile i={1} row="bottom">
-          <WaterPanel />
-        </Tile>
-        <Tile i={2} row="bottom">
-          <FacilitiesPanel />
-        </Tile>
-        <Tile i={3} row="bottom">
-          <CityOverviewPanel />
-        </Tile>
-      </section>
+        <RightRail />
+      </aside>
+      <div className="col-span-3 min-h-0">
+        <BottomBar />
+      </div>
     </motion.div>
   );
 }

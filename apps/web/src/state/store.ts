@@ -144,6 +144,10 @@ export interface TwinState {
   demo: DemoState;
   whyPlanOpen: boolean;
   aboutOpen: boolean;
+  /** first-visit welcome / help card (reopened from the header "?" button) */
+  welcomeOpen: boolean;
+  /** 'welcome' on the first visit; 'help' when reopened from the header (also lists shortcuts) */
+  welcomeMode: 'welcome' | 'help';
 
   // ── actions
   setData: (
@@ -189,6 +193,7 @@ export interface TwinState {
   setDemo: (patch: Partial<DemoState>) => void;
   setWhyPlanOpen: (open: boolean) => void;
   setAboutOpen: (open: boolean) => void;
+  setWelcomeOpen: (open: boolean, mode?: 'welcome' | 'help') => void;
 }
 
 let cameraNonce = 0;
@@ -230,6 +235,8 @@ export const useTwin = create<TwinState>()((set, get) => ({
   demo: { active: false, paused: false, stepIndex: 0, stepStartedAt: 0, elapsedS: 0 },
   whyPlanOpen: false,
   aboutOpen: false,
+  welcomeOpen: false,
+  welcomeMode: 'welcome',
 
   setData: (patch) => set(patch),
   setRun: (run) =>
@@ -283,6 +290,7 @@ export const useTwin = create<TwinState>()((set, get) => ({
   setDemo: (patch) => set((s) => ({ demo: { ...s.demo, ...patch } })),
   setWhyPlanOpen: (whyPlanOpen) => set({ whyPlanOpen }),
   setAboutOpen: (aboutOpen) => set({ aboutOpen }),
+  setWelcomeOpen: (welcomeOpen, mode) => set((s) => ({ welcomeOpen, welcomeMode: mode ?? (welcomeOpen ? 'welcome' : s.welcomeMode) })),
 }));
 
 /** Current frame (integer cursor) — null until a run is loaded. */

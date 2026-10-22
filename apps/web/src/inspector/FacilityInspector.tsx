@@ -25,7 +25,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="mt-4">
       <h4 className="mb-1.5 text-[11px] font-semibold tracking-wider text-slate uppercase">{title}</h4>
-      <dl className="divide-y divide-line/70 rounded-lg border border-line bg-white/70">{children}</dl>
+      <dl className="divide-y divide-line rounded-lg border border-line bg-wash">{children}</dl>
     </section>
   );
 }
@@ -383,10 +383,10 @@ export function FacilityInspector() {
   const page = useTwin((s) => s.page);
   const focus = useTwin((s) => s.focusTwin);
   const head = sel && ctx ? titleFor(sel, ctx.topology) : null;
-  // Docked inside the free band between the top cards and the bottom panels (or the whole area in
-  // focus mode) so it never covers another card; the toolbar and playback bar make room for it.
-  const top = focus ? 'calc(var(--header-h) + var(--gap))' : 'calc(var(--header-h) + var(--top-h) + var(--gap))';
-  const bottom = focus ? 'calc(var(--footer-h) + var(--gap))' : 'calc(var(--footer-h) + var(--bottom-h) + var(--gap) * 2)';
+  // Docked in the right rail's slot (the telemetry rail slides out while inspecting), so it never
+  // covers another module; in focus mode it docks over the twin, above the bar pill.
+  const top = 'calc(var(--header-h) + var(--gap))';
+  const bottom = focus ? 'calc(var(--footer-h) + 52px + var(--gap) * 2)' : 'calc(var(--footer-h) + var(--bar-h) + var(--gap) * 2)';
   return (
     <AnimatePresence>
       {sel && ctx && head && page === 'live' && (
@@ -396,30 +396,31 @@ export function FacilityInspector() {
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: 24, opacity: 0 }}
           transition={{ duration: 0.22, ease: [0.2, 0.7, 0.2, 1] }}
-          className="absolute right-[var(--pad-x)] z-30 flex w-[min(360px,calc(100vw-24px))] flex-col overflow-hidden rounded-[12px] border border-line-strong bg-white shadow-[0_18px_44px_-14px_rgba(21,40,60,0.45),0_3px_10px_-3px_rgba(21,40,60,0.18)] transition-[top,bottom] duration-300"
+          className="ui-dark glass glass-solid absolute right-[var(--pad-x)] z-30 flex w-[var(--rail-w)] flex-col overflow-hidden rounded-[14px] transition-[top,bottom] duration-300"
           style={{ top, bottom }}
           data-testid="inspector"
           aria-label="Asset inspector"
         >
-          <div className="flex items-start gap-2 border-b border-line px-4 pt-3 pb-2.5">
+          <div className="flex items-start gap-2 border-b border-line px-4 pt-3.5 pb-3">
             <div className="min-w-0 flex-1">
-              <div className="truncate text-[15px] font-semibold text-navy">{head.title}</div>
+              <div className="t-kicker">Inspector</div>
+              <div className="mt-1 truncate text-[16px] font-semibold text-navy">{head.title}</div>
               <div className="truncate text-[12px] text-slate">{head.sub}</div>
             </div>
             <button
               type="button"
-              className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[11.5px] font-semibold text-info hover:bg-info-soft"
+              className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[11.5px] font-semibold text-info hover:bg-white/10"
               onClick={() => requestCamera({ focus: sel })}
               data-tip="Frame in 3D"
               data-tip-pos="bottom-end"
             >
               <Crosshair size={14} /> Focus
             </button>
-            <button type="button" className="rounded-md p-1 text-slate hover:bg-wash" onClick={() => setSelected(null)} aria-label="Close inspector">
+            <button type="button" className="rounded-md p-1 text-slate hover:bg-white/10 hover:text-navy" onClick={() => setSelected(null)} aria-label="Close inspector" data-testid="inspector-close">
               <X size={16} />
             </button>
           </div>
-          <div className={clsx('enc-scroll min-h-0 flex-1 overflow-y-auto px-4 pb-4')}>
+          <div className={clsx('rail-scroll min-h-0 flex-1 px-4 pb-4')}>
             <AssetDetails sel={sel} run={ctx.run} topology={ctx.topology} frame={ctx.frame} />
             <p className="mt-4 text-[11px] text-mist">
               State at {ctx.frame.clock} (simulated) · {ctx.run.provenance.source === 'live' ? 'live solver' : 'replay of precomputed solver output'}

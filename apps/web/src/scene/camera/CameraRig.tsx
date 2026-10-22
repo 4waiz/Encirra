@@ -149,7 +149,10 @@ export function CameraRig() {
   // When the free band is tall (dashboard cards hidden in focus mode) the lens also zooms in, by
   // rendering a centred sub-window of the frame, so the district fills the space instead of
   // shrinking into the middle. Camera pose, fov and the user's dolly are untouched.
+  // Side-rail layouts (a narrow, tall centre band) are handled too: the lens also shifts horizontally to
+  // the band centre, and the zoom is capped by the band width (it may zoom out a little below 1).
   const shift = useRef(0);
+  const shiftX = useRef(0);
   const zoom = useRef(1);
   const size = useThree((s) => s.size);
   useFrame(() => {
@@ -157,21 +160,30 @@ export function CameraRig() {
     const H = size.height;
     const W = size.width;
     const bandCentre = ol ? ol.safe.y + ol.safe.height / 2 : H * 0.495;
+    const bandCentreX = ol ? ol.safe.x + ol.safe.width / 2 : W / 2;
     const bandRatio = ol ? ol.safe.height / H : 0.45;
+    const bandRatioW = ol ? ol.safe.width / W : 1;
     const targetShift = MathUtils.clamp(H / 2 - bandCentre, -H * 0.15, H * 0.15);
-    const targetZoom = MathUtils.clamp(0.55 + 0.9 * bandRatio, 1, 1.38);
+    const targetShiftX = MathUtils.clamp(W / 2 - bandCentreX, -W * 0.2, W * 0.2);
+    // height-driven zoom (focus mode), capped so the district (≈ 50 % of the frame width at zoom 1)
+    // still fits the band width with a margin
+    const zoomH = MathUtils.clamp(0.55 + 0.9 * bandRatio, 1, 1.38);
+    const zoomW = (bandRatioW * 0.92) / 0.52;
+    const targetZoom = MathUtils.clamp(Math.min(zoomH, zoomW), 0.8, 1.38);
     shift.current += (targetShift - shift.current) * 0.08;
+    shiftX.current += (targetShiftX - shiftX.current) * 0.08;
     zoom.current += (targetZoom - zoom.current) * 0.08;
     const s = Math.round(shift.current * 2) / 2;
+    const sx = Math.round(shiftX.current * 2) / 2;
     const z = Math.round(zoom.current * 1000) / 1000;
     const v = camera.view;
-    if (Math.abs(s) < 0.5 && Math.abs(z - 1) < 0.002) {
+    if (Math.abs(s) < 0.5 && Math.abs(sx) < 0.5 && Math.abs(z - 1) < 0.002) {
       if (v && v.enabled) camera.clearViewOffset();
       return;
     }
     const w = W / z;
     const h = H / z;
-    const x = (W - w) / 2;
+    const x = (W - w) / 2 + sx / z;
     const y = H / 2 - (H / 2 - s) / z;
     if (!v || !v.enabled || v.offsetX !== x || v.offsetY !== y || v.width !== w || v.fullWidth !== W || v.fullHeight !== H) {
       camera.setViewOffset(W, H, x, y, w, h);

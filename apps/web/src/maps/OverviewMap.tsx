@@ -80,15 +80,23 @@ export function junctionsEverLow(frames: Frame[], k: number, thr: number): Set<n
   return s;
 }
 
-const Base = memo(function Base() {
+/** Map surface colours: light (content pages) and dark (Live Twin rails). */
+export const MAP_THEME = {
+  light: { ground: '#dfe6ed', block: '#eef2f6', road: '#ffffff', unmodelled: '#D7DDE3', outline: 'rgba(255,255,255,0.9)', facility: '#2B3D50', selected: '#15283C' },
+  dark: { ground: '#101d2f', block: '#16263b', road: '#22364f', unmodelled: '#2c3e55', outline: 'rgba(11,22,36,0.85)', facility: '#F2F6FA', selected: '#FFFFFF' },
+} as const;
+export type MapTheme = keyof typeof MAP_THEME;
+
+const Base = memo(function Base({ theme }: { theme: MapTheme }) {
+  const c = MAP_THEME[theme];
   return (
     <g>
-      <rect x={P.minX} y={P.minZ} width={P.maxX - P.minX} height={P.maxZ - P.minZ} rx={8} fill="#dfe6ed" />
+      <rect x={P.minX} y={P.minZ} width={P.maxX - P.minX} height={P.maxZ - P.minZ} rx={8} fill={c.ground} />
       {cityLayout.blocks.map((b) => (
-        <rect key={b.id} x={b.minX} y={b.minZ} width={b.maxX - b.minX} height={b.maxZ - b.minZ} rx={3} fill="#eef2f6" />
+        <rect key={b.id} x={b.minX} y={b.minZ} width={b.maxX - b.minX} height={b.maxZ - b.minZ} rx={3} fill={c.block} />
       ))}
       {cityLayout.roads.map((r) => (
-        <path key={r.id} d={pathD(r.points as P2[])} stroke="#ffffff" strokeWidth={r.width * 0.7} fill="none" strokeLinecap="square" />
+        <path key={r.id} d={pathD(r.points as P2[])} stroke={c.road} strokeWidth={r.width * 0.7} fill="none" strokeLinecap="square" />
       ))}
     </g>
   );
@@ -102,6 +110,7 @@ export function OverviewMap({
   selected,
   onPick,
   onHover,
+  theme = 'light',
 }: {
   topology: NetworkTopology;
   frames: Frame[];
@@ -110,7 +119,9 @@ export function OverviewMap({
   selected: Selection | null;
   onPick: (sel: Selection) => void;
   onHover?: (sel: Selection | null) => void;
+  theme?: MapTheme;
 }) {
+  const tc = MAP_THEME[theme];
   const frame = frames[Math.min(k, frames.length - 1)];
   const thr = topology.water.serviceThresholdM;
   const everLow = useMemo(() => junctionsEverLow(frames, k, thr), [frames, k, thr]);
@@ -125,7 +136,7 @@ export function OverviewMap({
           <feGaussianBlur stdDeviation="12" />
         </filter>
       </defs>
-      <Base />
+      <Base theme={theme} />
       <g filter="url(#ov-blur)" opacity={0.5}>
         {cityLayout.buildings.map((b) => {
           const c = classes.get(b.id)?.[mode];
@@ -140,8 +151,8 @@ export function OverviewMap({
           <polygon
             key={b.id}
             points={polys[i]}
-            fill={colors[cls]}
-            stroke={isSel ? '#15283C' : b.facilityId ? '#2B3D50' : 'rgba(255,255,255,0.9)'}
+            fill={cls === 'unmodelled' ? tc.unmodelled : colors[cls]}
+            stroke={isSel ? tc.selected : b.facilityId ? tc.facility : tc.outline}
             strokeWidth={isSel ? 3 : b.facilityId ? 1.6 : 1}
             className="cursor-pointer transition-[fill] duration-300 hover:brightness-95"
             onClick={() => onPick(sel)}

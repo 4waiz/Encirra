@@ -46,6 +46,24 @@ export async function runSmoke({ baseUrl = BASE_URL, viewport = { width: 1600, h
       return status;
     });
 
+    await check('first visit: welcome card, Explore dismisses, "?" reopens with shortcuts', async () => {
+      await sel('welcome').waitFor({ state: 'visible', timeout: 8_000 });
+      const text = await sel('welcome').innerText();
+      if (!/Play the 3-minute story/.test(text)) throw new Error('no story CTA');
+      await page.waitForTimeout(400);
+      await shot('01b-welcome');
+      await sel('welcome-explore').click();
+      await sel('welcome').waitFor({ state: 'hidden', timeout: 3_000 });
+      await sel('help-open').click();
+      await sel('welcome-shortcuts').waitFor({ state: 'visible', timeout: 3_000 });
+      const keys = await sel('welcome-shortcuts').locator('kbd').count();
+      await page.keyboard.press('Escape');
+      await sel('welcome').waitFor({ state: 'hidden', timeout: 3_000 });
+      const remembered = await page.evaluate(() => localStorage.getItem('encirra.welcome.v1'));
+      if (remembered !== 'dismissed') throw new Error(`dismissal not remembered (${remembered})`);
+      return `welcome shown once; help lists ${keys} shortcuts; dismissal remembered`;
+    });
+
     await check('3D canvas present', async () => {
       await page.waitForSelector('canvas', { timeout: 20_000 });
       const n = await page.locator('canvas').count();
@@ -126,6 +144,58 @@ export async function runSmoke({ baseUrl = BASE_URL, viewport = { width: 1600, h
       const enc = await sel('recovery-title').innerText();
       await shot('03-end-encirra');
       return `none: "${none}" · encirra: "${enc}"`;
+    });
+
+    await check('impact card: Encirra vs Grid-only from the loaded runs', async () => {
+      const rows = await page.locator('[data-testid="impact-card"] [data-testid^="impact-"][data-tip]').evaluateAll((els) =>
+        els.map((e) => `${e.getAttribute('data-testid').replace('impact-', '')}=${e.querySelector('[data-verdict]')?.getAttribute('data-verdict')}`),
+      );
+      if (rows.length !== 4) throw new Error(`${rows.length} rows`);
+      const hospital = await sel('impact-hospital-water').innerText();
+      if (!/\d+ min/.test(hospital)) throw new Error(`hospital row "${hospital}"`);
+      await sel('impact-open-why').click();
+      await sel('why-plan').waitFor({ state: 'visible', timeout: 5_000 });
+      await page.keyboard.press('Escape');
+      await sel('why-plan').waitFor({ state: 'hidden', timeout: 5_000 });
+      return `${rows.join(', ')} · opens Why-this-plan`;
+    });
+
+    await check('inspector docks in the telemetry rail and closes', async () => {
+      await sel('fac-row-hospital').click();
+      await sel('inspector').waitFor({ state: 'visible', timeout: 5_000 });
+      await page.waitForTimeout(450);
+      const railHidden = await sel('rail-right').evaluate((e) => e.hasAttribute('inert'));
+      const ib = await sel('inspector').boundingBox();
+      const lb = await sel('rail-left').boundingBox();
+      if (!railHidden) throw new Error('telemetry rail still interactive under the inspector');
+      if (ib.x < lb.x + lb.width) throw new Error('inspector overlaps the story rail');
+      await shot('03b-inspector');
+      await sel('inspector-close').click();
+      await sel('inspector').waitFor({ state: 'hidden', timeout: 5_000 });
+      return `inspector ${Math.round(ib.width)}×${Math.round(ib.height)} at x=${Math.round(ib.x)}; rail restored`;
+    });
+
+    await check('focus mode (F) slides the rails out and back', async () => {
+      await page.keyboard.press('f');
+      await page.waitForFunction(() => document.querySelector('[data-testid="live-twin"]')?.getAttribute('data-focus') === 'on', null, { timeout: 3_000 });
+      await page.waitForTimeout(500);
+      const lb = await sel('rail-left').boundingBox();
+      if (lb && lb.x + lb.width > 4) throw new Error(`left rail still visible (x=${lb.x})`);
+      await shot('03c-focus');
+      await sel('focus-twin').click();
+      await page.waitForFunction(() => document.querySelector('[data-testid="live-twin"]')?.getAttribute('data-focus') === 'off', null, { timeout: 3_000 });
+      return 'rails hidden in focus mode; "Show dashboard" restores them';
+    });
+
+    await check('district overview: Feeder tab shows the feeder topology', async () => {
+      await page.keyboard.press('Escape'); // clear any 3D selection (the inspector would cover the rail)
+      await page.locator('[data-testid="overview-tabs"] [data-value="feeder"]').click();
+      await sel('feeder-card').waitFor({ state: 'visible', timeout: 3_000 });
+      const svg = await sel('feeder-card').locator('svg[aria-label="Feeder status map"]').count();
+      await page.locator('[data-testid="overview-tabs"] [data-value="power"]').click();
+      await sel('overview-map').waitFor({ state: 'visible', timeout: 3_000 });
+      if (!svg) throw new Error('no feeder map');
+      return 'feeder map ↔ district map';
     });
 
     await check('"Why this plan?" opens with candidates and verification', async () => {

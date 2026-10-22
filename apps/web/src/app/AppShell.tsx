@@ -18,6 +18,7 @@ const AssetsPage = lazy(() => import('@/pages/AssetsPage').then((m) => ({ defaul
 const ReportsPage = lazy(() => import('@/pages/ReportsPage').then((m) => ({ default: m.ReportsPage })));
 import { Header } from './Header';
 import { Footer } from './Footer';
+import { WelcomeCard, useFirstVisitWelcome } from './Welcome';
 
 function useKeyboard() {
   useEffect(() => {
@@ -26,6 +27,19 @@ function useKeyboard() {
       if (el && (el.closest('input, textarea, select, [contenteditable="true"]') || el.getAttribute('role') === 'dialog')) return;
       const s = useTwin.getState();
       if (s.whyPlanOpen || s.aboutOpen) return;
+      if (e.key === 'Escape' && s.welcomeOpen) {
+        s.setWelcomeOpen(false);
+        try {
+          window.localStorage.setItem('encirra.welcome.v1', 'dismissed');
+        } catch {
+          /* storage unavailable */
+        }
+        return;
+      }
+      if (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        s.setWelcomeOpen(!s.welcomeOpen, 'help');
+        return;
+      }
       if (e.key === ' ' && !(el instanceof HTMLButtonElement)) {
         e.preventDefault();
         playback.toggle();
@@ -127,6 +141,7 @@ export function AppShell() {
   usePlaybackLoop();
   useDemoDirector();
   useKeyboard();
+  useFirstVisitWelcome();
   useEffect(() => {
     void bootstrap();
   }, []);
@@ -136,8 +151,8 @@ export function AppShell() {
       <div className="absolute inset-0 z-0">
         <TwinCanvas />
       </div>
-      {/* light veil: keeps the header legible over the sky, and softens the city behind content pages */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-[calc(var(--header-h)+40px)] bg-gradient-to-b from-white/55 via-white/25 to-transparent" />
+      {/* soft edge vignettes behind the rails and bars: the glass reads as one surface with the dusk scene */}
+      <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,transparent_55%,rgba(8,16,27,0.28)_100%)]" />
       <AnimatePresence>
         {page !== 'live' && (
           <motion.div
@@ -153,6 +168,7 @@ export function AppShell() {
       <Header />
       <PageLayer />
       <Footer />
+      <WelcomeCard />
       <FacilityInspector />
       <WhyPlanModal />
       <AboutModal />

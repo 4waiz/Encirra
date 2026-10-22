@@ -113,13 +113,18 @@ export function Segmented<T extends string>({
   size = 'sm',
   className,
   testId,
+  stretch,
+  tipPos,
 }: {
   value: T;
   options: { value: T; label: ReactNode; tip?: string; disabled?: boolean }[];
   onChange: (v: T) => void;
-  size?: 'xs' | 'sm';
+  size?: 'xs' | 'sm' | 'md';
   className?: string;
   testId?: string;
+  /** buttons share the full width */
+  stretch?: boolean;
+  tipPos?: string;
 }) {
   return (
     <div role="radiogroup" data-testid={testId} className={clsx('inline-flex items-center gap-0.5 rounded-lg bg-wash p-0.5', className)}>
@@ -131,12 +136,14 @@ export function Segmented<T extends string>({
           aria-checked={o.value === value}
           disabled={o.disabled}
           data-tip={o.tip}
+          data-tip-pos={o.tip ? tipPos : undefined}
           data-value={o.value}
           onClick={() => onChange(o.value)}
           className={clsx(
             'whitespace-nowrap rounded-md font-medium transition-colors disabled:opacity-40',
-            size === 'xs' ? 'px-2 py-[3px] text-[11px]' : 'px-2.5 py-1 text-[12px]',
-            o.value === value ? 'bg-info text-white shadow-sm' : 'text-ink hover:bg-white',
+            stretch && 'flex-1',
+            size === 'xs' ? 'px-2 py-[3px] text-[11px]' : size === 'md' ? 'px-3 py-[6px] text-[12.5px] font-semibold' : 'px-2.5 py-1 text-[12px]',
+            o.value === value ? 'bg-[var(--seg-on-bg)] text-[var(--seg-on-fg)] shadow-sm' : 'text-ink hover:bg-wash hover:text-navy',
           )}
         >
           {o.label}

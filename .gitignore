@@ -48,3 +48,6 @@ npm-debug.log*
 
 # Blender preview renders: committed as curated JPEGs at milestones only
 assets/blender/previews/*.png
+
+# launch video work files
+brag-output*/

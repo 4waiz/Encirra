@@ -25,7 +25,21 @@ const DistrictBase = memo(function DistrictBase({ ground = '#e9eef3', block = '#
   );
 });
 
-export function FeederMap({ topology, frame, faultActive, faultLineId }: { topology: NetworkTopology; frame: Frame; faultActive: boolean; faultLineId: number | null }) {
+export function FeederMap({
+  topology,
+  frame,
+  faultActive,
+  faultLineId,
+  theme = 'light',
+}: {
+  topology: NetworkTopology;
+  frame: Frame;
+  faultActive: boolean;
+  faultLineId: number | null;
+  theme?: 'light' | 'dark';
+}) {
+  const dark = theme === 'dark';
+  const ring = dark ? '#0d1a2a' : '#fff';
   const routes = useMemo(() => topology.electrical.lines.map((l) => lineRoute(topology, l.id)), [topology]);
   const ps = frame.power;
   const faulted = ps.lineState.findIndex((s) => s === 'faulted');
@@ -34,13 +48,13 @@ export function FeederMap({ topology, frame, faultActive, faultLineId }: { topol
   const subId = topology.electrical.substationBus;
 
   return (
-    <svg viewBox={FEEDER_VIEWBOX} preserveAspectRatio="xMinYMid meet" className="h-full w-full" role="img" aria-label="Feeder status map">
+    <svg viewBox={FEEDER_VIEWBOX} preserveAspectRatio={dark ? 'xMidYMid meet' : 'xMinYMid meet'} className="h-full w-full" role="img" aria-label="Feeder status map">
       <defs>
         <filter id="fm-blur" x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur stdDeviation="14" />
         </filter>
       </defs>
-      <DistrictBase />
+      {dark ? <DistrictBase ground="#101d2f" block="#16263b" road="#22364f" /> : <DistrictBase />}
       {/* affected area: de-energized / faulted buses */}
       <g filter="url(#fm-blur)" opacity={0.55}>
         {topology.electrical.buses.map((b, i) =>
@@ -76,8 +90,8 @@ export function FeederMap({ topology, frame, faultActive, faultLineId }: { topol
         const st = ps.busState[i] ?? 'energized';
         const c = ps.busShed[i] ? STATE_COLOR.deenergized : STATE_COLOR[st];
         if (b.id === subId)
-          return <rect key={b.id} x={b.pos[0] - 9} y={b.pos[1] - 9} width={18} height={18} rx={3} fill="#1d4f86" stroke="#fff" strokeWidth={2.5} />;
-        return <circle key={b.id} cx={b.pos[0]} cy={b.pos[1]} r={b.critical ? 7.5 : 6} fill={c} stroke="#fff" strokeWidth={2.5} />;
+          return <rect key={b.id} x={b.pos[0] - 9} y={b.pos[1] - 9} width={18} height={18} rx={3} fill={dark ? '#6AA8EE' : '#1d4f86'} stroke={ring} strokeWidth={2.5} />;
+        return <circle key={b.id} cx={b.pos[0]} cy={b.pos[1]} r={b.critical ? 7.5 : 6} fill={c} stroke={ring} strokeWidth={2.5} />;
       })}
       {spark && (
         <g transform={`translate(${spark[0]} ${spark[1]})`}>

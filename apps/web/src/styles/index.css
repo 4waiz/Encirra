@@ -42,36 +42,105 @@
   --color-steel: #7f93a8;
 }
 
+/* `compact:` = rails narrower than ~350 px (viewports below 1700 CSS px) */
+@custom-variant compact (@media (max-width: 1699.98px));
+/* `tight:` = viewports under 1000 px tall: the story rail drops its secondary metrics */
+@custom-variant tight (@media (max-height: 999.98px));
+
 :root {
   color-scheme: light;
-  --panel-bg: rgba(255, 255, 255, 0.86);
-  --panel-bg-strong: rgba(255, 255, 255, 0.94);
+  --panel-bg: rgba(255, 255, 255, 0.9);
+  --panel-bg-strong: rgba(255, 255, 255, 0.96);
   --panel-border: rgba(255, 255, 255, 0.72);
   --panel-shadow: 0 10px 30px -12px rgba(21, 40, 60, 0.32), 0 2px 6px -2px rgba(21, 40, 60, 0.12);
-  --panel-radius: 10px;
+  --panel-radius: 14px;
 
-  /* layout rhythm (scales with the viewport; see the reference composition) */
-  --pad-x: clamp(10px, 0.8vw, 16px);
-  --gap: clamp(8px, 0.68vw, 13px);
-  --header-h: clamp(66px, 10.6vh, 104px);
-  --top-h: clamp(112px, 14.2vh, 150px);
-  --bottom-h: clamp(178px, 23.5vh, 254px);
-  --footer-h: 24px;
+  /* layout: slim header · side rails · bottom transport bar · credit footer */
+  --pad-x: 12px;
+  --gap: 12px;
+  --header-h: 56px;
+  --bar-h: 58px;
+  --footer-h: 22px;
+  --rail-w: clamp(320px, 20.5vw, 400px);
 
-  /* type scale */
-  --fs-title: clamp(13.5px, 0.98vw, 17.5px);
-  --fs-metric: clamp(15px, 1.08vw, 19.5px);
-  --fs-body: clamp(11.5px, 0.76vw, 13.5px);
-  --fs-label: clamp(10.5px, 0.66vw, 12px);
-  --fs-micro: clamp(9.5px, 0.58vw, 11px);
+  /* segmented control "on" state (light surfaces) */
+  --seg-on-bg: var(--color-info);
+  --seg-on-fg: #ffffff;
+
+  /* type scale (light content pages + shared primitives) */
+  --fs-title: clamp(13.5px, 0.9vw, 16px);
+  --fs-metric: clamp(15px, 1.05vw, 19px);
+  --fs-body: clamp(12px, 0.74vw, 13.5px);
+  --fs-label: clamp(10.5px, 0.64vw, 12px);
+  --fs-micro: clamp(10px, 0.58vw, 11px);
 }
 
-@media (max-height: 760px) {
+@media (max-width: 1499.98px) {
   :root {
-    --top-h: clamp(112px, 17vh, 130px);
-    --bottom-h: clamp(176px, 27vh, 210px);
-    --header-h: 78px;
+    --rail-w: 300px;
   }
+}
+@media (max-width: 1299.98px) {
+  :root {
+    --rail-w: 276px;
+  }
+}
+
+/*
+ * Dark operations surface. Re-points the colour tokens inside the scope so every shared primitive
+ * (labels, pills, segmented controls, tables) reads correctly on the navy glass without forks.
+ */
+.ui-dark {
+  color-scheme: dark;
+  --color-navy: #f2f6fa; /* primary text */
+  --color-ink: #d3dde8;
+  --color-slate: #9fb0c2; /* secondary text */
+  --color-mist: #6f8296;
+  --color-line: rgba(255, 255, 255, 0.08);
+  --color-line-strong: rgba(255, 255, 255, 0.14);
+  --color-wash: rgba(255, 255, 255, 0.06);
+  --color-surface: rgba(255, 255, 255, 0.04);
+  --color-active: rgba(255, 255, 255, 0.1);
+  --color-info: #6aa8ee;
+  --color-info-soft: rgba(106, 168, 238, 0.16);
+  --color-brand-deep: #3f7fcc;
+  --color-ok-deep: #4ed69b;
+  --color-ok-soft: rgba(23, 167, 105, 0.2);
+  --color-fault-deep: #ff8a80;
+  --color-fault-soft: rgba(240, 68, 56, 0.2);
+  --color-warn: #f5a623;
+  --color-warn-soft: rgba(245, 166, 35, 0.18);
+  --color-power-deep: #f7b84e;
+  --color-power-soft: rgba(245, 166, 35, 0.16);
+  --color-water-deep: #52d4f3;
+  --color-water-soft: rgba(0, 191, 234, 0.15);
+  --seg-on-bg: #f2f6fa;
+  --seg-on-fg: #0b1624;
+  color: var(--color-navy);
+}
+
+/* navy glass panel used by the header, rails, bottom bar and inspector (light blur only) */
+.glass {
+  background: linear-gradient(180deg, rgba(20, 35, 54, 0.86) 0%, rgba(10, 20, 33, 0.86) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 16px 36px -20px rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(10px) saturate(1.15);
+  -webkit-backdrop-filter: blur(10px) saturate(1.15);
+}
+.glass-solid {
+  background: linear-gradient(180deg, #15243a 0%, #0c1828 100%);
+}
+/* interactive glass modules: hover lifts the hairline, nothing animates continuously */
+.glass-hover {
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+.glass-hover:hover {
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
 html,
@@ -183,8 +252,9 @@ button:disabled {
   max-width: 260px;
   padding: 6px 8px;
   border-radius: 6px;
-  background: rgba(21, 40, 60, 0.94);
-  color: #fff;
+  background: rgba(11, 22, 36, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f2f6fa;
   font-size: 11px;
   font-weight: 500;
   line-height: 1.35;
@@ -243,9 +313,24 @@ button:disabled {
 .enc-blink {
   animation: enc-blink 1.4s ease-in-out infinite;
 }
+@keyframes enc-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 166, 35, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(245, 166, 35, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 166, 35, 0);
+  }
+}
+.enc-ring {
+  animation: enc-ring 1.6s ease-out infinite;
+}
 @media (prefers-reduced-motion: reduce) {
   .enc-pulse,
-  .enc-blink {
+  .enc-blink,
+  .enc-ring {
     animation: none;
   }
 }
@@ -254,6 +339,91 @@ button:disabled {
 :focus-visible {
   outline: 2px solid var(--color-info);
   outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ───────────── rail typography ───────────── */
+.t-kicker {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  color: var(--color-slate);
+}
+.t-section {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  line-height: 1.25;
+  color: var(--color-navy);
+}
+.t-num-xl {
+  font-size: clamp(24px, 1.5vw, 30px);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.t-num {
+  font-size: clamp(17px, 1.02vw, 20px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.t-num .u,
+.t-num-xl .u {
+  font-size: 0.56em;
+  font-weight: 600;
+  letter-spacing: 0;
+  margin-left: 0.2em;
+  color: var(--color-slate);
+}
+@media (max-height: 820px) {
+  .t-num-xl {
+    font-size: clamp(21px, 1.35vw, 26px);
+  }
+  .t-num {
+    font-size: clamp(15px, 0.95vw, 18px);
+  }
+}
+
+/* rail scroll containers: hidden scrollbar until hover, soft fade at the bottom edge */
+.rail-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.rail-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.rail-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+}
+.rail-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+}
+.rail-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.fade-bottom {
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 18px), transparent);
+  mask-image: linear-gradient(180deg, #000 calc(100% - 18px), transparent);
+}
+
+/* details disclosure inside rail modules */
+.enc-details > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.enc-details > summary::-webkit-details-marker {
+  display: none;
+}
+.enc-details[open] .enc-chev {
+  transform: rotate(180deg);
 }
 
 /* Recharts: keep text in text tokens and avoid focus outlines on the svg surface */
@@ -262,6 +432,9 @@ button:disabled {
   outline: none;
 }
 .recharts-text {
+  fill: var(--color-slate);
+}
+.ui-dark .recharts-cartesian-axis-tick-value {
   fill: var(--color-slate);
 }
 
@@ -305,6 +478,17 @@ input[type='range'].enc-range:disabled::-webkit-slider-thumb {
 }
 
 /* ───────────── width-based helpers for the header ───────────── */
+.show-below-1800 {
+  display: none;
+}
+@media (max-width: 1799.98px) {
+  .hide-below-1800 {
+    display: none;
+  }
+  .show-below-1800 {
+    display: inline;
+  }
+}
 .show-below-1500 {
   display: none;
 }

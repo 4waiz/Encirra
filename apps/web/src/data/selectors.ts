@@ -633,3 +633,320 @@ export function summariesByStrategy(
   }
   return out;
 }
+
+// ───────────────────────────────────────────────────────────── focus tank
+/** Tank shown with the pressure chart: the tank in the pressure zone of the first pump that tripped (else T2, else the first). */
+export function focusTank(run: RunResult, topology: NetworkTopology): number {
+  const tanks = topology.water.tanks;
+  const first = run.frames[0];
+  if (first) {
+    for (const f of run.frames) {
+      const i = f.water.pumpOn.findIndex((on, j) => !on && first.water.pumpOn[j]);
+      if (i >= 0) {
+        const pump = topology.water.pumps[i];
+        const zone = topology.water.junctions.find((j) => j.id === pump?.to)?.zone;
+        const ti = tanks.findIndex((t) => t.zone === zone);
+        if (ti >= 0) return ti;
+        break;
+      }
+    }
+  }
+  const t2 = tanks.findIndex((t) => t.id === 'T2');
+  return t2 >= 0 ? t2 : 0;
+}
+
+// ───────────────────────────────────────────────────────────── water service minutes
+/**
+ * Minutes a facility's water node is below the service threshold over the run horizon:
+ * (frames with pressure < topology.water.serviceThresholdM) × frame spacing in minutes. For the
+ * worst-served critical node this equals summary.minutesBelowServicePressure.
+ */
+export function facilityMinutesBelowService(run: RunResult, topology: NetworkTopology, facilityId: string): number | null {
+  const ix = indexTopology(topology);
+  const f = ix.facility.get(facilityId);
+  if (!f?.waterNode) return null;
+  const j = ix.junctionIdx.get(f.waterNode);
+  if (j == null) return null;
+  const thr = topology.water.serviceThresholdM;
+  let n = 0;
+  for (const fr of run.frames) if ((fr.water.junctionPressureM[j] ?? Infinity) < thr) n++;
+  return (n * stepSeconds(run)) / 60;
+}
+
+// ───────────────────────────────────────────────────────────── impact: Encirra vs Grid-only
+export type ImpactVerdict = 'better' | 'worse' | 'same' | 'n/a';
+export interface ImpactRow {
+  key: 'hospital-water' | 'restored' | 'pumps' | 'violations';
+  label: string;
+  tip: string;
+  grid: number | null;
+  encirra: number | null;
+  gridText: string;
+  encirraText: string;
+  better: 'higher' | 'lower';
+  /** encirra − grid, null when either side is missing */
+  delta: number | null;
+  deltaText: string;
+  verdict: ImpactVerdict;
+}
+export interface ImpactModel {
+  rows: ImpactRow[];
+  gridPlan: string | null;
+  encirraPlan: string | null;
+  /** both strategies selected the same switching plan */
+  samePlan: boolean;
+  /** every row is equal */
+  allSame: boolean;
+  horizonMin: number | null;
+}
+
+const IMPACT_EPS: Record<ImpactRow['key'], number> = { 'hospital-water': 0.5, restored: 0.05, pumps: 0.5, violations: 0.5 };
+
+function verdictOf(delta: number | null, better: 'higher' | 'lower', eps: number): ImpactVerdict {
+  if (delta == null) return 'n/a';
+  if (Math.abs(delta) < eps) return 'same';
+  return (better === 'higher' ? delta > 0 : delta < 0) ? 'better' : 'worse';
+}
+
+/**
+ * Headline comparison of the two recovery strategies for the loaded scenario, from the full-run
+ * results (runsByStrategy, falling back to the comparison summaries):
+ *  - hospital water outage: facilityMinutesBelowService for the hospital (falls back to
+ *    summary.minutesBelowServicePressure, any critical facility, when frames are unavailable);
+ *  - load restored: summaryRestoredShare (end of horizon, % of affected demand);
+ *  - pumps running at the end of the horizon (summary.pumpsAvailableEnd / pumpsTotal);
+ *  - hard-constraint violations observed in the frames (summary.constraintViolations).
+ */
+export function impactComparison(
+  runs: Partial<Record<StrategyId, RunResult>>,
+  comparison: { summaries: Record<StrategyId, RunResult['summary']>; plans?: Record<StrategyId, { label: string } | null> } | null,
+  topology: NetworkTopology,
+): ImpactModel | null {
+  const sums = summariesByStrategy(runs, comparison);
+  const g = sums['grid-only'];
+  const e = sums.encirra;
+  if (!g || !e) return null;
+  const hospital = topology.facilities.find((f) => f.kind === 'hospital');
+  const thr = topology.water.serviceThresholdM;
+  const gRun = runs['grid-only'];
+  const eRun = runs.encirra;
+  const useHospital = !!(hospital && gRun && eRun && facilityMinutesBelowService(eRun, topology, hospital.id) != null);
+  const hosp = (r: RunResult | undefined, sum: RunResult['summary']) =>
+    useHospital && r && hospital ? (facilityMinutesBelowService(r, topology, hospital.id) ?? sum.minutesBelowServicePressure) : sum.minutesBelowServicePressure;
+  const horizonMin = eRun?.params.horizonMin ?? gRun?.params.horizonMin ?? null;
+  const fmtMin = (v: number) => `${Math.round(v)} min`;
+  const sign = (d: number) => (d > 0 ? '+' : '−');
+
+  const mk = (
+    key: ImpactRow['key'],
+    label: string,
+    tip: string,
+    grid: number | null,
+    enc: number | null,
+    better: 'higher' | 'lower',
+    text: (v: number) => string,
+    deltaFmt: (absDelta: number) => string,
+  ): ImpactRow => {
+    const delta = grid != null && enc != null ? enc - grid : null;
+    const verdict = verdictOf(delta, better, IMPACT_EPS[key]);
+    return {
+      key,
+      label,
+      tip,
+      grid,
+      encirra: enc,
+      gridText: grid == null ? '—' : text(grid),
+      encirraText: enc == null ? '—' : text(enc),
+      better,
+      delta,
+      deltaText: delta == null ? '—' : verdict === 'same' ? 'Same' : `${sign(delta)}${deltaFmt(Math.abs(delta))}`,
+      verdict,
+    };
+  };
+
+  const rows: ImpactRow[] = [
+    mk(
+      'hospital-water',
+      useHospital ? 'Hospital water outage' : 'Critical water outage',
+      useHospital
+        ? `Minutes ${hospital!.name} is below the ${thr} m service pressure over the run horizon (frames below the threshold × frame spacing).`
+        : `Minutes any critical facility is below the ${thr} m service pressure (summary.minutesBelowServicePressure).`,
+      hosp(gRun, g),
+      hosp(eRun, e),
+      'lower',
+      fmtMin,
+      fmtMin,
+    ),
+    mk(
+      'restored',
+      'Load restored',
+      'End of horizon: load restored ÷ (load restored + remaining unserved, including load shed by the plan).',
+      summaryRestoredShare(g),
+      summaryRestoredShare(e),
+      'higher',
+      (v) => `${v.toFixed(1)}%`,
+      (d) => `${d.toFixed(1)} pts`,
+    ),
+    mk(
+      'pumps',
+      'Pumps running at end',
+      'Water pumps available at the end of the horizon (summary.pumpsAvailableEnd).',
+      g.pumpsAvailableEnd,
+      e.pumpsAvailableEnd,
+      'higher',
+      (v) => `${Math.round(v)}/${e.pumpsTotal}`,
+      (d) => `${Math.round(d)}`,
+    ),
+    mk(
+      'violations',
+      'Hard violations',
+      'Hard-constraint violations (voltage band, thermal limits, pressure) observed in the frames (summary.constraintViolations).',
+      g.constraintViolations,
+      e.constraintViolations,
+      'lower',
+      (v) => `${Math.round(v)}`,
+      (d) => `${Math.round(d)}`,
+    ),
+  ];
+  const gridPlan = gRun?.plan?.label ?? comparison?.plans?.['grid-only']?.label ?? null;
+  const encirraPlan = eRun?.plan?.label ?? comparison?.plans?.encirra?.label ?? null;
+  return {
+    rows,
+    gridPlan,
+    encirraPlan,
+    samePlan: gridPlan != null && gridPlan === encirraPlan,
+    allSame: rows.every((r) => r.verdict === 'same'),
+    horizonMin,
+  };
+}
+
+// ───────────────────────────────────────────────────────────── incident status (left rail hero)
+export type IncidentTone = 'ok' | 'fault' | 'warn' | 'neutral';
+export interface IncidentModel {
+  tone: IncidentTone;
+  title: string;
+  /** plain-English description of the incident (or of normal operation) */
+  sentence: string;
+  /** what to watch right now (a stopped pump draining a tank, a critical node below service) */
+  watch: string | null;
+  active: boolean;
+}
+
+/**
+ * Overall incident state at frame k, from the frame stage, the plan and the frame's own values.
+ * A critical facility below service pressure is reported first (red), then the stage. A verified,
+ * applied plan reads green only when every critical facility at risk has recovered and every pump
+ * runs again (otherwise "Partially restored", amber). The baseline (no intervention) is grey.
+ */
+export function incidentModel(run: RunResult, topology: NetworkTopology, k: number): IncidentModel {
+  const frames = run.frames;
+  const i = Math.max(0, Math.min(frames.length - 1, k));
+  const frame = frames[i];
+  const prev = frames[Math.max(0, i - 1)];
+  const marks = runMarks(run);
+  const s = run.summary;
+  const active = marks.faultT != null && frame.t >= marks.faultT && frame.stage !== 'ready';
+  const thr = topology.water.serviceThresholdM;
+  const ix = indexTopology(topology);
+
+  if (!active) {
+    const supplied = frame.power.busState.filter((st) => st === 'energized' || st === 'restored').length;
+    return {
+      tone: 'ok',
+      title: 'Normal operation',
+      sentence: `${supplied} of ${frame.power.busState.length} buses supplied, ${frame.water.pumpsOnline} of ${frame.water.pumpsTotal} pumps running, ${Math.round(frame.water.deliveredPct)}% of water demand met.`,
+      watch: null,
+      active: false,
+    };
+  }
+
+  const feeder = topology.electrical.feeders.find((f) => f.id === s.feederId)?.name ?? `Feeder ${s.feederId}`;
+  const stations = lostPumpStations(run, topology);
+  const lost = [fmtKW(s.loadInterruptedKW), ...stations];
+  const lostText = lost.length > 1 ? `${lost.slice(0, -1).join(', ')} and ${lost[lost.length - 1]}` : lost[0];
+  const sentence = `${feeder} tripped at ${s.faultClock}: ${lostText} lost supply.`;
+
+  // critical facility below service pressure right now
+  let below: { name: string; p: number } | null = null;
+  for (const f of topology.facilities) {
+    if (!f.critical || !f.waterNode) continue;
+    const j = ix.junctionIdx.get(f.waterNode);
+    const p = j == null ? null : frame.water.junctionPressureM[j];
+    if (p != null && p < thr && (!below || p < below.p)) below = { name: f.name, p };
+  }
+
+  // a pump that ran at the start and is stopped now, and the tank it leaves draining
+  let watch: string | null = null;
+  const start = frames[0];
+  const stopped = frame.water.pumpOn.findIndex((on, j) => !on && start.water.pumpOn[j]);
+  if (stopped >= 0) {
+    const pump = topology.water.pumps[stopped];
+    const station = (ix.facilityByPump.get(pump.id)?.name ?? pump.id).replace(/^Pumping Station\s+/, '');
+    const ti = focusTank(run, topology);
+    const tank = topology.water.tanks[ti];
+    const pct = frame.water.tankPct[ti];
+    const falling = pct < (prev.water.tankPct[ti] ?? pct) - 1e-6;
+    watch = tank ? `${station} stopped · Tank ${tank.id} at ${Math.round(pct)}%${falling ? ' and falling' : ''}` : `${station} stopped`;
+  }
+  if (below) {
+    return {
+      tone: 'fault',
+      title: `${below.name} below ${thr} m`,
+      sentence,
+      watch: `${below.p.toFixed(1)} m at the facility, under the ${thr} m service level`,
+      active,
+    };
+  }
+
+  const plan = run.plan;
+  const verified = plan != null && frame.t >= (plan.verifiedAtT ?? Infinity) && plan.verification.passed;
+  const applied = plan != null && plan.appliedAtT != null && frame.t >= plan.appliedAtT;
+  let tone: IncidentTone = 'warn';
+  let title = 'Evaluating recovery';
+  switch (frame.stage) {
+    case 'fault-detected':
+      tone = 'fault';
+      title = 'Feeder fault detected';
+      break;
+    case 'fault-isolated':
+    case 'impact-evaluated':
+    case 'candidates-generated':
+      title = 'Fault isolated · evaluating';
+      break;
+    case 'verification-completed':
+      tone = verified ? 'warn' : 'fault';
+      title = verified ? 'Plan verified · switching next' : 'Plan failed verification';
+      break;
+    case 'recovery-applied':
+      title = 'Switching in progress';
+      break;
+    case 'recovery-complete':
+    case 'partially-restored': {
+      if (frame.stage === 'recovery-complete' && (!plan || !applied)) {
+        tone = 'ok';
+        title = 'Service restored by repair';
+        break;
+      }
+      const crit = criticalProgress(run, topology, i);
+      const allCritical = crit.atRisk === 0 || crit.recovered >= crit.atRisk;
+      const allPumps = frame.water.pumpsOnline >= frame.water.pumpsTotal;
+      if (verified && applied && allCritical && allPumps) {
+        tone = 'ok';
+        title = frame.stage === 'recovery-complete' ? 'Recovery complete' : 'Critical services restored';
+      } else {
+        tone = 'warn';
+        title = 'Partially restored';
+      }
+      break;
+    }
+    case 'recovery-infeasible':
+      tone = 'fault';
+      title = 'No feasible recovery';
+      break;
+    case 'no-intervention':
+      tone = 'neutral';
+      title = 'Outage persists · baseline';
+      break;
+  }
+  return { tone, title, sentence, watch, active };
+}

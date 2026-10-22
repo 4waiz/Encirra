@@ -6,7 +6,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import type { NetworkTopology, ReplayManifest, RunResult } from '@encirra/shared';
-import { criticalProgress, facilityRows, faultCardModel, frameIndexAtT, recoveryCardModel, restoredShare, runMarks, summaryRestoredShare, timelineStatus } from '../selectors';
+import { criticalProgress, facilityMinutesBelowService, facilityRows, faultCardModel, frameIndexAtT, impactComparison, recoveryCardModel, restoredShare, runMarks, summaryRestoredShare, timelineStatus } from '../selectors';
 
 const dir = resolve(__dirname, '../../../public/replay');
 const has = existsSync(join(dir, 'manifest.json'));
@@ -56,5 +56,26 @@ describe.skipIf(!has)('derivations agree with the engine summaries (bundled repl
     // timeline fully resolved at the end; every facility in the frame is listed in the table
     expect(timelineStatus(run.timeline, end.t).some((x) => x.status === 'pending' || x.status === 'active')).toBe(false);
     expect(facilityRows(topo, end)).toHaveLength(end.facilities.length);
+  });
+});
+
+describe.skipIf(!has)('impact card agrees with the engine summaries (bundled replay)', () => {
+  const scenarios = manifest ? manifest.scenarios.map((sc) => sc.definition.id) : [];
+  it.each(scenarios.map((id) => [id] as const))('%s', (id) => {
+    const topo = topology!;
+    const byStrategy = Object.fromEntries(runs.filter((r) => r.scenarioId === id).map((r) => [r.strategy, r]));
+    const m = impactComparison(byStrategy, null, topo)!;
+    const hospital = topo.facilities.find((f) => f.kind === 'hospital')!;
+    for (const s of ['grid-only', 'encirra'] as const) {
+      const run = byStrategy[s];
+      // hospital minutes from frames never exceed the engine's "any critical facility" minutes
+      expect(facilityMinutesBelowService(run, topo, hospital.id)!).toBeLessThanOrEqual(run.summary.minutesBelowServicePressure + 1e-6);
+    }
+    const row = (k: string) => m.rows.find((r) => r.key === k)!;
+    expect(row('restored').encirra).toBeCloseTo(summaryRestoredShare(byStrategy.encirra.summary)!, 6);
+    expect(row('pumps').grid).toBe(byStrategy['grid-only'].summary.pumpsAvailableEnd);
+    expect(row('violations').encirra).toBe(byStrategy.encirra.summary.constraintViolations);
+    // identical plans must read as identical outcomes
+    if (m.samePlan) expect(m.allSame).toBe(true);
   });
 });

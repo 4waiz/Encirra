@@ -46,14 +46,14 @@ export function Modal({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
         >
-          <div className="absolute inset-0 bg-[rgba(21,40,60,0.28)]" onClick={onClose} aria-hidden />
+          <div className="absolute inset-0 bg-[rgba(6,12,20,0.45)]" onClick={onClose} aria-hidden />
           <motion.div
             ref={ref}
             role="dialog"
             aria-modal="true"
             tabIndex={-1}
             data-testid={testId}
-            className={clsx('relative flex max-h-[min(88vh,900px)] w-full flex-col overflow-hidden rounded-[12px] bg-white shadow-2xl outline-none')}
+            className={clsx('relative flex max-h-[min(88vh,900px)] w-full flex-col overflow-hidden rounded-[16px] bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)] outline-none')}
             style={{ maxWidth: width }}
             initial={{ y: 14, opacity: 0.6, scale: 0.99 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}

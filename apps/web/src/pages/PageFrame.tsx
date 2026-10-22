@@ -7,7 +7,7 @@ import { SourceChip } from '@/ui/primitives';
 export function PageFrame({ title, subtitle, actions, children, testId }: { title: string; subtitle?: ReactNode; actions?: ReactNode; children: ReactNode; testId?: string }) {
   const { dataSource } = useSource();
   return (
-    <div className="enc-panel enc-panel-strong flex h-full min-h-0 flex-col rounded-[12px]" data-testid={testId}>
+    <div className="enc-panel enc-panel-strong flex h-full min-h-0 flex-col rounded-[14px]" data-testid={testId}>
       <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line px-[clamp(14px,1.3vw,24px)] pt-[clamp(10px,1.4vh,16px)] pb-3">
         <div className="min-w-0">
           <div className="flex items-center gap-3">
