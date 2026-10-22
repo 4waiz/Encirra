@@ -70,7 +70,7 @@ export function WelcomeCard() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 8 }}
           transition={{ duration: 0.28, ease: [0.2, 0.7, 0.2, 1] }}
-          className="ui-dark glass glass-solid pointer-events-auto absolute bottom-[calc(var(--footer-h)+var(--bar-h)+var(--gap)*2)] left-1/2 z-30 w-[min(460px,calc(100vw-2*var(--rail-w)-4*var(--gap)))] min-w-[340px] -translate-x-1/2 rounded-[16px] p-5"
+          className="ui-dark glass glass-solid pointer-events-auto absolute bottom-[calc(var(--footer-h)+var(--bar-h)+var(--gap)*2)] left-1/2 z-30 w-[min(460px,calc(100vw-2*var(--rail-w)-4*var(--gap)))] min-w-[340px] -translate-x-1/2 rounded-[16px] p-5 max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:left-0 max-lg:z-[46] max-lg:max-h-[88dvh] max-lg:w-auto max-lg:min-w-0 max-lg:translate-x-0 max-lg:overflow-y-auto max-lg:rounded-b-none max-lg:rounded-t-[22px] max-lg:border-x-0 max-lg:border-b-0 max-lg:pb-[max(20px,env(safe-area-inset-bottom))] max-lg:landscape:mx-auto max-lg:landscape:max-w-[560px]"
           role="dialog"
           aria-label="Welcome to Encirra"
           data-testid="welcome"

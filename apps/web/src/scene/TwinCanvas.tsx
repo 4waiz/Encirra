@@ -9,6 +9,9 @@ import { motion } from './anim/motion';
 
 const TIERS: QualityTier[] = ['low', 'medium', 'high'];
 const DPR: Record<QualityTier, [number, number]> = { high: [1, 1.5], medium: [1, 1], low: [0.6, 0.7] };
+// high-density phones look blurry below ~1× device pixels even on the low tier
+const COARSE = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
+if (COARSE) DPR.low = [0.8, 1];
 
 /**
  * Full-screen WebGL canvas that hosts the 3D digital twin.

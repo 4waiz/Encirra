@@ -8,8 +8,14 @@ export type QualityTier = 'high' | 'medium' | 'low';
 
 interface SceneQuality {
   tier: QualityTier;
+  /** Upper bound for automatic upgrades (phones cap at 'low' / 'medium'). */
+  maxTier: QualityTier;
   setTier: (t: QualityTier) => void;
+  setMaxTier: (t: QualityTier) => void;
 }
+
+const RANK: Record<QualityTier, number> = { low: 0, medium: 1, high: 2 };
+const capTier = (t: QualityTier, max: QualityTier): QualityTier => (RANK[t] > RANK[max] ? max : t);
 
 function initialTier(): QualityTier {
   if (typeof window === 'undefined') return 'high';
@@ -20,7 +26,9 @@ function initialTier(): QualityTier {
 
 export const useSceneQuality = create<SceneQuality>()((set) => ({
   tier: initialTier(),
-  setTier: (tier) => set({ tier }),
+  maxTier: 'high',
+  setTier: (tier) => set((s) => ({ tier: capTier(tier, s.maxTier) })),
+  setMaxTier: (maxTier) => set((s) => ({ maxTier, tier: capTier(s.tier, maxTier) })),
 }));
 
 export const fx = {

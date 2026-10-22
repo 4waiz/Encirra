@@ -10,6 +10,7 @@ import { indexTopology, POWER_LABEL, STATUS_LABEL, WATER_LABEL } from '@/data/se
 import { busName, fmtInt, fmtKW, fmtLps, fmtM, fmtNum, fmtPct, fmtPu, titleCase } from '@/data/format';
 import { Pill, POWER_TONE, STATUS_TONE, WATER_TONE, Dot, STATE_COLOR } from '@/ui/primitives';
 import { buildingJunctions } from '@/maps/geometry';
+import { useIsMobile } from '@/app/viewport';
 
 const STATE_LABEL: Record<ElementState, string> = {
   energized: 'Energized',
@@ -385,8 +386,10 @@ export function FacilityInspector() {
   const head = sel && ctx ? titleFor(sel, ctx.topology) : null;
   // Docked in the right rail's slot (the telemetry rail slides out while inspecting), so it never
   // covers another module; in focus mode it docks over the twin, above the bar pill.
-  const top = 'calc(var(--header-h) + var(--gap))';
-  const bottom = focus ? 'calc(var(--footer-h) + 52px + var(--gap) * 2)' : 'calc(var(--footer-h) + var(--bar-h) + var(--gap) * 2)';
+  // phones: a full-height sheet below the header
+  const mobile = useIsMobile();
+  const top = mobile ? 'var(--header-h)' : 'calc(var(--header-h) + var(--gap))';
+  const bottom = mobile ? '0px' : focus ? 'calc(var(--footer-h) + 52px + var(--gap) * 2)' : 'calc(var(--footer-h) + var(--bar-h) + var(--gap) * 2)';
   return (
     <AnimatePresence>
       {sel && ctx && head && page === 'live' && (
@@ -396,7 +399,7 @@ export function FacilityInspector() {
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: 24, opacity: 0 }}
           transition={{ duration: 0.22, ease: [0.2, 0.7, 0.2, 1] }}
-          className="ui-dark glass glass-solid absolute right-[var(--pad-x)] z-30 flex w-[var(--rail-w)] flex-col overflow-hidden rounded-[14px] transition-[top,bottom] duration-300"
+          className="ui-dark glass glass-solid absolute right-[var(--pad-x)] z-30 flex w-[var(--rail-w)] flex-col overflow-hidden rounded-[14px] transition-[top,bottom] duration-300 max-lg:fixed max-lg:inset-x-0 max-lg:z-[35] max-lg:w-auto max-lg:rounded-none max-lg:border-x-0 max-lg:pb-[env(safe-area-inset-bottom)]"
           style={{ top, bottom }}
           data-testid="inspector"
           aria-label="Asset inspector"
@@ -410,11 +413,15 @@ export function FacilityInspector() {
             <button
               type="button"
               className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[11.5px] font-semibold text-info hover:bg-white/10"
-              onClick={() => requestCamera({ focus: sel })}
+              onClick={() => {
+                requestCamera({ focus: sel });
+                // on phones the sheet covers the twin: close it so the framed asset is visible
+                if (mobile) setSelected(null);
+              }}
               data-tip="Frame in 3D"
               data-tip-pos="bottom-end"
             >
-              <Crosshair size={14} /> Focus
+              <Crosshair size={14} /> {mobile ? 'Show in 3D' : 'Focus'}
             </button>
             <button type="button" className="rounded-md p-1 text-slate hover:bg-white/10 hover:text-navy" onClick={() => setSelected(null)} aria-label="Close inspector" data-testid="inspector-close">
               <X size={16} />

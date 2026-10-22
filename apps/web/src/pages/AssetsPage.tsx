@@ -167,7 +167,7 @@ export function AssetsPage() {
 
   return (
     <PageFrame title="Assets" testId="assets" subtitle={`Inventory of the modelled district at ${ctx?.frame.clock ?? '—'} (simulated) — select an asset for details, or show it in the 3D twin.`}>
-      <div className="grid h-full min-h-0 gap-3 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid h-full min-h-0 gap-3 max-lg:h-auto lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="flex min-h-0 min-w-0 flex-col">
           <div className="flex flex-wrap items-center gap-2">
             <label className="relative flex min-w-[220px] flex-1 items-center">
@@ -180,7 +180,7 @@ export function AssetsPage() {
                 data-testid="asset-search"
               />
             </label>
-            <div className="flex flex-wrap gap-1" role="tablist" data-testid="asset-kinds">
+            <div className="flex flex-wrap gap-1 max-lg:m-scroll max-lg:-mx-1 max-lg:w-full max-lg:flex-nowrap max-lg:overflow-x-auto max-lg:px-1 max-lg:[&>button]:shrink-0" role="tablist" data-testid="asset-kinds">
               <button type="button" role="tab" aria-selected={kind === 'all'} onClick={() => setKind('all')} className={chip(kind === 'all')}>
                 All <span className="opacity-70">{items.length}</span>
               </button>
@@ -191,8 +191,8 @@ export function AssetsPage() {
               ))}
             </div>
           </div>
-          <div className="enc-scroll mt-2 min-h-[240px] flex-1 overflow-auto rounded-lg border border-line bg-white">
-            <table className="w-full border-collapse text-left text-[12.5px]">
+          <div className="enc-scroll mt-2 min-h-[240px] flex-1 overflow-auto rounded-lg border border-line bg-white max-lg:max-h-[55dvh]">
+            <table className="w-full border-collapse text-left text-[12.5px] max-lg:min-w-[560px]">
               <thead className="sticky top-0 z-[1] bg-wash text-slate">
                 <tr>
                   <th className="px-3 py-1.5 font-medium">Name</th>
@@ -247,7 +247,7 @@ export function AssetsPage() {
             </table>
           </div>
         </div>
-        <aside className="enc-scroll min-h-0 overflow-y-auto rounded-lg border border-line bg-white px-4 py-3" data-testid="asset-details">
+        <aside className="enc-scroll min-h-0 overflow-y-auto rounded-lg border border-line bg-white px-4 py-3 max-lg:overflow-visible" data-testid="asset-details">
           {ctx && active ? (
             <>
               <div className="flex items-start justify-between gap-2">

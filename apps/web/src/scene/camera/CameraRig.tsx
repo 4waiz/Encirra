@@ -163,13 +163,16 @@ export function CameraRig() {
     const bandCentreX = ol ? ol.safe.x + ol.safe.width / 2 : W / 2;
     const bandRatio = ol ? ol.safe.height / H : 0.45;
     const bandRatioW = ol ? ol.safe.width / W : 1;
-    const targetShift = MathUtils.clamp(H / 2 - bandCentre, -H * 0.15, H * 0.15);
-    const targetShiftX = MathUtils.clamp(W / 2 - bandCentreX, -W * 0.2, W * 0.2);
+    const targetShift = MathUtils.clamp(H / 2 - bandCentre, -H * 0.32, H * 0.32);
+    const targetShiftX = MathUtils.clamp(W / 2 - bandCentreX, -W * 0.32, W * 0.32);
     // height-driven zoom (focus mode), capped so the district (≈ 50 % of the frame width at zoom 1)
     // still fits the band width with a margin
     const zoomH = MathUtils.clamp(0.55 + 0.9 * bandRatio, 1, 1.38);
-    const zoomW = (bandRatioW * 0.92) / 0.52;
-    const targetZoom = MathUtils.clamp(Math.min(zoomH, zoomW), 0.8, 1.38);
+    // the fov is vertical, so the district's share of the frame width grows as the aspect narrows
+    // (≈ 52 % at 16:9, ≈ 2× the width on a portrait phone)
+    const districtFrac = (0.52 * (16 / 9)) / Math.max(0.3, W / H);
+    const zoomW = (bandRatioW * 0.92) / districtFrac;
+    const targetZoom = MathUtils.clamp(Math.min(zoomH, zoomW), 0.32, 1.38);
     shift.current += (targetShift - shift.current) * 0.08;
     shiftX.current += (targetShiftX - shiftX.current) * 0.08;
     zoom.current += (targetZoom - zoom.current) * 0.08;

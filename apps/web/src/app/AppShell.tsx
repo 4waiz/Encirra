@@ -19,6 +19,20 @@ const ReportsPage = lazy(() => import('@/pages/ReportsPage').then((m) => ({ defa
 import { Header } from './Header';
 import { Footer } from './Footer';
 import { WelcomeCard, useFirstVisitWelcome } from './Welcome';
+import { useIsMobile } from './viewport';
+import { MobileHeader, MobileMenu } from '@/mobile/MobileHeader';
+import { MobileTwin } from '@/mobile/MobileTwin';
+import { useSceneQuality } from '@/scene/runtime';
+
+/** Phones render the scene at the low quality tier; touch tablets cap at medium. */
+function useDeviceQuality(mobile: boolean) {
+  useEffect(() => {
+    const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+    const q = useSceneQuality.getState();
+    if (mobile) q.setMaxTier('low');
+    else if (coarse) q.setMaxTier('medium');
+  }, [mobile]);
+}
 
 function useKeyboard() {
   useEffect(() => {
@@ -103,12 +117,16 @@ function StatusOverlay() {
   );
 }
 
-function PageLayer() {
+function PageLayer({ mobile }: { mobile: boolean }) {
   const page = useTwin((s) => s.page);
   return (
     <AnimatePresence mode="wait" initial={false}>
       {page === 'live' ? (
-        <LiveTwin key="live" />
+        mobile ? (
+          <MobileTwin key="live-m" />
+        ) : (
+          <LiveTwin key="live" />
+        )
       ) : (
         <motion.main
           key={page}
@@ -146,8 +164,10 @@ export function AppShell() {
     void bootstrap();
   }, []);
   const page = useTwin((s) => s.page);
+  const mobile = useIsMobile();
+  useDeviceQuality(mobile);
   return (
-    <div className="relative h-full w-full overflow-hidden" data-testid="app">
+    <div className="relative h-full w-full overflow-hidden" data-testid="app" data-mobile={mobile ? 'true' : undefined}>
       <div className="absolute inset-0 z-0">
         <TwinCanvas />
       </div>
@@ -165,9 +185,9 @@ export function AppShell() {
           />
         )}
       </AnimatePresence>
-      <Header />
-      <PageLayer />
-      <Footer />
+      {mobile ? <MobileHeader /> : <Header />}
+      <PageLayer mobile={mobile} />
+      {mobile ? <MobileMenu /> : <Footer />}
       <WelcomeCard />
       <FacilityInspector />
       <WhyPlanModal />

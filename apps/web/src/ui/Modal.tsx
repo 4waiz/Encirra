@@ -40,7 +40,7 @@ export function Modal({
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 max-lg:p-0"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -53,7 +53,7 @@ export function Modal({
             aria-modal="true"
             tabIndex={-1}
             data-testid={testId}
-            className={clsx('relative flex max-h-[min(88vh,900px)] w-full flex-col overflow-hidden rounded-[16px] bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)] outline-none')}
+            className={clsx('relative flex max-h-[min(88vh,900px)] w-full flex-col overflow-hidden rounded-[16px] bg-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)] outline-none max-lg:h-[100dvh] max-lg:max-h-none max-lg:rounded-none max-lg:pt-[env(safe-area-inset-top)] max-lg:pb-[env(safe-area-inset-bottom)]')}
             style={{ maxWidth: width }}
             initial={{ y: 14, opacity: 0.6, scale: 0.99 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
@@ -72,7 +72,7 @@ export function Modal({
                 <X size={18} />
               </button>
             </div>
-            <div className="enc-scroll min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>
+            <div className="enc-scroll min-h-0 flex-1 overflow-y-auto px-5 py-4 max-lg:overflow-x-hidden max-lg:px-4">{children}</div>
           </motion.div>
         </motion.div>
       )}

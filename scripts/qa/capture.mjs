@@ -31,7 +31,7 @@ const browser = await chromium.launch({
 });
 const report = [];
 for (const [w, h] of sizes) {
-  const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });
+  const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: Number(args.dsf ?? 1) });
   const logs = [];
   page.on('console', (m) => {
     if (m.type() === 'error' || m.type() === 'warning') logs.push(`[${m.type()}] ${m.text()}`);

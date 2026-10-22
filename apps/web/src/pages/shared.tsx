@@ -73,6 +73,8 @@ export function ComparisonTable({ compact, testId }: { compact?: boolean; testId
   const current = useTwin((s) => s.strategy);
   const metrics = compact ? COMPARISON_METRICS.filter((m) => ['outcome', 'unservedEnergyKWh', 'criticalUnservedKWh', 'waterDeliveredPct', 'minCriticalPressureM', 'minutesBelowServicePressure', 'pumps', 'constraintViolations', 'switchOps', 'planComputeMs'].includes(m.key)) : COMPARISON_METRICS;
   return (
+    <>
+    <p className="mb-1.5 text-[12px] text-slate lg:hidden">Swipe the table sideways to see every column →</p>
     <div className="overflow-x-auto rounded-lg border border-line" data-testid={testId}>
       <table className="w-full min-w-[560px] border-collapse text-left text-[12.5px]">
         <thead>
@@ -127,6 +129,7 @@ export function ComparisonTable({ compact, testId }: { compact?: boolean; testId
       </table>
       <div className="border-t border-line/70 bg-wash/50 px-3 py-1.5 text-[11px] text-slate">Bold = best value across strategies where a direction is meaningful. All values from the loaded run summaries.</div>
     </div>
+    </>
   );
 }
 

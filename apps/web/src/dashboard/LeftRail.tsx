@@ -265,7 +265,9 @@ const PLAN_STICKY = 'glass-solid sticky bottom-0 z-10';
 
 const RECOVERY_TONE: Record<Tone, RailTone> = { neutral: 'neutral', info: 'warn', progress: 'warn', ok: 'ok', warn: 'warn', fault: 'fault' };
 
-export function PlanBox() {
+/** `pinned` keeps the box at the rail bottom when the rail scrolls (desktop); the phone sheet scrolls it normally. */
+export function PlanBox({ pinned = true }: { pinned?: boolean } = {}) {
+  const plan = pinned ? PLAN_STICKY : 'glass-solid';
   const ctx = useRunCtx();
   const setWhy = useTwin((s) => s.setWhyPlanOpen);
   const strategy = useTwin((s) => s.strategy);
@@ -289,7 +291,7 @@ export function PlanBox() {
   );
   if (!ctx || !model) {
     return (
-      <Module side="left" index={3} data-testid="recovery-card" className={PLAN_STICKY}>
+      <Module side="left" index={3} data-testid="recovery-card" className={plan}>
         {switcher}
       </Module>
     );
@@ -299,7 +301,7 @@ export function PlanBox() {
   const showPct = ctx.frame.stage !== 'ready';
   const whyEnabled = model.planVisible || (ctx.run.strategy === 'none' && ctx.frame.stage !== 'ready');
   return (
-    <Module side="left" index={3} accent={tone} data-testid="recovery-card" data-tone={model.tone} className={PLAN_STICKY}>
+    <Module side="left" index={3} accent={tone} data-testid="recovery-card" data-tone={model.tone} className={plan}>
       <div>{switcher}</div>
       <div className="mt-3 flex items-center justify-between gap-2">
         <h3 className={clsx('min-w-0 truncate text-[15px] leading-tight font-semibold transition-colors duration-500', tone === 'neutral' ? 'text-navy' : TONE_INK[tone])} data-testid="recovery-title" title={model.title}>

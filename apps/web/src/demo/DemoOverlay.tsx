@@ -28,16 +28,16 @@ export function DemoOverlay() {
           data-step={step.id}
           data-paused={demo.paused}
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 max-lg:flex-wrap max-lg:gap-y-1">
             <Clapperboard size={15} className="shrink-0 text-power" />
-            <span className="t-kicker !text-power">
+            <span className="t-kicker !text-power max-lg:whitespace-nowrap">
               Cinematic demo · {done ? 'complete' : `step ${demo.stepIndex + 1} of ${DEMO_STEPS.length}`}
             </span>
             <span className="t-micro text-slate tabular" data-testid="demo-time">
               {mmss(demo.elapsedS)} / {mmss(DEMO_LENGTH)}
             </span>
             {demo.paused && !done && <span className="rounded bg-warn-soft px-1.5 py-[1px] t-micro font-semibold text-warn">Paused — explore freely, then resume</span>}
-            <div className="ml-auto flex items-center gap-0.5">
+            <div className="ml-auto flex items-center gap-0.5 max-lg:-mx-2 max-lg:w-[calc(100%+16px)] max-lg:justify-between">
               <button type="button" className="rounded-md p-1 text-ink hover:bg-white/10" onClick={demoControls.back} aria-label="Previous step" data-tip="Previous step" data-tip-pos="top">
                 <SkipBack size={15} />
               </button>
@@ -69,7 +69,7 @@ export function DemoOverlay() {
             </div>
           </div>
           <div className="mt-1.5 text-[16px] font-semibold text-navy">{done ? 'Demo complete' : step.title}</div>
-          <p className="mt-0.5 text-[12.5px] leading-snug text-ink" data-testid="demo-caption">
+          <p className="mt-0.5 text-[12.5px] leading-snug text-ink max-lg:landscape:line-clamp-2" data-testid="demo-caption">
             {done ? 'Replay the sequence, or explore the twin, Analytics and Reports freely.' : caption}
           </p>
           <div className="mt-2 flex gap-[3px]">

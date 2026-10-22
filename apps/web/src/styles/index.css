@@ -524,3 +524,120 @@ input[type='range'].enc-range:disabled::-webkit-slider-thumb {
     display: none;
   }
 }
+
+/* ───────────── phones & small tablets (< 1024 px): touch layout (src/mobile) ─────────────
+ * Everything below is scoped to this media query, so the desktop layout is untouched. */
+@media (max-width: 1023.98px) {
+  :root {
+    --pad-x: 8px;
+    --gap: 8px;
+    --m-header: 48px;
+    --header-h: calc(var(--m-header) + env(safe-area-inset-top));
+    --footer-h: env(safe-area-inset-bottom);
+  }
+  html,
+  body,
+  #root {
+    height: 100dvh;
+    overscroll-behavior: none;
+  }
+  /* legibility floor: nothing under 12 px on a phone */
+  [class*='text-[9'],
+  [class*='text-[10px]'],
+  [class*='text-[10.5px]'],
+  [class*='text-[11px]'],
+  [class*='text-[11.5px]'],
+  .t-kicker,
+  .t-micro,
+  .t-label {
+    font-size: 12px !important;
+  }
+  .recharts-wrapper svg text {
+    font-size: 12px;
+  }
+  /* touch targets */
+  button,
+  select,
+  summary,
+  [role='radio'],
+  [role='menuitem'] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  /* tooltips: tap (sticky hover) or long-press shows them on touch screens */
+  [data-tip]:active::after {
+    content: attr(data-tip);
+    position: absolute;
+    z-index: 60;
+    width: max-content;
+    max-width: min(260px, 80vw);
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: rgba(11, 22, 36, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #f2f6fa;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.35;
+    pointer-events: none;
+    top: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  [data-tip]::after {
+    max-width: min(260px, 80vw) !important;
+  }
+  .m-safe-x {
+    padding-left: max(var(--pad-x), env(safe-area-inset-left));
+    padding-right: max(var(--pad-x), env(safe-area-inset-right));
+  }
+  .m-scroll {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .m-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  /* desktop rail tweaks that do not apply inside the phone sheet */
+  .m-sheet .rail-scroll {
+    max-height: none;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  input[type='range'].m-range {
+    height: 28px;
+  }
+  input[type='range'].m-range::-webkit-slider-thumb {
+    width: 22px;
+    height: 22px;
+    margin-top: -9px;
+    border-width: 3px;
+  }
+  .m-sheet .fade-bottom {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  input[type='range'].m-range {
+    height: 44px;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  /* 3D callout subtitles keep the 12 px floor on phones */
+  body .enc-lbl-sub {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .t-num .u,
+  .t-num-xl .u {
+    font-size: max(12px, 0.56em);
+  }
+}

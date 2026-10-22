@@ -7,6 +7,7 @@ import { feederServedKW, frameIndexAtT, runMarks, STRATEGY_LABEL, waterSeries } 
 import { fmtNum } from '@/data/format';
 import { AXIS_LINE, AXIS_TICK, GRID, LegendKey, SERIES, STRATEGY_COLOR, TipBox, clockTick, timeTicks } from '@/charts/common';
 import { ChartCard, PageFrame } from './PageFrame';
+import { useIsMobile } from '@/app/viewport';
 
 const PROFILE = { before: '#98A2AD', during: '#C97E0A', after: '#2A6CB5' } as const;
 const PUMP_COLORS = ['#2A6CB5', '#C97E0A', '#0E9F8E', '#B5446E'];
@@ -99,6 +100,7 @@ function VoltageProfile({ run, topology }: { run: RunResult; topology: NetworkTo
 }
 
 function LineLoading({ topology, frame }: { topology: NetworkTopology; frame: Frame }) {
+  const mobile = useIsMobile();
   const lim = topology.electrical.limits.loadingMaxPct;
   const data = topology.electrical.lines.map((l, i) => ({ name: `${l.from + 1}–${l.to + 1}`, id: l.id, tie: l.kind === 'tie', loading: frame.power.lineLoadingPct[i], state: frame.power.lineState[i] }));
   return (
@@ -111,7 +113,7 @@ function LineLoading({ topology, frame }: { topology: NetworkTopology; frame: Fr
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 6, right: 8, bottom: 0, left: 0 }} barCategoryGap={2}>
           <CartesianGrid vertical={false} {...GRID} />
-          <XAxis dataKey="name" tick={{ ...AXIS_TICK, fontSize: 9 }} axisLine={AXIS_LINE} tickLine={false} interval={2} height={18} />
+          <XAxis dataKey="name" tick={{ ...AXIS_TICK, fontSize: 9 }} axisLine={AXIS_LINE} tickLine={false} interval={mobile ? 6 : 2} height={18} />
           <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} width={42} domain={[0, (max: number) => Math.max(lim * 1.1, Math.ceil(max / 10) * 10)]} tickFormatter={(v: number) => `${Math.round(v)}%`} />
           <ReferenceLine y={lim} stroke="#c8281d" strokeDasharray="4 3" />
           <Bar dataKey="loading" isAnimationActive={false} radius={[3, 3, 0, 0]} maxBarSize={14}>

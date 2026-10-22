@@ -40,7 +40,8 @@ export function VerifiedBadge({ passed }: { passed: boolean }) {
 
 function CheckTable({ checks }: { checks: VerificationCheck[] }) {
   return (
-    <table className="w-full border-collapse text-left text-[12px]">
+    <div className="max-lg:overflow-x-auto">
+    <table className="w-full border-collapse text-left text-[12px] max-lg:min-w-[520px]">
       <thead>
         <tr className="border-b border-line text-slate">
           <th className="py-1 pr-2 font-medium">Check</th>
@@ -72,6 +73,7 @@ function CheckTable({ checks }: { checks: VerificationCheck[] }) {
         ))}
       </tbody>
     </table>
+    </div>
   );
 }
 
@@ -79,8 +81,8 @@ function Breakdown({ run, chosen, runnerUp }: { run: RunResult; chosen: ScoreBre
   const rb = runnerUp?.scoreBreakdown ?? null;
   const max = Math.max(1e-9, ...COMPONENTS.flatMap((c) => [Math.abs(chosen[c.key]), rb ? Math.abs(rb[c.key]) : 0]));
   return (
-    <div className="rounded-lg border border-line">
-      <table className="w-full border-collapse text-left text-[12px]">
+    <div className="rounded-lg border border-line max-lg:overflow-x-auto">
+      <table className="w-full border-collapse text-left text-[12px] max-lg:min-w-[560px]">
         <thead>
           <tr className="border-b border-line bg-wash text-slate">
             <th className="px-3 py-1.5 font-medium">Objective term</th>
@@ -181,7 +183,7 @@ export function WhyPlanModal() {
                   {plan.actions.map((a) => (
                     <li key={`${a.switchId}-${a.action}`} className="flex gap-2">
                       <span className={clsx('w-12 shrink-0 font-semibold uppercase', a.action === 'close' ? 'text-ok-deep' : 'text-fault')}>{a.action}</span>
-                      <span className="font-medium text-navy">{a.switchId}</span>
+                      <span className="font-medium whitespace-nowrap text-navy">{a.switchId}</span>
                       <span className="text-slate">— {a.reason}</span>
                     </li>
                   ))}

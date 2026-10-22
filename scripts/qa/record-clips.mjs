@@ -11,7 +11,7 @@ import { join, resolve } from 'node:path';
 
 const args = Object.fromEntries(process.argv.slice(2).map((a) => { const [k, ...v] = a.replace(/^--/, '').split('='); return [k, v.join('=') || 'true']; }));
 const root = resolve(import.meta.dirname, '..', '..');
-const url = args.url ?? 'http://127.0.0.1:5173/';
+const url = args.url ?? 'http://127.0.0.1:5173/?welcome=0';
 const fps = Number(args.fps ?? 30);
 const out = resolve(root, args.out ?? 'brag-output/clips');
 const only = args.only ? new Set(args.only.split(',')) : null;
@@ -20,12 +20,12 @@ const W = 1920, H = 1080;
 // minute → frame index: frames are 1 min apart starting 16:30 (fault at 17:00 = frame 30)
 const S = (code) => `(() => { const s = window.__encirra.useTwin.getState(); ${code} })()`;
 const CLIPS = [
-  { name: 'fault', seconds: 4.6, setup: S("s.setFocusTwin(true); s.switchStrategy('encirra'); s.setSpeed(2); s.setPlayhead(28.2); s.requestCamera({ shot: 'home', durationS: 0.01 });"), start: S('s.setPlaying(true);') },
-  { name: 'cascade', seconds: 6.6, setup: S("s.setFocusTwin(true); s.switchStrategy('grid-only'); s.setSpeed(8); s.setPlayhead(34); s.requestCamera({ shot: 'home', durationS: 0.01 });"), start: S("s.setLayer('underground', true); s.setPlaying(true);"), after: S("s.setLayer('underground', false); s.setPlaying(false);") },
-  { name: 'assemble', seconds: 4.2, setup: S("s.setFocusTwin(true); s.switchStrategy('encirra'); s.setPlaying(false); s.setPlayhead(5); s.requestCamera({ shot: 'home', durationS: 0.01 });"), start: S('s.playIntro();') },
+  { name: 'fault', clean: true, seconds: 4.6, setup: S("s.setFocusTwin(true); s.switchStrategy('encirra'); s.setSpeed(2); s.setPlayhead(28.2); s.requestCamera({ shot: 'home', durationS: 0.01 });"), start: S('s.setPlaying(true);') },
+  { name: 'cascade', clean: true, seconds: 6.6, setup: S("s.setFocusTwin(true); s.switchStrategy('grid-only'); s.setSpeed(8); s.setPlayhead(34); s.requestCamera({ shot: 'home', durationS: 0.01 });"), start: S("s.setLayer('underground', true); s.setPlaying(true);"), after: S("s.setLayer('underground', false); s.setPlaying(false);") },
+  { name: 'assemble', clean: true, seconds: 4.2, setup: S("s.setFocusTwin(true); s.switchStrategy('encirra'); s.setPlaying(false); s.setPlayhead(5); s.requestCamera({ shot: 'home', durationS: 0.01 });"), start: S('s.playIntro();') },
   { name: 'decision', seconds: 7.4, setup: S("s.setFocusTwin(false); s.switchStrategy('encirra'); s.setPlaying(false); s.setPlayhead(35); s.requestCamera({ shot: 'home', durationS: 0.01 });"), start: S('s.setWhyPlanOpen(true);'), after: S('s.setWhyPlanOpen(false);') },
   { name: 'restore', seconds: 5.8, setup: S("s.setWhyPlanOpen(false); s.setFocusTwin(false); s.switchStrategy('encirra'); s.setSpeed(2); s.setPlayhead(38.5); s.requestCamera({ shot: 'home', durationS: 0.01 });"), start: S('s.setPlaying(true);') },
-  { name: 'outro', seconds: 3.4, setup: S("s.setPlaying(false); s.setFocusTwin(true); s.setPlayhead(60); s.requestCamera({ shot: 'aerial', durationS: 0.01 });"), start: S("s.requestCamera({ shot: 'home', durationS: 3.6 });") },
+  { name: 'outro', clean: true, seconds: 3.4, setup: S("s.setPlaying(false); s.setFocusTwin(true); s.setPlayhead(60); s.requestCamera({ shot: 'aerial', durationS: 0.01 });"), start: S("s.requestCamera({ shot: 'home', durationS: 3.6 });") },
 ];
 
 const browser = await chromium.launch({ channel: 'msedge', headless: true, args: ['--use-angle=d3d11', '--enable-gpu', '--ignore-gpu-blocklist'] });
@@ -50,6 +50,12 @@ for (const clip of CLIPS) {
   const dir = join(out, clip.name);
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
+  // clean shots: hide every overlay except the WebGL canvas (and its 3D labels)
+  await page.evaluate((clean) => {
+    let st = document.getElementById('rec-clean');
+    if (clean && !st) { st = document.createElement('style'); st.id = 'rec-clean'; st.textContent = '[data-testid=app] > *:not(:first-child){visibility:hidden !important}'; document.head.appendChild(st); }
+    if (!clean && st) st.remove();
+  }, !!clip.clean);
   await page.evaluate(clip.setup);
   for (let i = 0; i < 30; i++) await page.clock.runFor(100); // settle 3 s of simulated time
   await page.evaluate(clip.start);

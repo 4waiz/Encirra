@@ -123,6 +123,8 @@ export function ReportsPage() {
         {cands.length === 0 ? (
           <p className="text-[12.5px] text-slate">No candidates in the loaded Encirra run.</p>
         ) : (
+          <>
+          <p className="mb-1.5 text-[12px] text-slate lg:hidden">Swipe the table sideways to see every column →</p>
           <div className="overflow-x-auto rounded-lg border border-line">
             <table className="w-full min-w-[720px] border-collapse text-left text-[12px]">
               <thead className="bg-wash text-slate">
@@ -177,6 +179,7 @@ export function ReportsPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
         {enc?.plan && (
           <div className="mt-2 grid gap-3 text-[12.5px] md:grid-cols-2">

@@ -52,7 +52,7 @@ export function PowerModule() {
           <Unit>kW</Unit>
         </Stat>
       </div>
-      <div className="mt-1 h-[clamp(88px,9.5vh,120px)] short:h-[80px]">
+      <div className="mt-1 h-[clamp(88px,9.5vh,120px)] short:h-[80px] max-lg:!h-[150px]">
         <PowerSpark run={run} playMin={frame.t / 60} />
       </div>
       {open && (
@@ -133,7 +133,7 @@ export function WaterModule() {
           <Unit>%</Unit>
         </Stat>
       </div>
-      <div className="mt-1 h-[clamp(120px,13vh,160px)] short:h-[112px]">
+      <div className="mt-1 h-[clamp(120px,13vh,160px)] short:h-[112px] max-lg:!h-[200px]">
         <WaterSpark run={run} topology={topology} playMin={frame.t / 60} />
       </div>
       {open && (
@@ -308,7 +308,7 @@ export function OverviewModule() {
           />
         }
       />
-      <div className="mt-2.5 flex h-[clamp(116px,12.8vh,180px)] gap-3 short:h-[118px]">
+      <div className="mt-2.5 flex h-[clamp(116px,12.8vh,180px)] gap-3 short:h-[118px] max-lg:!h-[200px]">
       <div className="relative min-w-0 flex-1 overflow-hidden rounded-[10px] bg-[#101d2f] ring-1 ring-white/5" data-testid={tab === 'feeder' ? 'feeder-card' : 'overview-map'}>
         {ctx && tab === 'feeder' && marks && (
           <FeederMap topology={ctx.topology} frame={ctx.frame} faultActive={marks.faultT != null && ctx.frame.t >= marks.faultT} faultLineId={ctx.run.summary.faultLineId} theme="dark" />
